@@ -2,40 +2,65 @@ package com.example.community_app.config
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import io.ktor.server.auth.jwt.JWTAuthenticationProvider
-import io.ktor.server.auth.jwt.JWTPrincipal
+import com.example.community_app.util.TokenStore
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.config.*
 import java.util.*
 
+data class IssuedToken(val token: String, val jti: String, val expiresAtMillis: Long)
+
 object JwtConfig {
   private lateinit var algorithm: Algorithm
-  lateinit var secret: String
+  private lateinit var secret: String
   lateinit var issuer: String
   lateinit var audience: String
   lateinit var realm: String
   var validityMs: Long = 0
 
   fun init(config: ApplicationConfig) {
-    val jwtConfig = config.config("ktor.jwt")
-    secret = jwtConfig.property("secret").getString()
-    issuer = jwtConfig.property("issuer").getString()
-    audience = jwtConfig.property("audience").getString()
-    realm = jwtConfig.property("realm").getString()
-    validityMs = jwtConfig.property("validityMs").getString().toLong()
+    // Prefer environment variable for secret; fall back to config for dev.
+    secret = System.getenv("JWT_SECRET") ?: config.property("ktor.jwt.secret").getString()
+    issuer = config.property("ktor.jwt.issuer").getString()
+    audience = config.property("ktor.jwt.audience").getString()
+    realm = config.property("ktor.jwt.realm").getString()
+    validityMs = config.property("ktor.jwt.validityMs").getString().toLong()
+
     algorithm = Algorithm.HMAC256(secret)
   }
 
-  fun generateToken(userId: Int): String = JWT.create()
-    .withAudience(audience)
-    .withIssuer(issuer)
-    .withClaim("userId", userId)
-    .withExpiresAt(Date(System.currentTimeMillis() + validityMs))
-    .sign(algorithm)
+  fun generateToken(userId: Int): IssuedToken {
+    val now = System.currentTimeMillis()
+    val exp = now + validityMs
+    val jti = UUID.randomUUID().toString()
+
+    val token = JWT.create()
+      .withSubject(userId.toString())
+      .withJWTId(jti)
+      .withAudience(audience)
+      .withIssuer(issuer)
+      .withIssuedAt(Date(now))
+      .withExpiresAt(Date(exp))
+      .sign(algorithm)
+
+    return IssuedToken(token = token, jti = jti, expiresAtMillis = exp)
+  }
 
   fun configure(config: JWTAuthenticationProvider.Config) {
-    config.verifier(JWT.require(algorithm).withIssuer(issuer).withAudience(audience).build())
+    val verifier = JWT
+      .require(algorithm)
+      .withIssuer(issuer)
+      .withAudience(audience)
+      .build()
+
+    config.realm = realm
+    config.verifier(verifier)
     config.validate { credential ->
-      if (credential.payload.getClaim("userId").asInt() != null) JWTPrincipal(credential.payload) else null
+      val sub = credential.payload.subject
+      val jti = credential.jwtId
+      if (sub.isNullOrBlank() || jti.isNullOrBlank()) return@validate null
+      // deny if revoked
+      if (TokenStore.isRevoked(jti)) return@validate null
+      JWTPrincipal(credential.payload)
     }
   }
 }
