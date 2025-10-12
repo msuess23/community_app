@@ -10,12 +10,21 @@ androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.9.4"
 androidx-testExt = "1.3.0"
 composeMultiplatform = "1.9.0"
+exposedCore = "0.61.0"
+h2 = "2.4.240"
+javaJwt = "4.5.0"
 junit = "4.13.2"
 kotlin = "2.2.20"
 ktor = "3.3.0"
 logback = "1.5.18"
 
 [libraries]
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposedCore" }
+exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposedCore" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposedCore" }
+h2 = { module = "com.h2database:h2", version.ref = "h2" }
+h2-x-x-x32 = { module = "com.h2database:h2.2.3.232" }
+java-jwt = { module = "com.auth0:java-jwt", version.ref = "javaJwt" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
