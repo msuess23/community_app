@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.ktor)
+    alias(libs.plugins.kotlinSerialization)
     application
 }
 
@@ -31,10 +32,14 @@ dependencies {
     implementation("io.ktor:ktor-server-auth-jwt:${libs.versions.ktor.get()}")
     implementation(libs.java.jwt)
 
+    // --- Password Hashing (Argon2)
+    implementation("org.bouncycastle:bcprov-jdk18on:1.82")
+
     // --- Database (H2 + Exposed ORM)
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)
     implementation(libs.exposed.jdbc)
+    implementation("org.jetbrains.exposed:exposed-java-time:0.61.0")
     implementation(libs.h2)
 
     // --- File Uploads & Static Content

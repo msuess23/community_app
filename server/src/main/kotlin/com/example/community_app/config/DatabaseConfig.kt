@@ -1,19 +1,23 @@
 package com.example.community_app.config
 
-import io.ktor.server.application.*
+import com.example.community_app.model.*
 import io.ktor.server.config.ApplicationConfig
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object DatabaseConfig {
-  fun init(dbConfig: ApplicationConfig) {
+  fun init(config: ApplicationConfig) {
+    val dbConfig = config.config("ktor.database")
     Database.connect(
-      url = dbConfig.property("ktor.database.url").getString(),
-      driver = dbConfig.property("ktor.database.driver").getString(),
-      user = dbConfig.property("ktor.database.user").getString(),
-      password = dbConfig.property("ktor.database.password").getString()
+      url = dbConfig.property("url").getString(),
+      driver = dbConfig.property("driver").getString(),
+      user = dbConfig.property("user").getString(),
+      password = dbConfig.property("password").getString()
     )
 
-    transaction {}
+    transaction {
+      SchemaUtils.drop(Users)
+      SchemaUtils.create(Users)
+    }
   }
 }

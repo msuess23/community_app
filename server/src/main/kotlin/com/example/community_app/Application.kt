@@ -29,7 +29,11 @@ fun Application.module() {
 
   configureSerialization()
   configureCors()
+  configureExceptionHandling()
 
   JwtConfig.init(config)
   DatabaseConfig.init(config)
+
+  configureSecurity()
+  configureRouting()
 }
