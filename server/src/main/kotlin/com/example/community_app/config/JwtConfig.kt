@@ -2,7 +2,8 @@ package com.example.community_app.config
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.interfaces.JWTVerifier
+import io.ktor.server.auth.jwt.JWTAuthenticationProvider
+import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.config.*
 import java.util.*
 
@@ -24,13 +25,17 @@ object JwtConfig {
     algorithm = Algorithm.HMAC256(secret)
   }
 
-  fun generateToken(userId: Int, email: String): String = JWT.create()
+  fun generateToken(userId: Int): String = JWT.create()
     .withAudience(audience)
     .withIssuer(issuer)
     .withClaim("userId", userId)
-    .withClaim("email", email)
     .withExpiresAt(Date(System.currentTimeMillis() + validityMs))
     .sign(algorithm)
 
-  val verifier: JWTVerifier get() = JWT.require(algorithm).withIssuer(issuer).withAudience(audience).build()
+  fun configure(config: JWTAuthenticationProvider.Config) {
+    config.verifier(JWT.require(algorithm).withIssuer(issuer).withAudience(audience).build())
+    config.validate { credential ->
+      if (credential.payload.getClaim("userId").asInt() != null) JWTPrincipal(credential.payload) else null
+    }
+  }
 }

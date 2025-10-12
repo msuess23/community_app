@@ -2,26 +2,23 @@ package com.example.community_app.repository
 
 import com.example.community_app.model.UserEntity
 import com.example.community_app.model.Users
-import org.jetbrains.exposed.sql.transactions.transaction
+import kotlinx.coroutines.Dispatchers
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
-class UserRepository {
-  fun findByEmail(email: String) = transaction {
+object UserRepository {
+  suspend fun findByEmail(email: String): UserEntity? = newSuspendedTransaction(Dispatchers.IO) {
     UserEntity.find { Users.email eq email }.firstOrNull()
   }
 
-  fun findById(id: Int) = transaction {
+  suspend fun findById(id: Int): UserEntity? = newSuspendedTransaction(Dispatchers.IO) {
     UserEntity.findById(id)
   }
 
-  fun create(email: String, displayName: String?, passwordHash: String) = transaction {
+  suspend fun create(email: String, passwordHash: String, displayName: String?): UserEntity = newSuspendedTransaction(Dispatchers.IO) {
     UserEntity.new {
       this.email = email
-      this.displayName = displayName
       this.passwordHash = passwordHash
+      this.displayName = displayName
     }
-  }
-
-  fun updatePassword(id: Int, newHash: String) = transaction {
-    UserEntity.findById(id)?.let { it.passwordHash = newHash }
   }
 }
