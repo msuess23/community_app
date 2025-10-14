@@ -3,12 +3,14 @@ package com.example.community_app.repository
 import com.example.community_app.util.InfoCategory
 import com.example.community_app.dto.LocationDto
 import com.example.community_app.model.*
+import com.example.community_app.util.applyBbox
+import com.example.community_app.util.createLocation
+import com.example.community_app.util.updateFrom
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -72,14 +74,7 @@ object DefaultInfoRepository : InfoRepository {
     if (category != null) base.andWhere { Infos.category eq category }
     if (startsFrom != null) base.andWhere { Infos.startsAt greaterEq startsFrom }
     if (endsTo != null) base.andWhere { Infos.endsAt lessEq endsTo }
-    if (bbox != null && bbox.size == 4) {
-      base.andWhere {
-        (Locations.longitude greaterEq bbox[0]) and
-            (Locations.longitude lessEq bbox[2]) and
-            (Locations.latitude greaterEq bbox[1]) and
-            (Locations.latitude lessEq bbox[3])
-      }
-    }
+    base.applyBbox(bbox)
 
     base.orderBy(Infos.startsAt to SortOrder.ASC).map { it.toInfoRecord() }
   }
@@ -94,14 +89,7 @@ object DefaultInfoRepository : InfoRepository {
   }
 
   override suspend fun create(data: InfoCreateData): InfoRecord = newSuspendedTransaction(Dispatchers.IO) {
-    val locEntity = data.location?.let {
-      LocationEntity.new {
-        longitude = it.longitude
-        latitude = it.latitude
-        altitude = it.altitude
-        accuracy = it.accuracy
-      }
-    }
+    val locEntity = data.location?.let { createLocation(it) }
     val officeEntity = data.officeId?.let { OfficeEntity.findById(it) }
 
     val info = InfoEntity.new {
@@ -132,17 +120,9 @@ object DefaultInfoRepository : InfoRepository {
     }
     patch.location?.let {
       if (info.location == null) {
-        info.location = LocationEntity.new {
-          longitude = it.longitude
-          latitude = it.latitude
-          altitude = it.altitude
-          accuracy = it.accuracy
-        }
+        info.location = createLocation(it)
       } else {
-        info.location!!.longitude = it.longitude
-        info.location!!.latitude = it.latitude
-        info.location!!.altitude = it.altitude
-        info.location!!.accuracy = it.accuracy
+        info.location!!.updateFrom(it)
       }
     }
     patch.startsAt?.let { info.startsAt = it }

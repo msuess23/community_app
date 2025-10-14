@@ -2,6 +2,9 @@ package com.example.community_app.repository
 
 import com.example.community_app.dto.LocationDto
 import com.example.community_app.model.*
+import com.example.community_app.util.applyBbox
+import com.example.community_app.util.createLocation
+import com.example.community_app.util.updateFrom
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
@@ -24,7 +27,8 @@ data class OfficeRecord(
   val openingHours: String?,
   val contactEmail: String?,
   val phone: String?,
-  val location: LocationRecord
+  val location: LocationRecord,
+  val createdAt: java.time.Instant
 )
 
 interface OfficeRepository {
@@ -73,14 +77,7 @@ object DefaultOfficeRepository : OfficeRepository {
                 (Offices.services like "%$q%")
           }
         }
-        if (bbox != null && bbox.size == 4) {
-          andWhere {
-            (Locations.longitude greaterEq bbox[0]) and
-                (Locations.longitude lessEq bbox[2]) and
-                (Locations.latitude greaterEq bbox[1]) and
-                (Locations.latitude lessEq bbox[3])
-          }
-        }
+        applyBbox(bbox)
       }
 
       filtered
@@ -90,22 +87,17 @@ object DefaultOfficeRepository : OfficeRepository {
 
   override suspend fun findById(id: Int): OfficeRecord? =
     newSuspendedTransaction(Dispatchers.IO) {
-      val q = (Offices innerJoin Locations)
+      (Offices innerJoin Locations)
         .selectAll()
         .apply { andWhere { Offices.id eq id } }
         .limit(1)
-
-      q.firstOrNull()?.toOfficeRecord()
+        .firstOrNull()
+        ?.toOfficeRecord()
     }
 
   override suspend fun create(dto: OfficeCreateData): OfficeRecord =
     newSuspendedTransaction(Dispatchers.IO) {
-      val loc = LocationEntity.new {
-        longitude = dto.location.longitude
-        latitude = dto.location.latitude
-        altitude = dto.location.altitude
-        accuracy = dto.location.accuracy
-      }
+      val loc = createLocation(dto.location)
       val office = OfficeEntity.new {
         name = dto.name
         description = dto.description
@@ -115,47 +107,45 @@ object DefaultOfficeRepository : OfficeRepository {
         phone = dto.phone
         location = loc
       }
-
       (Offices innerJoin Locations)
-        .selectAll()
-        .apply { andWhere { Offices.id eq office.id } }
-        .first()
-        .toOfficeRecord()
+        .selectAll().apply { andWhere { Offices.id eq office.id } }
+        .first().toOfficeRecord()
     }
 
   override suspend fun update(id: Int, patch: OfficeUpdateData): OfficeRecord? =
     newSuspendedTransaction(Dispatchers.IO) {
       val office = OfficeEntity.findById(id) ?: return@newSuspendedTransaction null
+
       patch.name?.let { office.name = it }
       patch.description?.let { office.description = it }
       patch.services?.let { office.services = it }
       patch.openingHours?.let { office.openingHours = it }
       patch.contactEmail?.let { office.contactEmail = it }
       patch.phone?.let { office.phone = it }
-      patch.location?.let {
-        office.location.longitude = it.longitude
-        office.location.latitude = it.latitude
-        office.location.altitude = it.altitude
-        office.location.accuracy = it.accuracy
-      }
+      patch.location?.let { office.location.updateFrom(it) }
 
       (Offices innerJoin Locations)
-        .selectAll()
-        .apply { andWhere { Offices.id eq office.id } }
-        .first()
-        .toOfficeRecord()
+        .selectAll().apply { andWhere { Offices.id eq office.id } }
+        .first().toOfficeRecord()
     }
 
-  override suspend fun delete(id: Int) {
+  override suspend fun delete(id: Int) =
     newSuspendedTransaction(Dispatchers.IO) {
-      Offices.deleteWhere { Offices.id eq id }
+      val office = OfficeEntity.findById(id) ?: return@newSuspendedTransaction
+      office.delete()
     }
-  }
 
-  // --- mapping helper ---
+  // --- mapping ---
 
   private fun ResultRow.toOfficeRecord(): OfficeRecord {
     val locId: EntityID<Int> = this[Offices.location]
+    val loc = LocationRecord(
+      id = locId.value,
+      longitude = this[Locations.longitude],
+      latitude = this[Locations.latitude],
+      altitude = this[Locations.altitude],
+      accuracy = this[Locations.accuracy]
+    )
     return OfficeRecord(
       id = this[Offices.id].value,
       name = this[Offices.name],
@@ -164,13 +154,8 @@ object DefaultOfficeRepository : OfficeRepository {
       openingHours = this[Offices.openingHours],
       contactEmail = this[Offices.contactEmail],
       phone = this[Offices.phone],
-      location = LocationRecord(
-        id = locId.value,
-        longitude = this[Locations.longitude],
-        latitude = this[Locations.latitude],
-        altitude = this[Locations.altitude],
-        accuracy = this[Locations.accuracy]
-      )
+      location = loc,
+      createdAt = this[Offices.createdAt]
     )
   }
 }

@@ -63,9 +63,7 @@ class TicketService(
       )
     )
 
-    // initial status: OPEN
     statusService.addTicketStatus(rec.id, TicketStatus.OPEN, "Created", userId)
-
     return toDto(rec, userId)
   }
 
@@ -93,6 +91,10 @@ class TicketService(
   suspend fun delete(principal: JWTPrincipal, id: Int) {
     val existing = repo.findById(id) ?: throw NotFoundException("Ticket not found")
     requireEditByCreatorOfficerOrAdmin(principal, existing.creatorUserId, existing.officeId)
+
+    // Medien mit entfernen (Dateien + DB) über generische Pipeline
+    mediaService.deleteAllForTarget(MediaTargetType.TICKET, id)
+
     if (!repo.delete(id)) throw NotFoundException("Ticket not found")
   }
 
@@ -173,7 +175,7 @@ class TicketService(
     val current = statusService.currentTicketStatus(rec.id)
     val votes = repo.countVotes(rec.id)
     val userVoted = if (callerUserId != null) repo.userHasVoted(rec.id, callerUserId) else null
-    val media = mediaService.listForTicket(rec.id) // dummy
+    val media = mediaService.list(MediaTargetType.TICKET, rec.id, null) // public-aware list; principal null ok für PUBLIC
     return rec.toDto(current, votes, userVoted, media)
   }
 
@@ -181,7 +183,7 @@ class TicketService(
     current: TicketStatusDto?,
     votes: Int,
     userVoted: Boolean?,
-    media: List<TicketMediaDto>
+    media: List<MediaDto>
   ) = TicketDto(
     id = id,
     title = title,
@@ -209,7 +211,10 @@ class TicketService(
     fun default(): TicketService = TicketService(
       repo = DefaultTicketRepository,
       statusService = StatusService.default(),
-      mediaService = DefaultMediaService
+      mediaService = MediaService(
+        repo = com.example.community_app.repository.DefaultMediaRepository,
+        ticketRepo = DefaultTicketRepository
+      )
     )
   }
 }

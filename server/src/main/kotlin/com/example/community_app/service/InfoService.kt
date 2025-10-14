@@ -2,19 +2,15 @@ package com.example.community_app.service
 
 import com.example.community_app.util.InfoCategory
 import com.example.community_app.util.InfoStatus
-import com.example.community_app.dto.LocationDto
 import com.example.community_app.dto.*
 import com.example.community_app.errors.NotFoundException
-import com.example.community_app.errors.ValidationException
-import com.example.community_app.repository.DefaultInfoRepository
-import com.example.community_app.repository.InfoCreateData
-import com.example.community_app.repository.InfoRecord
-import com.example.community_app.repository.InfoRepository
-import com.example.community_app.repository.InfoUpdateData
+import com.example.community_app.repository.*
+import com.example.community_app.util.ensureEndAfterStart
+import com.example.community_app.util.parseBbox
+import com.example.community_app.util.parseInstantStrict
 import com.example.community_app.util.requireOfficerOfOrAdmin
+import com.example.community_app.util.validateLocation
 import io.ktor.server.auth.jwt.*
-import java.time.Instant
-import java.time.format.DateTimeParseException
 
 class InfoService(
   private val repo: InfoRepository,
@@ -27,8 +23,8 @@ class InfoService(
     officeId: Int?, category: InfoCategory?,
     startsFrom: String?, endsTo: String?, bbox: String?
   ): List<InfoDto> {
-    val from = startsFrom?.let { parseInstant(it) }
-    val to = endsTo?.let { parseInstant(it) }
+    val from = startsFrom?.let { parseInstantStrict(it) }
+    val to = endsTo?.let { parseInstantStrict(it) }
     val bboxArr = bbox?.let { parseBbox(it) }
     val infos = repo.list(officeId, category, from, to, bboxArr)
 
@@ -57,10 +53,11 @@ class InfoService(
   // ---- Write (Officer/Admin) ----
 
   suspend fun create(principal: JWTPrincipal, dto: InfoCreateDto): InfoDto {
-    validateTimes(dto.startsAt, dto.endsAt)
     validateLocation(dto.location)
+    val s = parseInstantStrict(dto.startsAt)
+    val e = parseInstantStrict(dto.endsAt)
+    ensureEndAfterStart(s, e)
 
-    // Admin always; Officer only if officeId matches (and not null)
     requireOfficerOfOrAdmin(principal, dto.officeId)
 
     val rec = repo.create(
@@ -70,12 +67,11 @@ class InfoService(
         category = dto.category,
         officeId = dto.officeId,
         location = dto.location,
-        startsAt = Instant.parse(dto.startsAt),
-        endsAt = Instant.parse(dto.endsAt)
+        startsAt = s,
+        endsAt = e
       )
     )
 
-    // initial status: SCHEDULED
     val createdBy = principal.subject?.toIntOrNull()
     statusService.addInfoStatus(rec.id, InfoStatus.SCHEDULED, "Created", createdBy)
 
@@ -89,8 +85,9 @@ class InfoService(
     requireOfficerOfOrAdmin(principal, targetOfficeId)
 
     patch.location?.let { validateLocation(it) }
-    patch.startsAt?.let { parseInstant(it) }
-    patch.endsAt?.let { parseInstant(it) }
+    val startsAt = patch.startsAt?.let { parseInstantStrict(it) }
+    val endsAt = patch.endsAt?.let { parseInstantStrict(it) }
+    if (startsAt != null && endsAt != null) ensureEndAfterStart(startsAt, endsAt)
 
     val updated = repo.update(
       id, InfoUpdateData(
@@ -99,8 +96,8 @@ class InfoService(
         category = patch.category,
         officeId = patch.officeId,
         location = patch.location,
-        startsAt = patch.startsAt?.let { Instant.parse(it) },
-        endsAt = patch.endsAt?.let { Instant.parse(it) }
+        startsAt = startsAt,
+        endsAt = endsAt
       )
     ) ?: throw NotFoundException("Info not found")
 
@@ -127,29 +124,6 @@ class InfoService(
   private suspend fun ensureInfoExists(id: Int) {
     val exists = repo.findById(id) != null
     if (!exists) throw NotFoundException("Info not found")
-  }
-
-  private fun parseInstant(s: String): Instant =
-    try { Instant.parse(s) } catch (e: DateTimeParseException) {
-      throw ValidationException("Invalid datetime: $s (expected ISO-8601 UTC)")
-    }
-
-  private fun parseBbox(s: String): DoubleArray {
-    val parts = s.split(",").map { it.trim() }
-    if (parts.size != 4) throw ValidationException("bbox must be 'minLon,minLat,maxLon,maxLat'")
-    return DoubleArray(4) { idx -> parts[idx].toDouble() }
-  }
-
-  private fun validateTimes(startsAt: String, endsAt: String) {
-    val s = parseInstant(startsAt)
-    val e = parseInstant(endsAt)
-    if (!e.isAfter(s)) throw ValidationException("endsAt must be after startsAt")
-  }
-
-  private fun validateLocation(loc: LocationDto?) {
-    if (loc == null) return
-    if (loc.longitude !in -180.0..180.0) throw ValidationException("longitude out of range")
-    if (loc.latitude !in -90.0..90.0) throw ValidationException("latitude out of range")
   }
 
   private fun InfoRecord.toDto(current: StatusDto?): InfoDto =

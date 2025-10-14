@@ -8,7 +8,7 @@ data class TicketCreateDto(
   val title: String,
   val description: String? = null,
   val category: TicketCategory,
-  val officeId: Int,                 // Ticket muss einer Office zugeordnet werden
+  val officeId: Int,
   val location: LocationDto? = null,
   val visibility: TicketVisibility = TicketVisibility.PUBLIC
 )
@@ -36,8 +36,8 @@ data class TicketDto(
   val createdAt: String,
   val currentStatus: TicketStatusDto? = null,
   val votesCount: Int = 0,
-  val userVoted: Boolean? = null,    // nur gesetzt, wenn User bekannt
-  val media: List<TicketMediaDto> = emptyList()
+  val userVoted: Boolean? = null,
+  val media: List<MediaDto> = emptyList()   // <— generisch
 )
 
 @Serializable
@@ -53,14 +53,6 @@ data class TicketStatusDto(
   val message: String?,
   val createdByUserId: Int?,
   val createdAt: String
-)
-
-// Platzhalter für späteren Media-Upload
-@Serializable
-data class TicketMediaDto(
-  val id: String,
-  val url: String,
-  val mimeType: String
 )
 
 @Serializable

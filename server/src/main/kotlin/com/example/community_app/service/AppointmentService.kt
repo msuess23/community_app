@@ -6,19 +6,21 @@ import com.example.community_app.errors.NotFoundException
 import com.example.community_app.errors.ValidationException
 import com.example.community_app.repository.AppointmentRecord
 import com.example.community_app.repository.AppointmentRepository
+import com.example.community_app.util.parseInstantStrict
 import java.time.Instant
-import java.time.format.DateTimeParseException
 
 class AppointmentService(
   private val repo: AppointmentRepository
 ) {
 
+  /** Freie Slots einer Behörde listen (optional mit Zeitfenster). */
   suspend fun listFreeSlots(officeId: Int, from: String?, to: String?): List<SlotDto> {
-    val f = from?.let { parseInstant(it) }
-    val t = to?.let { parseInstant(it) }
+    val f = from?.let { parseInstantStrict(it) }
+    val t = to?.let { parseInstantStrict(it) }
     return repo.listFreeSlots(officeId, f, t).map { it.toSlotDto() }
   }
 
+  /** Slots in Batch anlegen (Officer/Admin-Routing prüft Berechtigung). */
   suspend fun createSlots(officeId: Int, batch: SlotBatchCreateDto): List<SlotDto> {
     if (batch.slots.isEmpty()) throw ValidationException("slots must not be empty")
     val pairs = batch.slots.map { parseSlot(it) }
@@ -27,50 +29,59 @@ class AppointmentService(
     return recs.filter { it.userId == null }.map { it.toSlotDto() }
   }
 
+  /** Einzelnen Slot löschen (nur freie Slots). */
   suspend fun deleteSlot(officeId: Int, slotId: Int): Boolean {
-    return repo.deleteSlot(officeId, slotId)
+    val ok = repo.deleteSlot(officeId, slotId)
+    if (!ok) throw NotFoundException("Slot not found")
+    return true
   }
 
-  suspend fun book(officeId: Int, dto: AppointmentCreateDto, userId: Int): AppointmentDto {
-    val (s, e) = parseSlot(SlotCreateDto(dto.startsAt, dto.endsAt))
-    try {
-      val rec = repo.book(officeId, s, e, userId)
-      return rec.toAppointmentDto()
-    } catch (e: IllegalArgumentException) {
-      throw NotFoundException(e.message ?: "Slot not found")
-    } catch (e: IllegalStateException) {
-      throw ConflictException("Slot already booked")
-    }
+  /** Slot per ID buchen. */
+  suspend fun bookById(officeId: Int, appointmentId: Int, userId: Int): AppointmentDto {
+    val rec = repo.findById(appointmentId) ?: throw NotFoundException("Slot not found")
+    if (rec.officeId != officeId) throw NotFoundException("Slot not found")
+    if (rec.userId != null) throw ConflictException("Slot already booked")
+
+    val booked = repo.bookSlot(appointmentId, userId) ?: throw ConflictException("Slot already booked")
+    return booked.toAppointmentDto()
   }
 
+  /** Alle Termine eines Users (Citizen) listen. */
   suspend fun listForUser(userId: Int): List<AppointmentDto> =
     repo.listForUser(userId).map { it.toAppointmentDto() }
 
+  /** NEU: Detail eines eigenen Termins. */
+  suspend fun getForUser(appointmentId: Int, userId: Int): AppointmentDto {
+    val rec = repo.findById(appointmentId) ?: throw NotFoundException("Appointment not found")
+    if (rec.userId != userId) throw NotFoundException("Appointment not found")
+    return rec.toAppointmentDto()
+  }
+
+  /** Eigenen Termin stornieren. */
   suspend fun cancel(appointmentId: Int, userId: Int): Boolean =
     repo.cancel(appointmentId, userId)
 
   // --- helpers ---
 
-  private fun parseInstant(s: String): Instant =
-    try { Instant.parse(s) } catch (e: DateTimeParseException) {
-      throw ValidationException("Invalid datetime: $s; expected ISO-8601 UTC")
-    }
-
   private fun parseSlot(s: SlotCreateDto): Pair<Instant, Instant> {
-    val start = parseInstant(s.startsAt)
-    val end = parseInstant(s.endsAt)
+    val start = parseInstantStrict(s.startsAt)
+    val end = parseInstantStrict(s.endsAt)
     if (!end.isAfter(start)) throw ValidationException("endsAt must be after startsAt")
     return start to end
   }
 
-  private fun validateNoOverlaps(slots: List<Pair<Instant, Instant>>) {
-    val sorted = slots.sortedBy { it.first }
+  private fun validateNoOverlaps(pairs: List<Pair<Instant, Instant>>) {
+    val sorted = pairs.sortedBy { it.first }
     for (i in 1 until sorted.size) {
-      if (!sorted[i].first.isAfter(sorted[i - 1].second)) {
-        throw ValidationException("Overlapping slots in batch")
+      val prev = sorted[i - 1]
+      val cur = sorted[i]
+      if (!cur.first.isAfter(prev.second)) {
+        throw ValidationException("overlapping slots in input")
       }
     }
   }
+
+  // --- mapping ---
 
   private fun AppointmentRecord.toSlotDto() = SlotDto(
     id = id,
@@ -81,8 +92,8 @@ class AppointmentService(
   private fun AppointmentRecord.toAppointmentDto() = AppointmentDto(
     id = id,
     officeId = officeId,
+    userId = userId!!,
     startsAt = startsAt.toString(),
-    endsAt = endsAt.toString(),
-    userId = userId
+    endsAt = endsAt.toString()
   )
 }

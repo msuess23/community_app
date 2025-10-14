@@ -1,8 +1,12 @@
 package com.example.community_app.repository
 
+import com.example.community_app.util.TicketCategory
+import com.example.community_app.util.TicketVisibility
 import com.example.community_app.dto.LocationDto
-import com.example.community_app.util.*
 import com.example.community_app.model.*
+import com.example.community_app.util.applyBbox
+import com.example.community_app.util.createLocation
+import com.example.community_app.util.updateFrom
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
@@ -72,14 +76,7 @@ object DefaultTicketRepository : TicketRepository {
     if (category != null) base.andWhere { Tickets.category eq category }
     if (createdFrom != null) base.andWhere { Tickets.createdAt greaterEq createdFrom }
     if (createdTo != null) base.andWhere { Tickets.createdAt lessEq createdTo }
-    if (bbox != null && bbox.size == 4) {
-      base.andWhere {
-        (Locations.longitude greaterEq bbox[0]) and
-            (Locations.longitude lessEq bbox[2]) and
-            (Locations.latitude greaterEq bbox[1]) and
-            (Locations.latitude lessEq bbox[3])
-      }
-    }
+    base.applyBbox(bbox)
     base.orderBy(Tickets.createdAt to SortOrder.DESC).map { it.toRecord() }
   }
 
@@ -95,14 +92,7 @@ object DefaultTicketRepository : TicketRepository {
   override suspend fun create(data: TicketCreateData): TicketRecord = newSuspendedTransaction(Dispatchers.IO) {
     val creator = UserEntity.findById(data.creatorUserId) ?: error("Creator not found")
     val office = OfficeEntity.findById(data.officeId) ?: error("Office not found")
-    val locEntity = data.location?.let {
-      LocationEntity.new {
-        longitude = it.longitude
-        latitude = it.latitude
-        altitude = it.altitude
-        accuracy = it.accuracy
-      }
-    }
+    val locEntity = data.location?.let { createLocation(it) }
     val ticket = TicketEntity.new {
       title = data.title
       description = data.description
@@ -127,17 +117,9 @@ object DefaultTicketRepository : TicketRepository {
     patch.officeId?.let { t.office = OfficeEntity.findById(it) }
     patch.location?.let {
       if (t.location == null) {
-        t.location = LocationEntity.new {
-          longitude = it.longitude
-          latitude = it.latitude
-          altitude = it.altitude
-          accuracy = it.accuracy
-        }
+        t.location = createLocation(it)
       } else {
-        t.location!!.longitude = it.longitude
-        t.location!!.latitude = it.latitude
-        t.location!!.altitude = it.altitude
-        t.location!!.accuracy = it.accuracy
+        t.location!!.updateFrom(it)
       }
     }
     patch.visibility?.let { t.visibility = it }
@@ -168,7 +150,6 @@ object DefaultTicketRepository : TicketRepository {
   override suspend fun addVote(ticketId: Int, userId: Int): Boolean = newSuspendedTransaction(Dispatchers.IO) {
     val ticket = TicketEntity.findById(ticketId) ?: return@newSuspendedTransaction false
     val user = UserEntity.findById(userId) ?: return@newSuspendedTransaction false
-    // einzigartig durch Index
     val exists = TicketVoteEntity.find { (TicketVotes.ticket eq ticketId) and (TicketVotes.user eq userId) }.empty().not()
     if (exists) return@newSuspendedTransaction false
     TicketVoteEntity.new {
