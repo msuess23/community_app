@@ -12,7 +12,6 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 
 fun Route.authRoutes(authService: AuthService? = null) {
-  // Inject service via parameter (for tests) or fetch from Application attributes
   val service = authService ?: this.application.getAuthService()
 
   route("/auth") {
@@ -46,23 +45,22 @@ fun Route.authRoutes(authService: AuthService? = null) {
       post("/logout") {
         val principal = call.principal<JWTPrincipal>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
         service.logout(principal)
-        call.respond(HttpStatusCode.NoContent, Unit)
+        call.respond(HttpStatusCode.NoContent)
       }
       post("/logout-all") {
         val principal = call.principal<JWTPrincipal>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
         service.logoutAll(principal)
-        call.respond(HttpStatusCode.NoContent, Unit)
+        call.respond(HttpStatusCode.NoContent)
       }
       delete("/delete") {
         val principal = call.principal<JWTPrincipal>() ?: return@delete call.respond(HttpStatusCode.Unauthorized)
         service.deleteMe(principal)
-        call.respond(HttpStatusCode.NoContent, Unit)
+        call.respond(HttpStatusCode.NoContent)
       }
     }
   }
 }
 
-// Simple locator without external DI
 private val AUTH_SERVICE_KEY = AttributeKey<AuthService>("AuthService")
 private fun Application.getAuthService(): AuthService {
   return if (attributes.contains(AUTH_SERVICE_KEY)) {

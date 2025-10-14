@@ -2,6 +2,7 @@ package com.example.community_app.config
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.example.community_app.util.Role
 import com.example.community_app.util.TokenStore
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.config.*
@@ -28,20 +29,23 @@ object JwtConfig {
     algorithm = Algorithm.HMAC256(secret)
   }
 
-  fun generateToken(userId: Int): IssuedToken {
+  fun generateToken(userId: Int, role: Role, officeId: Int?): IssuedToken {
     val now = System.currentTimeMillis()
     val exp = now + validityMs
     val jti = UUID.randomUUID().toString()
 
-    val token = JWT.create()
+    val builder = JWT.create()
       .withSubject(userId.toString())
       .withJWTId(jti)
       .withAudience(audience)
       .withIssuer(issuer)
+      .withClaim("role", role.name)
       .withIssuedAt(Date(now))
       .withExpiresAt(Date(exp))
-      .sign(algorithm)
 
+    if (officeId != null) builder.withClaim("officeId", officeId)
+
+    val token = builder.sign(algorithm)
     return IssuedToken(token = token, jti = jti, expiresAtMillis = exp)
   }
 
@@ -58,7 +62,6 @@ object JwtConfig {
       val sub = credential.payload.subject
       val jti = credential.jwtId
       if (sub.isNullOrBlank() || jti.isNullOrBlank()) return@validate null
-      // deny if revoked
       if (TokenStore.isRevoked(jti)) return@validate null
       JWTPrincipal(credential.payload)
     }

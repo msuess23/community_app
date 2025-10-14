@@ -16,8 +16,8 @@ object DatabaseConfig {
     )
 
     transaction {
-      SchemaUtils.drop(Users)
-      SchemaUtils.create(Users)
+      SchemaUtils.drop(Users, Settings, Locations, Offices, Appointments)
+      SchemaUtils.create(Users, Settings, Locations, Offices, Appointments)
     }
   }
 }

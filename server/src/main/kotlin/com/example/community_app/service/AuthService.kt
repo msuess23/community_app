@@ -1,5 +1,6 @@
 package com.example.community_app.service
 
+import com.example.community_app.util.Role
 import com.example.community_app.config.IssuedToken
 import com.example.community_app.config.JwtConfig
 import com.example.community_app.dto.*
@@ -26,8 +27,10 @@ class AuthService(
     if (repo.findByEmail(email) != null) throw ConflictException("Email already in use")
 
     val hash = PasswordUtil.hash(dto.password)
-    val user = repo.create(email, hash, dto.displayName)
-    val token = issueTokenFor(user.id)
+    val role = Role.CITIZEN
+    val officeId: Int? = null
+    val user = repo.create(email, hash, dto.displayName, role, officeId)
+    val token = issueTokenFor(user)
     return tokenResponse(token, user)
   }
 
@@ -35,14 +38,14 @@ class AuthService(
     val email = dto.email.trim().lowercase()
     val user = repo.findByEmail(email) ?: throw UnauthorizedException("Invalid credentials")
     if (!PasswordUtil.verify(dto.password, user.passwordHash)) throw UnauthorizedException("Invalid credentials")
-    val token = issueTokenFor(user.id)
+    val token = issueTokenFor(user)
     return tokenResponse(token, user)
   }
 
-  suspend fun getMe(principal: JWTPrincipal): MeDto {
+  suspend fun getMe(principal: JWTPrincipal): UserDto {
     val userId = principal.subject?.toIntOrNull() ?: throw UnauthorizedException()
     val user = repo.findById(userId) ?: throw UnauthorizedException()
-    return MeDto(user.id, user.email, user.displayName)
+    return UserDto(user.id, user.email, user.displayName, user.role, user.officeId)
   }
 
   suspend fun logout(principal: JWTPrincipal) {
@@ -63,7 +66,7 @@ class AuthService(
 
   suspend fun requestPasswordReset(emailRaw: String) {
     val email = emailRaw.trim().lowercase()
-    val user = repo.findByEmail(email) ?: return // avoid leaking user existence
+    val user = repo.findByEmail(email) ?: return
     val otp = otpService.generateOtp(email)
     emailService.sendPasswordResetOtp(user.email, otp)
   }
@@ -80,16 +83,16 @@ class AuthService(
 
     TokenStore.revokeAllForUser(user.id)
 
-    // Create a fresh token; we can reuse the same (email/displayName) since only password changed
-    val issued = issueTokenFor(user.id)
-    return tokenResponse(issued, user)
+    val fresh = repo.findById(user.id)!!
+    val issued = issueTokenFor(fresh)
+    return tokenResponse(issued, fresh)
   }
 
   // ---- helpers ----
 
-  private fun issueTokenFor(userId: Int): IssuedToken {
-    val issued = JwtConfig.generateToken(userId)
-    TokenStore.registerIssuedToken(userId, issued.jti, issued.expiresAtMillis)
+  private fun issueTokenFor(user: UserRecord): IssuedToken {
+    val issued = JwtConfig.generateToken(user.id, user.role, user.officeId)
+    TokenStore.registerIssuedToken(user.id, issued.jti, issued.expiresAtMillis)
     return issued
   }
 
@@ -97,7 +100,7 @@ class AuthService(
     return TokenResponse(
       accessToken = issued.token,
       expiresIn = JwtConfig.validityMs / 1000L,
-      user = UserDto(user.id, user.email, user.displayName)
+      user = UserDto(user.id, user.email, user.displayName, user.role, user.officeId)
     )
   }
 

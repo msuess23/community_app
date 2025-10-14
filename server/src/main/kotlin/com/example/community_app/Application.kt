@@ -34,6 +34,8 @@ fun Application.module() {
   JwtConfig.init(config)
   DatabaseConfig.init(config)
 
+  DatabaseSeeder.runIfEnabled(config)
+
   configureSecurity()
   configureRouting()
 }

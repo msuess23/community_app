@@ -16,17 +16,10 @@ data class LoginDto(
 )
 
 @Serializable
-data class UserDto(
-  val id: Int,
-  val email: String,
-  val displayName: String?
-)
-
-@Serializable
 data class TokenResponse(
   val accessToken: String,
   val tokenType: String = "Bearer",
-  val expiresIn: Long, // seconds
+  val expiresIn: Long,
   val user: UserDto
 )
 
@@ -34,13 +27,13 @@ data class TokenResponse(
 data class MeDto(
   val id: Int,
   val email: String,
-  val displayName: String?
+  val displayName: String?,
+  val role: String,
+  val officeId: Int?
 )
 
 @Serializable
-data class ForgotPasswordRequest(
-  val email: String
-)
+data class ForgotPasswordRequest(val email: String)
 
 @Serializable
 data class ResetPasswordRequest(
