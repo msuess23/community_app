@@ -12,6 +12,7 @@ fun Application.configureRouting() {
       officeRoutes()
       appointmentRoutes()
       infoRoutes()
+      ticketRoutes()
     }
   }
 }

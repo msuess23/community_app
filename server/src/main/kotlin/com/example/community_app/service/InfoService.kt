@@ -3,9 +3,7 @@ package com.example.community_app.service
 import com.example.community_app.util.InfoCategory
 import com.example.community_app.util.InfoStatus
 import com.example.community_app.dto.LocationDto
-import com.example.community_app.util.StatusScope
 import com.example.community_app.dto.*
-import com.example.community_app.errors.ForbiddenException
 import com.example.community_app.errors.NotFoundException
 import com.example.community_app.errors.ValidationException
 import com.example.community_app.repository.DefaultInfoRepository
@@ -13,6 +11,7 @@ import com.example.community_app.repository.InfoCreateData
 import com.example.community_app.repository.InfoRecord
 import com.example.community_app.repository.InfoRepository
 import com.example.community_app.repository.InfoUpdateData
+import com.example.community_app.util.requireOfficerOfOrAdmin
 import io.ktor.server.auth.jwt.*
 import java.time.Instant
 import java.time.format.DateTimeParseException
@@ -33,7 +32,6 @@ class InfoService(
     val bboxArr = bbox?.let { parseBbox(it) }
     val infos = repo.list(officeId, category, from, to, bboxArr)
 
-    // Aktuellster Status je Info (optional; Dev-DB-Load ist ok)
     return infos.map { rec ->
       val current = statusService.currentInfoStatus(rec.id)
       rec.toDto(current)
@@ -62,7 +60,8 @@ class InfoService(
     validateTimes(dto.startsAt, dto.endsAt)
     validateLocation(dto.location)
 
-    guardPrincipalForOffice(principal, dto.officeId)
+    // Admin always; Officer only if officeId matches (and not null)
+    requireOfficerOfOrAdmin(principal, dto.officeId)
 
     val rec = repo.create(
       InfoCreateData(
@@ -76,7 +75,7 @@ class InfoService(
       )
     )
 
-    // initialer Status SCHEDULED
+    // initial status: SCHEDULED
     val createdBy = principal.subject?.toIntOrNull()
     statusService.addInfoStatus(rec.id, InfoStatus.SCHEDULED, "Created", createdBy)
 
@@ -87,7 +86,7 @@ class InfoService(
   suspend fun update(principal: JWTPrincipal, id: Int, patch: InfoUpdateDto): InfoDto {
     val existing = repo.findById(id) ?: throw NotFoundException("Info not found")
     val targetOfficeId = patch.officeId ?: existing.officeId
-    guardPrincipalForOffice(principal, targetOfficeId)
+    requireOfficerOfOrAdmin(principal, targetOfficeId)
 
     patch.location?.let { validateLocation(it) }
     patch.startsAt?.let { parseInstant(it) }
@@ -111,14 +110,13 @@ class InfoService(
 
   suspend fun delete(principal: JWTPrincipal, id: Int) {
     val existing = repo.findById(id) ?: throw NotFoundException("Info not found")
-    guardPrincipalForOffice(principal, existing.officeId)
+    requireOfficerOfOrAdmin(principal, existing.officeId)
     if (!repo.delete(id)) throw NotFoundException("Info not found")
-    // StatusEntries bewusst nicht hart gelöscht (Dev). Optional: Cleanup-Funktion im StatusService nachziehen.
   }
 
   suspend fun addStatus(principal: JWTPrincipal, id: Int, body: StatusCreateDto): StatusDto {
     val existing = repo.findById(id) ?: throw NotFoundException("Info not found")
-    guardPrincipalForOffice(principal, existing.officeId)
+    requireOfficerOfOrAdmin(principal, existing.officeId)
 
     val createdBy = principal.subject?.toIntOrNull()
     return statusService.addInfoStatus(id, body.status, body.message, createdBy)
@@ -152,19 +150,6 @@ class InfoService(
     if (loc == null) return
     if (loc.longitude !in -180.0..180.0) throw ValidationException("longitude out of range")
     if (loc.latitude !in -90.0..90.0) throw ValidationException("latitude out of range")
-  }
-
-  private fun guardPrincipalForOffice(principal: JWTPrincipal, officeId: Int?) {
-    val roleStr = principal.payload.getClaim("role").asString() ?: "CITIZEN"
-    if (roleStr == "ADMIN") return
-    if (roleStr == "OFFICER") {
-      val claimOfficeId = principal.payload.getClaim("officeId").asInt()
-      if (officeId == null || claimOfficeId == null || claimOfficeId != officeId) {
-        throw ForbiddenException("Officer can only manage infos of their own office")
-      }
-      return
-    }
-    throw ForbiddenException()
   }
 
   private fun InfoRecord.toDto(current: StatusDto?): InfoDto =
