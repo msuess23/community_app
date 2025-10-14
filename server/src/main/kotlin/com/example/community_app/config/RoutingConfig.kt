@@ -11,6 +11,7 @@ fun Application.configureRouting() {
       userRoutes()
       officeRoutes()
       appointmentRoutes()
+      infoRoutes()
     }
   }
 }
