@@ -2,6 +2,7 @@ package com.example.community_app.config
 
 import com.example.community_app.routes.*
 import io.ktor.server.application.*
+import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.routing.*
 
 fun Application.configureRouting() {

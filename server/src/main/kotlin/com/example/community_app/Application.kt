@@ -25,8 +25,6 @@ fun Application.module() {
     environment.config
   }
 
-  log.info("JWT Secret (manual load): ${config.propertyOrNull("ktor.jwt.secret")?.getString() ?: "MISSING"}")
-
   configureSerialization()
   configureCors()
   configureExceptionHandling()
