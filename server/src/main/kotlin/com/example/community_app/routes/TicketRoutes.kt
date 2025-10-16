@@ -15,8 +15,7 @@ fun Route.ticketRoutes(
   service: TicketService = TicketService.default()
 ) {
   route("/tickets") {
-
-    // Public list (only PUBLIC visibility)
+    // --- get all tickets ---
     get {
       val officeId = call.request.queryParameters["officeId"]?.toIntOrNull()
       val category = call.request.queryParameters["category"]?.let { runCatching { TicketCategory.valueOf(it) }.getOrNull() }
@@ -28,7 +27,7 @@ fun Route.ticketRoutes(
       call.respond(list)
     }
 
-    // Public detail (PRIVATE nur sichtbar wenn berechtigt)
+    // --- get specific ticket ---
     get("/{id}") {
       val id = call.parameters["id"]!!.toInt()
       val principal = call.principal<JWTPrincipal>()
@@ -36,13 +35,15 @@ fun Route.ticketRoutes(
       call.respond(dto)
     }
 
-    // Public status endpoints (Zugriff wird im Service geprüft)
+    // --- get status history of ticket ---
     get("/{id}/status") {
       val id = call.parameters["id"]!!.toInt()
       val principal = call.principal<JWTPrincipal>()
       val items = service.listStatus(id, principal)
       call.respond(items)
     }
+
+    // --- get current status of ticket ---
     get("/{id}/status/current") {
       val id = call.parameters["id"]!!.toInt()
       val principal = call.principal<JWTPrincipal>()
@@ -52,7 +53,7 @@ fun Route.ticketRoutes(
 
     // Authenticated
     authenticate("auth-jwt") {
-
+      // --- create new ticket ---
       post {
         val principal = call.principal<JWTPrincipal>()!!
         val body = call.receive<TicketCreateDto>()
@@ -61,6 +62,7 @@ fun Route.ticketRoutes(
         call.respond(HttpStatusCode.Created, created)
       }
 
+      // --- update ticket ---
       put("/{id}") {
         val principal = call.principal<JWTPrincipal>()!!
         val id = call.parameters["id"]!!.toInt()
@@ -69,6 +71,7 @@ fun Route.ticketRoutes(
         call.respond(updated)
       }
 
+      // --- delete ticket ---
       delete("/{id}") {
         val principal = call.principal<JWTPrincipal>()!!
         val id = call.parameters["id"]!!.toInt()
@@ -76,7 +79,7 @@ fun Route.ticketRoutes(
         call.respond(HttpStatusCode.NoContent)
       }
 
-      // Status setzen (Officer/Admin)
+      // update status of ticket ---
       put("/{id}/status") {
         val principal = call.principal<JWTPrincipal>()!!
         val id = call.parameters["id"]!!.toInt()
@@ -85,7 +88,7 @@ fun Route.ticketRoutes(
         call.respond(upd)
       }
 
-      // Voting
+      // --- up-vote a ticket ---
       post("/{id}/vote") {
         val principal = call.principal<JWTPrincipal>()!!
         val id = call.parameters["id"]!!.toInt()
@@ -93,6 +96,7 @@ fun Route.ticketRoutes(
         call.respond(res)
       }
 
+      // --- remove vote for ticket ---
       delete("/{id}/vote") {
         val principal = call.principal<JWTPrincipal>()!!
         val id = call.parameters["id"]!!.toInt()

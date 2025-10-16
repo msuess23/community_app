@@ -14,8 +14,7 @@ fun Route.infoRoutes(
   service: InfoService = InfoService.default()
 ) {
   route("/infos") {
-
-    // Public list
+    // --- get all infos ---
     get {
       val officeId = call.request.queryParameters["officeId"]?.toIntOrNull()
       val category = call.request.queryParameters["category"]?.let { runCatching { InfoCategory.valueOf(it) }.getOrNull() }
@@ -26,19 +25,21 @@ fun Route.infoRoutes(
       call.respond(list)
     }
 
-    // Public detail
+    // --- get specific info
     get("/{id}") {
       val id = call.parameters["id"]!!.toInt()
       val dto = service.get(id)
       call.respond(dto)
     }
 
-    // Public: Status-Historie & aktuellster Status
+    // --- get status history of info ---
     get("/{id}/status") {
       val id = call.parameters["id"]!!.toInt()
       val items = service.listStatus(id)
       call.respond(items)
     }
+
+    // --- get current status of info ---
     get("/{id}/status/current") {
       val id = call.parameters["id"]!!.toInt()
       val current = service.getCurrentStatus(id)
@@ -47,7 +48,7 @@ fun Route.infoRoutes(
 
     // Officer/Admin write
     authenticate("auth-jwt") {
-
+      // --- create new info ---
       post {
         val principal = call.principal<JWTPrincipal>()!!
         val body = call.receive<InfoCreateDto>()
@@ -56,6 +57,7 @@ fun Route.infoRoutes(
         call.respond(HttpStatusCode.Created, created)
       }
 
+      // --- update new info ---
       put("/{id}") {
         val principal = call.principal<JWTPrincipal>()!!
         val id = call.parameters["id"]!!.toInt()
@@ -64,6 +66,7 @@ fun Route.infoRoutes(
         call.respond(updated)
       }
 
+      // --- delete info ---
       delete("/{id}") {
         val principal = call.principal<JWTPrincipal>()!!
         val id = call.parameters["id"]!!.toInt()
@@ -71,7 +74,7 @@ fun Route.infoRoutes(
         call.respond(HttpStatusCode.NoContent)
       }
 
-      // neuen Status anfügen
+      // --- update status of info ---
       put("/{id}/status") {
         val principal = call.principal<JWTPrincipal>()!!
         val id = call.parameters["id"]!!.toInt()

@@ -15,17 +15,22 @@ fun Route.authRoutes(authService: AuthService? = null) {
   val service = authService ?: this.application.getAuthService()
 
   route("/auth") {
+    // --- register new user ---
     post("/register") {
       val dto = call.receive<RegisterDto>()
       val response = service.register(dto)
       call.response.headers.append(HttpHeaders.Location, "/api/auth/me")
       call.respond(HttpStatusCode.Created, response)
     }
+
+    // --- login user ---
     post("/login") {
       val dto = call.receive<LoginDto>()
       val response = service.login(dto)
       call.respond(HttpStatusCode.OK, response)
     }
+
+    // --- reset password ---
     post("/forgot-password") {
       val req = call.receive<ForgotPasswordRequest>()
       service.requestPasswordReset(req.email)
@@ -36,22 +41,23 @@ fun Route.authRoutes(authService: AuthService? = null) {
       val response = service.resetPassword(req.email, req.otp, req.newPassword)
       call.respond(HttpStatusCode.OK, response)
     }
+
     authenticate("auth-jwt") {
-      get("/me") {
-        val principal = call.principal<JWTPrincipal>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
-        val user = service.getMe(principal)
-        call.respond(user)
-      }
+      // --- logout user (revoke JTI / specific token) ---
       post("/logout") {
         val principal = call.principal<JWTPrincipal>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
         service.logout(principal)
         call.respond(HttpStatusCode.NoContent)
       }
+
+      // --- revoke all tokens of user ---
       post("/logout-all") {
         val principal = call.principal<JWTPrincipal>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
         service.logoutAll(principal)
         call.respond(HttpStatusCode.NoContent)
       }
+
+      // --- delete user account ---
       delete("/delete") {
         val principal = call.principal<JWTPrincipal>() ?: return@delete call.respond(HttpStatusCode.Unauthorized)
         service.deleteMe(principal)

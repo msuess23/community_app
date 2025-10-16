@@ -4,10 +4,8 @@ import com.example.community_app.util.MediaTargetType
 import com.example.community_app.repository.DefaultMediaRepository
 import com.example.community_app.repository.DefaultTicketRepository
 import com.example.community_app.service.MediaService
-import com.example.community_app.util.requireUserId
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*

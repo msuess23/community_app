@@ -18,35 +18,43 @@ fun Route.userRoutes(
 ) {
   authenticate("auth-jwt") {
     route("/users/me") {
+      // --- get user ---
       get {
         val principal = call.principal<JWTPrincipal>()!!
         val me = userService.getMe(principal)
         call.respond(me)
       }
+
+      // --- update user ---
       put {
         val principal = call.principal<JWTPrincipal>()!!
         val dto = call.receive<UserUpdateDto>()
         val updated = userService.updateMe(principal, dto)
         call.respond(updated)
       }
+    }
 
-      route("/settings") {
-        get {
-          val principal = call.principal<JWTPrincipal>()!!
-          val settings = settingsService.get(principal)
-          if (settings == null) call.respond(HttpStatusCode.NoContent) else call.respond(settings)
-        }
-        put {
-          val principal = call.principal<JWTPrincipal>()!!
-          val patch = call.receive<SettingsUpdateDto>()
-          val upserted = settingsService.put(principal, patch)
-          call.respond(upserted)
-        }
-        delete {
-          val principal = call.principal<JWTPrincipal>()!!
-          settingsService.delete(principal)
-          call.respond(HttpStatusCode.NoContent)
-        }
+    route("/settings") {
+      // --- get settings of user ---
+      get {
+        val principal = call.principal<JWTPrincipal>()!!
+        val settings = settingsService.get(principal)
+        if (settings == null) call.respond(HttpStatusCode.NoContent) else call.respond(settings)
+      }
+
+      // --- update settings of user ---
+      put {
+        val principal = call.principal<JWTPrincipal>()!!
+        val patch = call.receive<SettingsUpdateDto>()
+        val upserted = settingsService.put(principal, patch)
+        call.respond(upserted)
+      }
+
+      // --- delete settings of user ---
+      delete {
+        val principal = call.principal<JWTPrincipal>()!!
+        settingsService.delete(principal)
+        call.respond(HttpStatusCode.NoContent)
       }
     }
   }
