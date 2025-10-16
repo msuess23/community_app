@@ -1,0 +1,1230 @@
+openapi: 3.1.0
+info:
+  title: Community App (Bürger-App) API
+  version: 0.4.0-dev
+  description: >
+    REST-API für Bürger-App (KMP/Compose). Enthält Authentifizierung (JWT),
+    User/Settings, Offices & Appointments, Infos mit Status, Tickets mit Status & Votes,
+    sowie generische Media-Pipeline (Bilder), aktuell für Tickets genutzt.
+
+servers:
+  - url: http://localhost:8080/api
+    description: Dev Server (lokal)
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Settings
+  - name: Offices
+  - name: Appointments
+  - name: Infos
+  - name: Status
+  - name: Tickets
+  - name: Votes
+  - name: Media
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  ################################
+  #            AUTH              #
+  ################################
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register user (Citizen)
+      security: []   # keine Auth nötig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Created (returns token + user)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokenResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      security: []   # keine Auth nötig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: OK (returns token + user)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokenResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout (Token-Invalidierung)
+      responses:
+        '204':
+          description: No Content
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Start password reset (send OTP to email)
+      security: []   # keine Auth nötig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ForgotPasswordRequest' }
+      responses:
+        '200':
+          description: OK (OTP dispatched or mocked in dev)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InfoMessage' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Complete password reset with OTP
+      security: []   # keine Auth nötig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResetPasswordRequest' }
+      responses:
+        '200':
+          description: OK (returns token + user like login)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokenResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  ################################
+  #            USERS             #
+  ################################
+
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get current user profile
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserDto' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    put:
+      tags: [Users]
+      summary: Update current user (displayName)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserUpdateRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserDto' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    delete:
+      tags: [Users]
+      summary: Delete current user
+      responses:
+        '204': { description: No Content }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  ################################
+  #           SETTINGS           #
+  ################################
+
+  /users/me/settings:
+    get:
+      tags: [Settings]
+      summary: Get settings for current user (if exists)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SettingsDto' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    put:
+      tags: [Settings]
+      summary: Create or update settings for current user
+      description: >
+        Legt Settings an, sofern noch nicht vorhanden (Synchronisation aktivieren),
+        oder aktualisiert bestehende.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SettingsUpsertRequest' }
+      responses:
+        '200':
+          description: OK (created/updated)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SettingsDto' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    delete:
+      tags: [Settings]
+      summary: Delete settings (unlink sync)
+      responses:
+        '204': { description: No Content }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  ################################
+  #           OFFICES            #
+  ################################
+
+  /offices:
+    get:
+      tags: [Offices]
+      summary: List offices
+      parameters:
+        - in: query
+          name: bbox
+          description: Bounding box 'minLon,minLat,maxLon,maxLat'
+          required: false
+          schema: { type: string, pattern: '^-?\d+(\.\d+)?,-?\d+(\.\d+)?, -?\d+(\.\d+)?, -?\d+(\.\d+)?$' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/OfficeDto' }
+    post:
+      tags: [Offices]
+      summary: Create office
+      description: Nur **Admin**.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OfficeCreateRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfficeDto' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /offices/{officeId}:
+    parameters:
+      - $ref: '#/components/parameters/officeId'
+    get:
+      tags: [Offices]
+      summary: Get office by id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfficeDto' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Offices]
+      summary: Update office
+      description: Admin oder Officer der eigenen Behörde.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OfficeUpdateRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfficeDto' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Offices]
+      summary: Delete office
+      description: Nur **Admin**.
+      responses:
+        '204': { description: No Content }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  ################################
+  #         APPOINTMENTS         #
+  ################################
+
+  /offices/{officeId}/slots:
+    parameters:
+      - $ref: '#/components/parameters/officeId'
+    get:
+      tags: [Appointments]
+      summary: List appointment slots for an office
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SlotDto' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [Appointments]
+      summary: Create appointment slots for an office
+      description: Admin oder Officer der Behörde.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSlotsRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SlotDto' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /offices/{officeId}/slots/{slotId}:
+    parameters:
+      - $ref: '#/components/parameters/officeId'
+      - $ref: '#/components/parameters/appointmentId'
+    post:
+      tags: [Appointments]
+      summary: Book an appointment slot
+      description: Bürger (angemeldet) bucht den Slot.
+      responses:
+        '200':
+          description: OK (booked)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AppointmentDto' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      tags: [Appointments]
+      summary: Delete a slot
+      description: Officer/Admin können Slot löschen
+      responses:
+        '204': { description: No Content }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /appointments:
+    get:
+      tags: [Appointments]
+      summary: List appointments of current user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AppointmentDto' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /appointments/{appointmentId}:
+    parameters:
+      - $ref: '#/components/parameters/appointmentId'
+    get:
+      tags: [Appointments]
+      summary: Get details of a user's appointment
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AppointmentDto' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Appointments]
+      summary: Cancel user's appointment
+      responses:
+        '204': { description: No Content }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  ################################
+  #            INFOS             #
+  ################################
+
+  /infos:
+    get:
+      tags: [Infos]
+      summary: List infos (public)
+      parameters:
+        - in: query
+          name: officeId
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: category
+          schema: { $ref: '#/components/schemas/InfoCategory' }
+        - in: query
+          name: startsFrom
+          schema: { type: string, format: date-time }
+        - in: query
+          name: endsTo
+          schema: { type: string, format: date-time }
+        - in: query
+          name: bbox
+          description: Bounding box 'minLon,minLat,maxLon,maxLat'
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/InfoDto' }
+    post:
+      tags: [Infos]
+      summary: Create info
+      description: Admin oder Officer der Behörde.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InfoCreateDto' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InfoDto' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /infos/{infoId}:
+    parameters:
+      - $ref: '#/components/parameters/infoId'
+    get:
+      tags: [Infos]
+      summary: Get info by id (public)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InfoDto' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Infos]
+      summary: Update info
+      description: Admin oder Officer der zuständigen Behörde.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InfoUpdateDto' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InfoDto' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Infos]
+      summary: Delete info
+      description: Admin oder Officer der zuständigen Behörde.
+      responses:
+        '204': { description: No Content }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /infos/{infoId}/status:
+    parameters:
+      - $ref: '#/components/parameters/infoId'
+    get:
+      tags: [Status]
+      summary: List all status entries of an info
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/StatusDtoInfo' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Status]
+      summary: Add status to info
+      description: Admin oder Officer der zuständigen Behörde.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StatusCreateDtoInfo' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StatusDtoInfo' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /infos/{infoId}/status/current:
+    parameters:
+      - $ref: '#/components/parameters/infoId'
+    get:
+      tags: [Status]
+      summary: Get current status of an info
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - { $ref: '#/components/schemas/StatusDtoInfo' }
+                  - { type: 'null' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  ################################
+  #            TICKETS           #
+  ################################
+
+  /tickets:
+    get:
+      tags: [Tickets]
+      summary: List public tickets (optionally filtered)
+      parameters:
+        - in: query
+          name: officeId
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: category
+          schema: { $ref: '#/components/schemas/TicketCategory' }
+        - in: query
+          name: createdFrom
+          schema: { type: string, format: date-time }
+        - in: query
+          name: createdTo
+          schema: { type: string, format: date-time }
+        - in: query
+          name: bbox
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/TicketDto' }
+    post:
+      tags: [Tickets]
+      summary: Create ticket (citizen)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TicketCreateDto' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TicketDto' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /tickets/{ticketId}:
+    parameters:
+      - $ref: '#/components/parameters/ticketId'
+    get:
+      tags: [Tickets]
+      summary: Get ticket by id (visibility aware)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TicketDto' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Tickets]
+      summary: Update ticket
+      description: Ersteller, Officer der Behörde oder Admin.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TicketUpdateDto' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TicketDto' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Tickets]
+      summary: Delete ticket
+      description: Ersteller, Officer der Behörde oder Admin.
+      responses:
+        '204': { description: No Content }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /tickets/{ticketId}/status:
+    parameters:
+      - $ref: '#/components/parameters/ticketId'
+    get:
+      tags: [Status]
+      summary: List all status entries of a ticket (visibility aware)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/TicketStatusDto' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Status]
+      summary: Add status to ticket
+      description: Nur Officer der zuständigen Behörde oder Admin.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TicketStatusCreateDto' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TicketStatusDto' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /tickets/{ticketId}/status/current:
+    parameters:
+      - $ref: '#/components/parameters/ticketId'
+    get:
+      tags: [Status]
+      summary: Get current status of a ticket
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - { $ref: '#/components/schemas/TicketStatusDto' }
+                  - { type: 'null' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /tickets/{ticketId}/votes:
+    parameters:
+      - $ref: '#/components/parameters/ticketId'
+    post:
+      tags: [Votes]
+      summary: Vote for a ticket
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TicketVoteSummaryDto' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Votes]
+      summary: Remove vote for a ticket
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TicketVoteSummaryDto' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  ################################
+  #            MEDIA             #
+  ################################
+
+  /media/ticket/{ticketId}:
+    parameters:
+      - $ref: '#/components/parameters/ticketId'
+    get:
+      tags: [Media]
+      summary: List media items for a ticket (visibility aware)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/MediaDto' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [Media]
+      summary: Upload image for a ticket
+      description: >
+        Nur Ersteller des Tickets, Officer der Behörde oder Admin.  
+        **Multipart**: form field `file` (Bild).
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MediaDto' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /media/ticket/{ticketId}/{mediaId}:
+    parameters:
+      - $ref: '#/components/parameters/ticketId'
+      - $ref: '#/components/parameters/mediaId'
+    delete:
+      tags: [Media]
+      summary: Delete image from ticket
+      description: Nur Ersteller/Officer/Admin.
+      responses:
+        '204': { description: No Content }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /media/{mediaId}:
+    parameters:
+      - $ref: '#/components/parameters/mediaId'
+    get:
+      tags: [Media]
+      summary: Download media by id (binary)
+      responses:
+        '200':
+          description: OK (image bytes)
+          content:
+            image/png: {}
+            image/jpeg: {}
+            image/webp: {}
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  ################################
+  #            DEBUG             #
+  ################################
+
+  /_debug/db:
+    get:
+      tags: [Debug]
+      summary: Get DB stats & resolved file path (dev only)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DebugDbResponse' }
+
+components:
+
+  ################################
+  #         SCHEMAS              #
+  ################################
+  schemas:
+
+    # --- Common ---
+
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, example: BAD_REQUEST }
+        message: { type: string, example: "Invalid email format" }
+        details:
+          description: Optional details (field errors etc.)
+          oneOf:
+            - type: object
+            - type: array
+            - type: string
+            - type: 'null'
+
+    InfoMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "If the email exists, an OTP has been sent."
+
+    LocationDto:
+      type: object
+      properties:
+        longitude: { type: number, format: double, minimum: -180, maximum: 180 }
+        latitude:  { type: number, format: double, minimum: -90, maximum: 90 }
+        accuracy:  { type: number, format: double, nullable: true }
+
+    Role:
+      type: string
+      enum: [CITIZEN, OFFICER, ADMIN]
+
+    # --- Auth & Users ---
+
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+        displayName: { type: string, nullable: true }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+
+    AuthTokenResponse:
+      type: object
+      required: [authToken, expiresIn, user]
+      properties:
+        authToken: { type: string, description: "JWT Bearer token" }
+        expiresIn: { type: integer, description: "time until JWT expires in MS" }
+        user:
+          type: object
+          required: [id, email, role]
+          properties:
+            id: { type: integer }
+            email: { type: string, format: email }
+            displayName: { type: string, nullable: true }
+            role: { type: string }
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+
+    ResetPasswordRequest:
+      type: object
+      required: [email, otp, newPassword]
+      properties:
+        email: { type: string, format: email }
+        otp: { type: string, minLength: 4, maxLength: 12 }
+        newPassword: { type: string, minLength: 6 }
+
+    UserDto:
+      type: object
+      required: [id, email, role]
+      properties:
+        id: { type: integer }
+        email: { type: string, format: email }
+        displayName: { type: string, nullable: true }
+        role: { $ref: '#/components/schemas/Role' }
+        officeId: { type: integer, nullable: true }
+
+    UserUpdateRequest:
+      type: object
+      properties:
+        displayName: { type: string, nullable: true }
+
+    # --- Settings ---
+
+    SettingsDto:
+      type: object
+      required: [language, theme, notificationsEnabled, syncEnabled]
+      properties:
+        language:
+          type: string
+          enum: [de, en]
+          default: en
+        theme:
+          type: string
+          enum: [light, dark]
+          default: light
+        notificationsEnabled: { type: boolean, default: false }
+        syncEnabled: { type: boolean, default: false }
+
+    SettingsUpsertRequest:
+      type: object
+      properties:
+        language: { type: string, enum: [de, en] }
+        theme: { type: string, enum: [light, dark] }
+        notificationsEnabled: { type: boolean }
+        syncEnabled: { type: boolean }
+
+    # --- Offices ---
+
+    OfficeDto:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        services: { type: string, nullable: true }
+        openingHours: { type: string, nullable: true }
+        contactEmail: { type: string, format: email, nullable: true }
+        phone: { type: string, nullable: true }
+        location: { $ref: '#/components/schemas/LocationDto' }
+
+    OfficeCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1 }
+        description: { type: string, nullable: true }
+        services: { type: string, nullable: true }
+        openingHours: { type: string, nullable: true }
+        contactEmail: { type: string, format: email, nullable: true }
+        phone: { type: string, nullable: true }
+        location: { $ref: '#/components/schemas/LocationDto' }
+
+    OfficeUpdateRequest:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: string, nullable: true }
+        services: { type: string, nullable: true }
+        openingHours: { type: string, nullable: true }
+        contactEmail: { type: string, format: email, nullable: true }
+        phone: { type: string, nullable: true }
+        location: { $ref: '#/components/schemas/LocationDto' }
+
+    # --- Appointments ---
+
+    AppointmentDto:
+      type: object
+      required: [id, officeId, startsAt, endsAt]
+      properties:
+        id: { type: integer }
+        officeId: { type: integer }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        userId: { type: integer, nullable: true }
+
+    SlotDto:
+      type: object
+      required: [id, officeId, startsAt, endsAt]
+      properties:
+        id: { type: integer }
+        officeId: { type: integer }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+
+    CreateSlotsRequest:
+      type: object
+      required: [slots]
+      properties:
+        slots:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [startsAt, endsAt]
+            properties:
+              startsAt: { type: string, format: date-time }
+              endsAt:   { type: string, format: date-time }
+
+    # --- Infos & Status ---
+
+    InfoCategory:
+      type: string
+      enum: [EVENT, CONSTRUCTION, ANNOUNCEMENT, MAINTENANCE]
+
+    InfoDto:
+      type: object
+      required: [id, title, category, startsAt, endsAt, createdAt]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        category: { $ref: '#/components/schemas/InfoCategory' }
+        officeId: { type: integer }
+        location: { $ref: '#/components/schemas/LocationDto' }
+        createdAt: { type: string, format: date-time }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        currentStatus:
+          oneOf:
+            - $ref: '#/components/schemas/StatusDtoInfo'
+            - { type: 'null' }
+
+    InfoCreateDto:
+      type: object
+      required: [title, category, officeId, startsAt, endsAt]
+      properties:
+        title: { type: string, minLength: 1 }
+        description: { type: string, nullable: true }
+        category: { $ref: '#/components/schemas/InfoCategory' }
+        officeId: { type: integer }
+        location: { $ref: '#/components/schemas/LocationDto' }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+
+    InfoUpdateDto:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: string, nullable: true }
+        category: { $ref: '#/components/schemas/InfoCategory' }
+        officeId: { type: integer }
+        location: { $ref: '#/components/schemas/LocationDto' }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+
+    InfoStatus:
+      type: string
+      enum: [SCHEDULED, ACTIVE, COMPLETED, CANCELED]
+
+    StatusDtoInfo:
+      type: object
+      required: [id, status, createdAt]
+      properties:
+        id: { type: integer }
+        status: { $ref: '#/components/schemas/InfoStatus' }
+        message: { type: string, nullable: true }
+        createdByUserId: { type: integer, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    StatusCreateDtoInfo:
+      type: object
+      required: [status]
+      properties:
+        status: { $ref: '#/components/schemas/InfoStatus' }
+        message: { type: string, nullable: true }
+
+    # --- Tickets, Status & Votes ---
+
+    TicketCategory:
+      type: string
+      enum: [INFRASTRUCTURE, CLEANING, SAFETY, OTHER]
+
+    TicketVisibility:
+      type: string
+      enum: [PUBLIC, PRIVATE]
+
+    TicketDto:
+      type: object
+      required: [id, title, category, visibility, createdAt]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        category: { $ref: '#/components/schemas/TicketCategory' }
+        officeId: { type: integer }
+        creatorUserId: { type: integer }
+        location: { $ref: '#/components/schemas/LocationDto' }
+        visibility: { $ref: '#/components/schemas/TicketVisibility' }
+        createdAt: { type: string, format: date-time }
+        currentStatus:
+          oneOf:
+            - $ref: '#/components/schemas/TicketStatusDto'
+            - { type: 'null' }
+        votesCount: { type: integer }
+        media:
+          type: array
+          items: { $ref: '#/components/schemas/MediaDto' }
+
+    TicketCreateDto:
+      type: object
+      required: [title, category, officeId, visibility]
+      properties:
+        title: { type: string, minLength: 1 }
+        description: { type: string, nullable: true }
+        category: { $ref: '#/components/schemas/TicketCategory' }
+        officeId: { type: integer }
+        location: { $ref: '#/components/schemas/LocationDto' }
+        visibility: { $ref: '#/components/schemas/TicketVisibility' }
+
+    TicketUpdateDto:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: string, nullable: true }
+        category: { $ref: '#/components/schemas/TicketCategory' }
+        officeId: { type: integer }
+        location: { $ref: '#/components/schemas/LocationDto' }
+        visibility: { $ref: '#/components/schemas/TicketVisibility' }
+
+    TicketStatus:
+      type: string
+      enum: [OPEN, IN_PROGRESS, RESOLVED, CLOSED]
+
+    TicketStatusDto:
+      type: object
+      required: [id, status, createdAt]
+      properties:
+        id: { type: integer }
+        status: { $ref: '#/components/schemas/TicketStatus' }
+        message: { type: string, nullable: true }
+        createdByUserId: { type: integer, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    TicketStatusCreateDto:
+      type: object
+      required: [status]
+      properties:
+        status: { $ref: '#/components/schemas/TicketStatus' }
+        message: { type: string, nullable: true }
+
+    TicketVoteSummaryDto:
+      type: object
+      required: [ticketId, votes]
+      properties:
+        ticketId: { type: integer }
+        votes: { type: integer }
+        userVoted:
+          type: boolean
+          nullable: true
+
+    # --- Media ---
+
+    MediaDto:
+      type: object
+      required: [id, filename, mimeType, sizeBytes, createdAt]
+      properties:
+        id: { type: integer }
+        url: { type: string, example: /api/media/123 }
+        mimeType: { type: string, example: image/png }
+        sizeBytes: { type: integer, format: int64 }
+        createdAt: { type: string, format: date-time }
+
+    # --- Debug ---
+
+    DebugDbResponse:
+      type: object
+      required: [jdbcUrl, resolvedFile, counts]
+      properties:
+        jdbcUrl: { type: string }
+        resolvedFile: { type: string }
+        mvDbPath: { type: string, nullable: true }
+        mvDbExists: { type: boolean, nullable: true }
+        mvDbSizeBytes: { type: integer, nullable: true }
+        mvDbLastModified: { type: string, format: date-time, nullable: true }
+        counts:
+          type: object
+          additionalProperties: { type: integer }
+
+  ################################
+  #      PARAMETERS & RESP       #
+  ################################
+  parameters:
+    officeId:
+      name: officeId
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    appointmentId:
+      name: appointmentId
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    infoId:
+      name: infoId
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    ticketId:
+      name: ticketId
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    mediaId:
+      name: mediaId
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  ################################
+  #     SECURITY SCHEMES         #
+  ################################
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
