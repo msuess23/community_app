@@ -13,7 +13,7 @@ import io.ktor.server.routing.*
 fun Route.infoRoutes(
   service: InfoService = InfoService.default()
 ) {
-  route("/infos") {
+  route("/info") {
     // --- get all infos ---
     get {
       val officeId = call.request.queryParameters["officeId"]?.toIntOrNull()

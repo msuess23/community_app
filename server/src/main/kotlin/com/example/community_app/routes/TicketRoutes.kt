@@ -14,7 +14,7 @@ import io.ktor.server.routing.*
 fun Route.ticketRoutes(
   service: TicketService = TicketService.default()
 ) {
-  route("/tickets") {
+  route("/ticket") {
     // --- get all tickets ---
     get {
       val officeId = call.request.queryParameters["officeId"]?.toIntOrNull()
@@ -106,7 +106,7 @@ fun Route.ticketRoutes(
     }
 
     // Votes summary (öffentlich, aber private nur wenn berechtigt)
-    get("/{id}/votes") {
+    get("/{id}/vote") {
       val id = call.parameters["id"]!!.toInt()
       val principal = call.principal<JWTPrincipal>()
       val res = service.votesSummary(id, principal)

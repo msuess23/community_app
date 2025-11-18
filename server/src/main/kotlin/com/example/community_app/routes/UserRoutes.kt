@@ -17,7 +17,7 @@ fun Route.userRoutes(
   settingsService: SettingsService = SettingsService.default()
 ) {
   authenticate("auth-jwt") {
-    route("/users/me") {
+    route("/user/me") {
       // --- get user ---
       get {
         val principal = call.principal<JWTPrincipal>()!!

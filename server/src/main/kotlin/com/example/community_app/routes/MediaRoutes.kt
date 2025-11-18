@@ -106,7 +106,7 @@ fun Route.mediaRoutes(
   // ---------- Compatibility Ticket aliases ----------
   // Beibehalten für bestehende Clients; intern generisches Service.
 
-  route("/tickets/{ticketId}/media") {
+  route("/ticket/{ticketId}/media") {
     // list
     get {
       val ticketId = call.parameters["ticketId"]!!.toInt()

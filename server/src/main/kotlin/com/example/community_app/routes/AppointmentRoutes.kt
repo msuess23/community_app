@@ -15,7 +15,7 @@ fun Route.appointmentRoutes(
   service: AppointmentService = AppointmentService(DefaultAppointmentRepository)
 ) {
   // --- free slots ---
-  route("/offices/{officeId}/slots") {
+  route("/office/{officeId}/slot") {
     // --- get all free slots of an office (all) ---
     get {
       val officeId = call.parameters["officeId"]!!.toInt()
@@ -54,7 +54,7 @@ fun Route.appointmentRoutes(
     }
   }
 
-  route("/appointments") {
+  route("/appointment") {
     authenticate("auth-jwt") {
       // --- get all appointments booked by user (citizen) ---
       get {
