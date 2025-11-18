@@ -4,7 +4,8 @@ import com.example.community_app.dto.*
 import com.example.community_app.errors.NotFoundException
 import com.example.community_app.repository.*
 import com.example.community_app.util.parseBbox
-import com.example.community_app.util.validateLocation
+import com.example.community_app.util.toDto
+import com.example.community_app.util.validateAddress
 
 class OfficeService(
   private val repo: OfficeRepository
@@ -18,7 +19,7 @@ class OfficeService(
     repo.findById(id)?.toDto() ?: throw NotFoundException("Office not found")
 
   suspend fun create(body: OfficeCreateDto): OfficeDto {
-    validateLocation(body.location)
+    validateAddress(body.address)
     val rec = repo.create(
       OfficeCreateData(
         name = body.name,
@@ -27,14 +28,14 @@ class OfficeService(
         openingHours = body.openingHours,
         contactEmail = body.contactEmail,
         phone = body.phone,
-        location = body.location
+        address = body.address // Mapping DTO property name
       )
     )
     return rec.toDto()
   }
 
   suspend fun update(id: Int, patch: OfficeUpdateDto): OfficeDto {
-    patch.location?.let { validateLocation(it) }
+    patch.address?.let { validateAddress(it) }
     val updated = repo.update(
       id,
       OfficeUpdateData(
@@ -44,7 +45,7 @@ class OfficeService(
         openingHours = patch.openingHours,
         contactEmail = patch.contactEmail,
         phone = patch.phone,
-        location = patch.location
+        address = patch.address
       )
     ) ?: throw NotFoundException("Office not found")
     return updated.toDto()
@@ -62,11 +63,6 @@ class OfficeService(
     openingHours = openingHours,
     contactEmail = contactEmail,
     phone = phone,
-    location = LocationDto(
-      longitude = location.longitude,
-      latitude = location.latitude,
-      altitude = location.altitude,
-      accuracy = location.accuracy
-    )
+    address = address.toDto() // nutzt Mapper aus Mappers.kt
   )
 }

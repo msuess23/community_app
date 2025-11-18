@@ -1,6 +1,6 @@
 package com.example.community_app.config
 
-import com.example.community_app.dto.LocationDto
+import com.example.community_app.dto.AddressDto // LocationDto ersetzt durch AddressDto
 import com.example.community_app.model.*
 import com.example.community_app.repository.*
 import com.example.community_app.service.StatusService
@@ -22,8 +22,9 @@ object DatabaseSeeder {
     if (!enabled) return
 
     transaction {
-      SchemaUtils.drop(Users, Settings, Locations, Offices, Appointments, Infos, StatusEntries, Tickets, TicketVotes, Media)
-      SchemaUtils.create(Users, Settings, Locations, Offices, Appointments, Infos, StatusEntries, Tickets, TicketVotes, Media)
+      // Locations muss durch Addresses ersetzt werden
+      SchemaUtils.drop(Users, Settings, Addresses, Offices, Appointments, Infos, StatusEntries, Tickets, TicketVotes, Media)
+      SchemaUtils.create(Users, Settings, Addresses, Offices, Appointments, Infos, StatusEntries, Tickets, TicketVotes, Media)
     }
 
     println("DevSeeder: start seeding…")
@@ -40,13 +41,16 @@ object DatabaseSeeder {
   // --------------------------------------------------------------------------
 
   private suspend fun seedAll() {
-    // --- 1) Offices + Locations ---
+    // --- 1) Offices + Addresses ---
     val (office1Id, office2Id) = transaction {
-      val loc1 = LocationEntity.new {
+      // Adresse mit Adressfeldern erstellen
+      val addr1 = AddressEntity.new {
+        street = "Marienplatz"
+        houseNumber = "1"
+        zipCode = "80331"
+        city = "München"
         longitude = 11.576124
         latitude = 48.137154
-        altitude = null
-        accuracy = 5.0
       }
       val office1 = OfficeEntity.new {
         name = "Einwohnermeldeamt Altstadt"
@@ -55,14 +59,17 @@ object DatabaseSeeder {
         openingHours = "Mo-Fr 8-16"
         contactEmail = "altstadt@city.example"
         phone = "+49-89-123456"
-        location = loc1
+        address = addr1
       }
 
-      val loc2 = LocationEntity.new {
+      // Adresse mit Adressfeldern erstellen
+      val addr2 = AddressEntity.new {
+        street = "Sendlinger Straße"
+        houseNumber = "1"
+        zipCode = "80331"
+        city = "München"
         longitude = 11.581981
         latitude = 48.135125
-        altitude = null
-        accuracy = 5.0
       }
       val office2 = OfficeEntity.new {
         name = "Bürgerbüro Zentrum"
@@ -71,7 +78,7 @@ object DatabaseSeeder {
         openingHours = "Mo-Do 9-17"
         contactEmail = "zentrum@city.example"
         phone = "+49-89-654321"
-        location = loc2
+        address = addr2
       }
       Pair(office1.id.value, office2.id.value)
     }
@@ -158,7 +165,8 @@ object DatabaseSeeder {
       description = "Live-Musik und Marktstände",
       category = InfoCategory.EVENT,
       officeId = office1Id,
-      location = LocationDto(11.575, 48.1378, null, 5.0),
+      // AddressDto verwenden
+      address = AddressDto(street = "Marienplatz", houseNumber = "1", zipCode = "80331", city = "München", longitude = 11.575, latitude = 48.1378),
       startsAt = now.plus(5, ChronoUnit.DAYS),
       endsAt = now.plus(5, ChronoUnit.DAYS).plus(6, ChronoUnit.HOURS)
     ))
@@ -167,7 +175,8 @@ object DatabaseSeeder {
       description = "Einschränkungen im Verkehr",
       category = InfoCategory.CONSTRUCTION,
       officeId = office1Id,
-      location = LocationDto(11.565, 48.132, null, 5.0),
+      // AddressDto verwenden
+      address = AddressDto(street = "Sendlinger Tor Platz", longitude = 11.565, latitude = 48.132),
       startsAt = now,
       endsAt = now.plus(20, ChronoUnit.DAYS)
     ))
@@ -177,7 +186,8 @@ object DatabaseSeeder {
       description = "Sprechstunde des Bürgermeisters",
       category = InfoCategory.ANNOUNCEMENT,
       officeId = office2Id,
-      location = LocationDto(11.5823, 48.1369, null, 5.0),
+      // AddressDto verwenden
+      address = AddressDto(street = "Odeonsplatz", longitude = 11.5823, latitude = 48.1369),
       startsAt = now.plus(2, ChronoUnit.DAYS),
       endsAt = now.plus(2, ChronoUnit.DAYS).plus(2, ChronoUnit.HOURS)
     ))
@@ -186,7 +196,8 @@ object DatabaseSeeder {
       description = "Neugestaltung des Stadtparks",
       category = InfoCategory.MAINTENANCE,
       officeId = office2Id,
-      location = LocationDto(11.59, 48.138, null, 5.0),
+      // AddressDto verwenden
+      address = AddressDto(street = "Englischer Garten", longitude = 11.59, latitude = 48.138),
       startsAt = now.plus(1, ChronoUnit.DAYS),
       endsAt = now.plus(14, ChronoUnit.DAYS)
     ))
@@ -197,6 +208,23 @@ object DatabaseSeeder {
     statusService.addInfoStatus(info2a.id, InfoStatus.SCHEDULED, "Vorbereitung läuft", officer2Id)
     statusService.addInfoStatus(info2b.id, InfoStatus.SCHEDULED, "Planung gestartet", officer2Id)
 
+    // NEU: Medien für Infos
+    try {
+      createTinyPngForInfo(info1a.id, fileName = "fest_banner.png")
+      DefaultMediaRepository.create(
+        MediaCreateData(
+          targetType = MediaTargetType.INFO,
+          targetId = info1a.id,
+          serverFilename = "fest_banner.png",
+          originalFilename = "altstadtfest.png",
+          mimeType = "image/png",
+          sizeBytes = File(MediaConfig.targetDir("INFO", info1a.id), "fest_banner.png").length()
+        )
+      )
+    } catch (e: Throwable) {
+      println("DevSeeder: could not create demo media for Info 1a: ${e.message}")
+    }
+
     // --- 6) Tickets (je Citizen ein privates) + 1 öffentliches + Vote ---
     val ticketRepo = DefaultTicketRepository
 
@@ -206,7 +234,8 @@ object DatabaseSeeder {
       category = TicketCategory.INFRASTRUCTURE,
       officeId = office1Id,
       creatorUserId = citizen1Id,
-      location = LocationDto(11.574, 48.137, null, 5.0),
+      // AddressDto verwenden
+      address = AddressDto(street = "Kaufinger Straße", longitude = 11.574, latitude = 48.137),
       visibility = TicketVisibility.PRIVATE
     ))
     val priv2 = ticketRepo.create(TicketCreateData(
@@ -215,7 +244,8 @@ object DatabaseSeeder {
       category = TicketCategory.CLEANING, // verwende dein aktuelles Enum
       officeId = office2Id,
       creatorUserId = citizen2Id,
-      location = LocationDto(11.583, 48.136, null, 5.0),
+      // AddressDto verwenden
+      address = AddressDto(street = "Isartorplatz", longitude = 11.583, latitude = 48.136),
       visibility = TicketVisibility.PRIVATE
     ))
     val pub1 = ticketRepo.create(TicketCreateData(
@@ -224,7 +254,8 @@ object DatabaseSeeder {
       category = TicketCategory.INFRASTRUCTURE,
       officeId = office1Id,
       creatorUserId = citizen1Id,
-      location = LocationDto(11.5765, 48.1375, null, 5.0),
+      // AddressDto verwenden
+      address = AddressDto(street = "Hofgarten", longitude = 11.5765, latitude = 48.1375),
       visibility = TicketVisibility.PUBLIC
     ))
 
@@ -257,11 +288,20 @@ object DatabaseSeeder {
 
   /** Legt eine winzige 1x1 PNG-Datei im Zielverzeichnis ab. */
   private fun createTinyPngForTicket(ticketId: Int, fileName: String) {
+    createTinyPng(MediaTargetType.TICKET, ticketId, fileName)
+  }
+
+  /** NEU: Legt eine winzige 1x1 PNG-Datei für Infos im Zielverzeichnis ab. */
+  private fun createTinyPngForInfo(infoId: Int, fileName: String) {
+    createTinyPng(MediaTargetType.INFO, infoId, fileName)
+  }
+
+  private fun createTinyPng(type: MediaTargetType, targetId: Int, fileName: String) {
     val bytes = Base64.getDecoder().decode(
       // 1x1 transparent PNG
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
     )
-    val dir = MediaConfig.targetDir("TICKET", ticketId)
+    val dir = MediaConfig.targetDir(type.name, targetId)
     val f = File(dir, fileName)
     f.outputStream().use { it.write(bytes) }
   }

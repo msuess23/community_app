@@ -9,7 +9,7 @@ data class TicketCreateDto(
   val description: String? = null,
   val category: TicketCategory,
   val officeId: Int,
-  val location: LocationDto? = null,
+  val address: AddressDto? = null,
   val visibility: TicketVisibility = TicketVisibility.PUBLIC
 )
 
@@ -19,7 +19,7 @@ data class TicketUpdateDto(
   val description: String? = null,
   val category: TicketCategory? = null,
   val officeId: Int? = null,
-  val location: LocationDto? = null,
+  val address: AddressDto? = null,
   val visibility: TicketVisibility? = null
 )
 
@@ -31,13 +31,14 @@ data class TicketDto(
   val category: TicketCategory,
   val officeId: Int?,
   val creatorUserId: Int,
-  val location: LocationDto?,
+  val address: AddressDto?,
   val visibility: TicketVisibility,
   val createdAt: String,
   val currentStatus: TicketStatusDto? = null,
   val votesCount: Int = 0,
   val userVoted: Boolean? = null,
-  val media: List<MediaDto> = emptyList()   // <— generisch
+  val media: List<MediaDto> = emptyList(),
+  val imageUrl: String? = null
 )
 
 @Serializable

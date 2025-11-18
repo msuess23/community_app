@@ -10,7 +10,7 @@ data class OfficeCreateDto(
   val openingHours: String? = null,
   val contactEmail: String? = null,
   val phone: String? = null,
-  val location: LocationDto
+  val address: AddressDto
 )
 
 @Serializable
@@ -21,7 +21,7 @@ data class OfficeUpdateDto(
   val openingHours: String? = null,
   val contactEmail: String? = null,
   val phone: String? = null,
-  val location: LocationDto? = null
+  val address: AddressDto? = null
 )
 
 @Serializable
@@ -33,5 +33,5 @@ data class OfficeDto(
   val openingHours: String?,
   val contactEmail: String?,
   val phone: String?,
-  val location: LocationDto
+  val address: AddressDto
 )

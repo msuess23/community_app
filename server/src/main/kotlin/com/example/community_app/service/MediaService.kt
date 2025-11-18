@@ -9,6 +9,7 @@ import com.example.community_app.errors.NotFoundException
 import com.example.community_app.repository.*
 import com.example.community_app.util.ensureViewAllowedForVisibility
 import com.example.community_app.util.requireEditByCreatorOfficerOrAdmin
+import com.example.community_app.util.requireOfficerOfOrAdmin
 import io.ktor.http.content.*
 import io.ktor.server.auth.jwt.*
 import java.io.File
@@ -22,11 +23,12 @@ data class MediaBinary(
 
 /**
  * Generische Medien-Pipeline mit Policies je Zieltyp.
- * Aktuell: TICKET vollständig, USER (Avatar) vorbereitet.
+ * Unterstützt: TICKET, INFO. (USER vorbereitet)
  */
 class MediaService(
   private val repo: MediaRepository,
-  private val ticketRepo: TicketRepository
+  private val ticketRepo: TicketRepository,
+  private val infoRepo: InfoRepository = DefaultInfoRepository // Neu injiziert (default)
 ) {
 
   // ---------- Public/Authed reads ----------
@@ -123,7 +125,7 @@ class MediaService(
     if (ok && file.exists()) runCatching { file.delete() }
   }
 
-  /** Für Löschvorgänge des Targets (z. B. Ticket) – DB & Files aufräumen. */
+  /** Für Löschvorgänge des Targets (z. B. Ticket/Info) – DB & Files aufräumen. */
   suspend fun deleteAllForTarget(targetType: MediaTargetType, targetId: Int) {
     val list = repo.list(targetType, targetId)
     repo.deleteAll(targetType, targetId)
@@ -143,6 +145,11 @@ class MediaService(
         val t = ticketRepo.findById(id) ?: throw NotFoundException("Ticket not found")
         ensureViewAllowedForVisibility(t.visibility, t.creatorUserId, t.officeId, principal)
       }
+      MediaTargetType.INFO -> {
+        // Infos sind grundsätzlich öffentlich sichtbar (oder via Filter im List-Endpoint, aber Image-Access ist meist public)
+        // Wir prüfen nur Existenz.
+        if (infoRepo.findById(id) == null) throw NotFoundException("Info not found")
+      }
     }
   }
 
@@ -151,6 +158,11 @@ class MediaService(
       MediaTargetType.TICKET -> {
         val t = ticketRepo.findById(id) ?: throw NotFoundException("Ticket not found")
         requireEditByCreatorOfficerOrAdmin(principal, t.creatorUserId, t.officeId)
+      }
+      MediaTargetType.INFO -> {
+        val info = infoRepo.findById(id) ?: throw NotFoundException("Info not found")
+        // Nur Officer des Offices oder Admin dürfen Info-Medien bearbeiten
+        requireOfficerOfOrAdmin(principal, info.officeId)
       }
     }
   }

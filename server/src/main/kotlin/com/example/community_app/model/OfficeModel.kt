@@ -15,7 +15,7 @@ object Offices : IntIdTable(name = "OFFICES") {
   val openingHours = text("OPENING_HOURS").nullable()
   val contactEmail = varchar("CONTACT_EMAIL", 255).nullable()
   val phone = varchar("PHONE", 64).nullable()
-  val location = reference("LOCATION_ID", Locations, onDelete = ReferenceOption.CASCADE)
+  val address = reference("ADDRESS_ID", Addresses, onDelete = ReferenceOption.CASCADE)
   val createdAt = timestamp("CREATED_AT").defaultExpression(CurrentTimestamp)
 }
 
@@ -27,6 +27,6 @@ class OfficeEntity(id: EntityID<Int>) : IntEntity(id) {
   var openingHours by Offices.openingHours
   var contactEmail by Offices.contactEmail
   var phone by Offices.phone
-  var location by LocationEntity referencedOn Offices.location
+  var address by AddressEntity referencedOn Offices.address
   var createdAt by Offices.createdAt
 }

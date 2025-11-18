@@ -14,7 +14,7 @@ object Infos : IntIdTable(name = "INFOS") {
   val description = text("DESCRIPTION").nullable()
   val category = enumerationByName("CATEGORY", 32, InfoCategory::class)
   val office = reference("OFFICE_ID", Offices, onDelete = ReferenceOption.SET_NULL).nullable()
-  val location = reference("LOCATION_ID", Locations, onDelete = ReferenceOption.SET_NULL).nullable()
+  val address = reference("ADDRESS_ID", Addresses, onDelete = ReferenceOption.SET_NULL).nullable()
   val createdAt = timestamp("CREATED_AT").defaultExpression(CurrentTimestamp)
   val startsAt = timestamp("STARTS_AT")
   val endsAt = timestamp("ENDS_AT")
@@ -26,7 +26,7 @@ class InfoEntity(id: EntityID<Int>) : IntEntity(id) {
   var description by Infos.description
   var category by Infos.category
   var office by OfficeEntity optionalReferencedOn Infos.office
-  var location by LocationEntity optionalReferencedOn Infos.location
+  var address by AddressEntity optionalReferencedOn Infos.address
   var createdAt by Infos.createdAt
   var startsAt by Infos.startsAt
   var endsAt by Infos.endsAt

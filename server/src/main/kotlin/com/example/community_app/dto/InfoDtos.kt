@@ -9,7 +9,7 @@ data class InfoCreateDto(
   val description: String? = null,
   val category: InfoCategory,
   val officeId: Int? = null,
-  val location: LocationDto? = null,
+  val address: AddressDto? = null,
   val startsAt: String,
   val endsAt: String
 )
@@ -20,7 +20,7 @@ data class InfoUpdateDto(
   val description: String? = null,
   val category: InfoCategory? = null,
   val officeId: Int? = null,
-  val location: LocationDto? = null,
+  val address: AddressDto? = null,
   val startsAt: String? = null,
   val endsAt: String? = null
 )
@@ -32,9 +32,10 @@ data class InfoDto(
   val description: String?,
   val category: InfoCategory,
   val officeId: Int?,
-  val location: LocationDto?,
+  val address: AddressDto?,
   val createdAt: String,
   val startsAt: String,
   val endsAt: String,
-  val currentStatus: StatusDto? = null
+  val currentStatus: StatusDto? = null,
+  val imageUrl: String? = null
 )

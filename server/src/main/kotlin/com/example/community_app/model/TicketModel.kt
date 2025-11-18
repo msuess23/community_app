@@ -16,7 +16,7 @@ object Tickets : IntIdTable(name = "TICKETS") {
   val category = enumerationByName("CATEGORY", 32, TicketCategory::class)
   val creator = reference("CREATOR_USER_ID", Users, onDelete = ReferenceOption.CASCADE)
   val office = reference("OFFICE_ID", Offices, onDelete = ReferenceOption.SET_NULL).nullable()
-  val location = reference("LOCATION_ID", Locations, onDelete = ReferenceOption.SET_NULL).nullable()
+  val address = reference("ADDRESS_ID", Addresses, onDelete = ReferenceOption.SET_NULL).nullable()
   val visibility = enumerationByName("VISIBILITY", 16, TicketVisibility::class).default(TicketVisibility.PUBLIC)
   val createdAt = timestamp("CREATED_AT").defaultExpression(CurrentTimestamp)
 }
@@ -28,7 +28,7 @@ class TicketEntity(id: EntityID<Int>) : IntEntity(id) {
   var category by Tickets.category
   var creator by UserEntity referencedOn Tickets.creator
   var office by OfficeEntity optionalReferencedOn Tickets.office
-  var location by LocationEntity optionalReferencedOn Tickets.location
+  var address by AddressEntity optionalReferencedOn Tickets.address
   var visibility by Tickets.visibility
   var createdAt by Tickets.createdAt
 }

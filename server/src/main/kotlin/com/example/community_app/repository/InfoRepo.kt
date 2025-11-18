@@ -1,18 +1,15 @@
 package com.example.community_app.repository
 
 import com.example.community_app.util.InfoCategory
-import com.example.community_app.dto.LocationDto
+import com.example.community_app.util.MediaTargetType
+import com.example.community_app.dto.AddressDto
 import com.example.community_app.model.*
 import com.example.community_app.util.applyBbox
-import com.example.community_app.util.createLocation
+import com.example.community_app.util.createAddress
 import com.example.community_app.util.updateFrom
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.Query
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.time.Instant
 
@@ -22,10 +19,11 @@ data class InfoRecord(
   val description: String?,
   val category: InfoCategory,
   val officeId: Int?,
-  val location: LocationRecord?,
+  val address: AddressRecord?,
   val createdAt: Instant,
   val startsAt: Instant,
-  val endsAt: Instant
+  val endsAt: Instant,
+  val imageUrl: String?
 )
 
 interface InfoRepository {
@@ -48,7 +46,7 @@ data class InfoCreateData(
   val description: String?,
   val category: InfoCategory,
   val officeId: Int?,
-  val location: LocationDto?,
+  val address: AddressDto?,
   val startsAt: Instant,
   val endsAt: Instant
 )
@@ -58,7 +56,7 @@ data class InfoUpdateData(
   val description: String?,
   val category: InfoCategory?,
   val officeId: Int?,
-  val location: LocationDto?,
+  val address: AddressDto?,
   val startsAt: Instant?,
   val endsAt: Instant?
 )
@@ -68,7 +66,7 @@ object DefaultInfoRepository : InfoRepository {
   override suspend fun list(
     officeId: Int?, category: InfoCategory?, startsFrom: Instant?, endsTo: Instant?, bbox: DoubleArray?
   ): List<InfoRecord> = newSuspendedTransaction(Dispatchers.IO) {
-    val base: Query = (Infos leftJoin Locations).selectAll()
+    val base: Query = (Infos leftJoin Addresses).selectAll()
 
     if (officeId != null) base.andWhere { Infos.office eq officeId }
     if (category != null) base.andWhere { Infos.category eq category }
@@ -76,20 +74,29 @@ object DefaultInfoRepository : InfoRepository {
     if (endsTo != null) base.andWhere { Infos.endsAt lessEq endsTo }
     base.applyBbox(bbox)
 
-    base.orderBy(Infos.startsAt to SortOrder.ASC).map { it.toInfoRecord() }
+    val rows = base.orderBy(Infos.startsAt to SortOrder.ASC).toList()
+    if (rows.isEmpty()) return@newSuspendedTransaction emptyList()
+
+    // Media fetch
+    val ids = rows.map { it[Infos.id].value }
+    val mediaMap = fetchFirstMediaMap(MediaTargetType.INFO, ids)
+
+    rows.map { it.toInfoRecord(mediaMap[it[Infos.id].value]) }
   }
 
   override suspend fun findById(id: Int): InfoRecord? = newSuspendedTransaction(Dispatchers.IO) {
-    (Infos leftJoin Locations)
+    val row = (Infos leftJoin Addresses)
       .selectAll()
       .apply { andWhere { Infos.id eq id } }
       .limit(1)
-      .firstOrNull()
-      ?.toInfoRecord()
+      .firstOrNull() ?: return@newSuspendedTransaction null
+
+    val img = fetchFirstMediaUrl(MediaTargetType.INFO, id)
+    row.toInfoRecord(img)
   }
 
   override suspend fun create(data: InfoCreateData): InfoRecord = newSuspendedTransaction(Dispatchers.IO) {
-    val locEntity = data.location?.let { createLocation(it) }
+    val addrEntity = data.address?.let { createAddress(it) }
     val officeEntity = data.officeId?.let { OfficeEntity.findById(it) }
 
     val info = InfoEntity.new {
@@ -97,16 +104,16 @@ object DefaultInfoRepository : InfoRepository {
       description = data.description
       category = data.category
       office = officeEntity
-      location = locEntity
+      address = addrEntity
       startsAt = data.startsAt
       endsAt = data.endsAt
     }
 
-    (Infos leftJoin Locations)
+    (Infos leftJoin Addresses)
       .selectAll()
       .apply { andWhere { Infos.id eq info.id } }
       .first()
-      .toInfoRecord()
+      .toInfoRecord(null)
   }
 
   override suspend fun update(id: Int, patch: InfoUpdateData): InfoRecord? = newSuspendedTransaction(Dispatchers.IO) {
@@ -118,21 +125,22 @@ object DefaultInfoRepository : InfoRepository {
     if (patch.officeId != null) {
       info.office = OfficeEntity.findById(patch.officeId)
     }
-    patch.location?.let {
-      if (info.location == null) {
-        info.location = createLocation(it)
+    patch.address?.let {
+      if (info.address == null) {
+        info.address = createAddress(it)
       } else {
-        info.location!!.updateFrom(it)
+        info.address!!.updateFrom(it)
       }
     }
     patch.startsAt?.let { info.startsAt = it }
     patch.endsAt?.let { info.endsAt = it }
 
-    (Infos leftJoin Locations)
+    val img = fetchFirstMediaUrl(MediaTargetType.INFO, id)
+    (Infos leftJoin Addresses)
       .selectAll()
       .apply { andWhere { Infos.id eq info.id } }
       .first()
-      .toInfoRecord()
+      .toInfoRecord(img)
   }
 
   override suspend fun delete(id: Int): Boolean = newSuspendedTransaction(Dispatchers.IO) {
@@ -141,17 +149,39 @@ object DefaultInfoRepository : InfoRepository {
     true
   }
 
-  // --- mapping helper ---
+  // --- helpers ---
 
-  private fun ResultRow.toInfoRecord(): InfoRecord {
-    val locId: EntityID<Int>? = this[Infos.location]
-    val loc = if (locId != null) {
-      LocationRecord(
-        id = locId.value,
-        longitude = this[Locations.longitude],
-        latitude = this[Locations.latitude],
-        altitude = this[Locations.altitude],
-        accuracy = this[Locations.accuracy]
+  private fun fetchFirstMediaUrl(type: MediaTargetType, targetId: Int): String? {
+    val m = MediaEntity.find { (Media.targetType eq type) and (Media.targetId eq targetId) }
+      .orderBy(Media.createdAt to SortOrder.DESC)
+      .limit(1)
+      .firstOrNull()
+    return m?.let { "/api/media/${it.id.value}" }
+  }
+
+  private fun fetchFirstMediaMap(type: MediaTargetType, ids: List<Int>): Map<Int, String> {
+    val all = MediaEntity.find { (Media.targetType eq type) and (Media.targetId inList ids) }
+      .orderBy(Media.createdAt to SortOrder.DESC)
+    val map = mutableMapOf<Int, String>()
+    all.forEach { m ->
+      if (!map.containsKey(m.targetId)) {
+        map[m.targetId] = "/api/media/${m.id.value}"
+      }
+    }
+    return map
+  }
+
+  private fun ResultRow.toInfoRecord(imageUrl: String?): InfoRecord {
+    val addrId: EntityID<Int>? = this[Infos.address]
+    val addr = if (addrId != null) {
+      AddressRecord(
+        id = addrId.value,
+        street = this[Addresses.street],
+        houseNumber = this[Addresses.houseNumber],
+        zipCode = this[Addresses.zipCode],
+        city = this[Addresses.city],
+        longitude = this[Addresses.longitude],
+        latitude = this[Addresses.latitude]
       )
     } else null
 
@@ -161,10 +191,11 @@ object DefaultInfoRepository : InfoRepository {
       description = this[Infos.description],
       category = this[Infos.category],
       officeId = this[Infos.office]?.value,
-      location = loc,
+      address = addr,
       createdAt = this[Infos.createdAt],
       startsAt = this[Infos.startsAt],
-      endsAt = this[Infos.endsAt]
+      endsAt = this[Infos.endsAt],
+      imageUrl = imageUrl
     )
   }
 }

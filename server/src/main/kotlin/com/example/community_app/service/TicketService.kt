@@ -46,7 +46,7 @@ class TicketService(
   // -------- Write --------
 
   suspend fun create(principal: JWTPrincipal, dto: TicketCreateDto): TicketDto {
-    validateLocation(dto.location)
+    validateAddress(dto.address)
     val userId = principal.requireUserId()
     if (dto.title.isBlank()) throw ValidationException("title must not be blank")
     if (dto.officeId <= 0) throw ValidationException("officeId is required")
@@ -58,7 +58,7 @@ class TicketService(
         category = dto.category,
         officeId = dto.officeId,
         creatorUserId = userId,
-        location = dto.location,
+        address = dto.address,
         visibility = dto.visibility
       )
     )
@@ -71,7 +71,7 @@ class TicketService(
     val existing = repo.findById(id) ?: throw NotFoundException("Ticket not found")
     requireEditByCreatorOfficerOrAdmin(principal, existing.creatorUserId, existing.officeId)
 
-    patch.location?.let { validateLocation(it) }
+    patch.address?.let { validateAddress(it) }
 
     val updated = repo.update(
       id, TicketUpdateData(
@@ -79,7 +79,7 @@ class TicketService(
         description = patch.description,
         category = patch.category,
         officeId = patch.officeId,
-        location = patch.location,
+        address = patch.address,
         visibility = patch.visibility
       )
     ) ?: throw NotFoundException("Ticket not found")
@@ -159,23 +159,13 @@ class TicketService(
       throw ValidationException("Invalid datetime: $s (expected ISO-8601 UTC)")
     }
 
-  private fun parseBbox(s: String): DoubleArray {
-    val parts = s.split(",").map { it.trim() }
-    if (parts.size != 4) throw ValidationException("bbox must be 'minLon,minLat,maxLon,maxLat'")
-    return DoubleArray(4) { idx -> parts[idx].toDouble() }
-  }
-
-  private fun validateLocation(loc: LocationDto?) {
-    if (loc == null) return
-    if (loc.longitude !in -180.0..180.0) throw ValidationException("longitude out of range")
-    if (loc.latitude !in -90.0..90.0) throw ValidationException("latitude out of range")
-  }
-
   private suspend fun toDto(rec: TicketRecord, callerUserId: Int?): TicketDto {
     val current = statusService.currentTicketStatus(rec.id)
     val votes = repo.countVotes(rec.id)
     val userVoted = if (callerUserId != null) repo.userHasVoted(rec.id, callerUserId) else null
-    val media = mediaService.list(MediaTargetType.TICKET, rec.id, null) // public-aware list; principal null ok für PUBLIC
+    val media = mediaService.list(MediaTargetType.TICKET, rec.id, null)
+
+    // Wir nutzen das imageUrl direkt aus dem TicketRecord, das vom Repo befüllt wurde
     return rec.toDto(current, votes, userVoted, media)
   }
 
@@ -191,20 +181,14 @@ class TicketService(
     category = category,
     officeId = officeId,
     creatorUserId = creatorUserId,
-    location = location?.let {
-      LocationDto(
-        longitude = it.longitude,
-        latitude = it.latitude,
-        altitude = it.altitude,
-        accuracy = it.accuracy
-      )
-    },
+    address = address?.toDto(),
     visibility = visibility,
     createdAt = createdAt.toString(),
     currentStatus = current,
     votesCount = votes,
     userVoted = userVoted,
-    media = media
+    media = media,
+    imageUrl = this.imageUrl // Neu mapped
   )
 
   companion object {
@@ -214,6 +198,7 @@ class TicketService(
       mediaService = MediaService(
         repo = com.example.community_app.repository.DefaultMediaRepository,
         ticketRepo = DefaultTicketRepository
+        // infoRepo via default parameter in MediaService constructor
       )
     )
   }

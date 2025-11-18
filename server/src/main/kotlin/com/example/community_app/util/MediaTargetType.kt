@@ -4,5 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class MediaTargetType {
-  TICKET
+  TICKET,
+  INFO
 }

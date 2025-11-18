@@ -19,7 +19,7 @@ object DatabaseConfig {
     )
 
     transaction {
-      SchemaUtils.create(Users, Settings, Locations, Offices, Appointments, Infos, StatusEntries, Tickets, TicketVotes, Media)
+      SchemaUtils.create(Users, Settings, Addresses, Offices, Appointments, Infos, StatusEntries, Tickets, TicketVotes, Media)
     }
   }
 }
