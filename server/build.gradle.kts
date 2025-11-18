@@ -19,41 +19,42 @@ dependencies {
     implementation(projects.shared)
 
     // --- Ktor Core ---
-    implementation(libs.ktor.serverCore)
-    implementation(libs.ktor.serverNetty)
-    implementation("io.ktor:ktor-server-host-common:${libs.versions.ktor.get()}")
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.hostCommon)
 
     // --- JSON Serialization ---
-    implementation("io.ktor:ktor-serialization-kotlinx-json:${libs.versions.ktor.get()}")
-    implementation("io.ktor:ktor-server-content-negotiation:${libs.versions.ktor.get()}")
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.server.contentNegotiation)
 
     // --- Auth / JWT ---
-    implementation("io.ktor:ktor-server-auth:${libs.versions.ktor.get()}")
-    implementation("io.ktor:ktor-server-auth-jwt:${libs.versions.ktor.get()}")
+    implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.server.authJwt)
     implementation(libs.java.jwt)
 
     // --- Password Hashing (Argon2)
-    implementation("org.bouncycastle:bcprov-jdk18on:1.82")
+    implementation(libs.argon2)
+
 
     // --- Database (H2 + Exposed ORM)
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)
     implementation(libs.exposed.jdbc)
-    implementation("org.jetbrains.exposed:exposed-java-time:0.61.0")
+    implementation(libs.exposed.java.time)
     implementation(libs.h2)
 
     // --- File Uploads & Static Content
-    implementation("io.ktor:ktor-server-cio:${libs.versions.ktor.get()}")
+    implementation(libs.ktor.server.cio)
 
     // --- CORS, Compression, StatusPages ---
-    implementation("io.ktor:ktor-server-cors:${libs.versions.ktor.get()}")
-    implementation("io.ktor:ktor-server-status-pages:${libs.versions.ktor.get()}")
-    implementation("io.ktor:ktor-server-call-logging:${libs.versions.ktor.get()}")
+    implementation(libs.ktor.server.cors)
+    implementation(libs.ktor.server.statusPages)
+    implementation(libs.ktor.server.callLogging)
 
     // --- Logging ---
     implementation(libs.logback)
 
     // --- Testing ---
-    testImplementation(libs.ktor.serverTestHost)
+    testImplementation(libs.ktor.server.testHost)
     testImplementation(libs.kotlin.testJunit)
 }
