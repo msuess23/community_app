@@ -66,6 +66,8 @@ class MediaService(
       throw BadRequestException("Unsupported media type. Allowed: ${MediaConfig.allowedMimeTypes.joinToString()}")
     }
 
+    val isFirst = repo.list(targetType, targetId).isEmpty()
+
     val originalName = fileItem.originalFileName
     val ext = when (contentType) {
       "image/jpeg" -> ".jpg"
@@ -101,10 +103,23 @@ class MediaService(
         serverFilename = serverName,
         originalFilename = originalName,
         mimeType = contentType,
-        sizeBytes = total
+        sizeBytes = total,
+        isCover = isFirst
       )
     )
     return saved.toDto()
+  }
+
+  suspend fun setCover(mediaId: Int, principal: JWTPrincipal): MediaDto {
+    val rec = repo.findById(mediaId) ?: throw NotFoundException("Media not found")
+
+    authorizeWrite(rec.targetType, rec.targetId, principal)
+
+    val ok = repo.setCover(mediaId, rec.targetType, rec.targetId)
+    if (!ok) throw NotFoundException("Media not found or permission denied")
+
+    val updatedRec = repo.findById(mediaId)!!
+    return updatedRec.toDto()
   }
 
   suspend fun delete(
@@ -123,6 +138,13 @@ class MediaService(
     val file = File(MediaConfig.targetDir(targetType.name, targetId), media.filename)
     val ok = repo.delete(mediaId)
     if (ok && file.exists()) runCatching { file.delete() }
+
+    if (media.isCover) {
+      val newCoverCandidate = repo.getCoverMedia(targetType, targetId)
+      if (newCoverCandidate != null && !newCoverCandidate.isCover) {
+        repo.setCover(newCoverCandidate.id, targetType, targetId)
+      }
+    }
   }
 
   /** Für Löschvorgänge des Targets (z. B. Ticket/Info) – DB & Files aufräumen. */
@@ -169,13 +191,20 @@ class MediaService(
 
   // ---------- mapping ----------
 
-  private fun MediaRecord.toDto() = MediaDto(
-    id = id,
-    url = "/api/media/$id",
-    mimeType = mimeType,
-    width = width,
-    height = height,
-    sizeBytes = sizeBytes,
-    createdAt = createdAt.toString()
-  )
+  private fun MediaRecord.toDto(): MediaDto {
+    val fullUrl = "/api/media/$id"
+    val thumbUrl = "/api/media/$id"
+
+    return MediaDto(
+      id = id,
+      url = fullUrl,
+      thumbnailUrl = thumbUrl,
+      mimeType = mimeType,
+      width = width,
+      height = height,
+      sizeBytes = sizeBytes,
+      createdAt = createdAt.toString(),
+      isCover = isCover
+    )
+  }
 }

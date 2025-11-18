@@ -1,5 +1,6 @@
 package com.example.community_app.routes
 
+import com.example.community_app.errors.ForbiddenException
 import com.example.community_app.util.MediaTargetType
 import com.example.community_app.repository.DefaultMediaRepository
 import com.example.community_app.repository.DefaultTicketRepository
@@ -52,9 +53,15 @@ fun Route.mediaRoutes(
         multipart.forEachPart { part ->
           when (part) {
             is PartData.FileItem -> {
-              if (!created) {
-                dto = service.upload(MediaTargetType.valueOf(type), targetId, principal, part)
-                created = true
+              try {
+                if (!created) {
+                  dto = service.upload(MediaTargetType.valueOf(type), targetId, principal, part)
+                  created = true
+                }
+              } catch (e: ForbiddenException) {
+                part.streamProvider().use { it.readBytes() }
+                part.dispose()
+                throw e
               }
               part.dispose()
             }
@@ -80,13 +87,14 @@ fun Route.mediaRoutes(
         call.respond(HttpStatusCode.NoContent)
       }
     }
+  }
 
-    // Binary Serving
-    get("/{mediaId}") {
-      // /media/{mediaId} muss VOR /{type}/{targetId} resolved werden,
-      // daher liegt binary serving nicht in der obigen route/{type}/{targetId}.
-      // Hier in der Praxis via distinct path gesetzt (siehe configureRouting).
-      call.respond(HttpStatusCode.NotFound) // Platzhalter, wird unten separat definiert
+  authenticate("auth-jwt") {
+    put("/media/{mediaId}/cover") {
+      val mediaId = call.parameters["mediaId"]!!.toInt()
+      val principal = call.principal<JWTPrincipal>()!!
+      val updated = service.setCover(mediaId, principal)
+      call.respond(updated)
     }
   }
 

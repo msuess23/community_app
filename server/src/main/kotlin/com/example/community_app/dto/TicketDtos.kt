@@ -37,7 +37,6 @@ data class TicketDto(
   val currentStatus: TicketStatusDto? = null,
   val votesCount: Int = 0,
   val userVoted: Boolean? = null,
-  val media: List<MediaDto> = emptyList(),
   val imageUrl: String? = null
 )
 

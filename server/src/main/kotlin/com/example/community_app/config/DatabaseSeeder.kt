@@ -208,21 +208,18 @@ object DatabaseSeeder {
     statusService.addInfoStatus(info2a.id, InfoStatus.SCHEDULED, "Vorbereitung läuft", officer2Id)
     statusService.addInfoStatus(info2b.id, InfoStatus.SCHEDULED, "Planung gestartet", officer2Id)
 
-    // NEU: Medien für Infos
     try {
-      createTinyPngForInfo(info1a.id, fileName = "fest_banner.png")
-      DefaultMediaRepository.create(
-        MediaCreateData(
-          targetType = MediaTargetType.INFO,
-          targetId = info1a.id,
-          serverFilename = "fest_banner.png",
-          originalFilename = "altstadtfest.png",
-          mimeType = "image/png",
-          sizeBytes = File(MediaConfig.targetDir("INFO", info1a.id), "fest_banner.png").length()
+      seedMedia(
+        targetType = MediaTargetType.INFO,
+        targetId = info1b.id,
+        files = listOf(
+          MediaSeed(sourceFilename = "istockphoto-construction-1.jpg", isCover = true, mimeType = "image/jpeg"),
+          MediaSeed(sourceFilename = "istockphoto-construction-2.jpg", isCover = false, mimeType = "image/jpeg"),
+          MediaSeed(sourceFilename = "istockphoto-construction-3.jpg", isCover = false, mimeType = "image/jpeg")
         )
       )
     } catch (e: Throwable) {
-      println("DevSeeder: could not create demo media for Info 1a: ${e.message}")
+      println("DevSeeder: could not seed media for Info: ${e.message}")
     }
 
     // --- 6) Tickets (je Citizen ein privates) + 1 öffentliches + Vote ---
@@ -268,42 +265,78 @@ object DatabaseSeeder {
     // Vote
     ticketRepo.addVote(pub1.id, citizen2Id)
 
-    // --- 7) Beispiel-Medien (optional) für das öffentliche Ticket ---
     try {
-      createTinyPngForTicket(pub1.id, fileName = "demo.png")
-      DefaultMediaRepository.create(
-        MediaCreateData(
-          targetType = MediaTargetType.TICKET,
-          targetId = pub1.id,
-          serverFilename = "demo.png",
-          originalFilename = "spielplatz.png",
-          mimeType = "image/png",
-          sizeBytes = File(MediaConfig.targetDir("TICKET", pub1.id), "demo.png").length()
+      seedMedia(
+        targetType = MediaTargetType.TICKET,
+        targetId = pub1.id,
+        files = listOf(
+          MediaSeed(sourceFilename = "istockphoto-playground-1.jpg", isCover = true, mimeType = "image/jpeg"),
+          MediaSeed(sourceFilename = "istockphoto-playground-2.jpg", isCover = false, mimeType = "image/jpeg")
         )
       )
     } catch (e: Throwable) {
-      println("DevSeeder: could not create demo media: ${e.message}")
+      println("DevSeeder: could not seed demo media for pub1: ${e.message}")
     }
   }
 
-  /** Legt eine winzige 1x1 PNG-Datei im Zielverzeichnis ab. */
-  private fun createTinyPngForTicket(ticketId: Int, fileName: String) {
-    createTinyPng(MediaTargetType.TICKET, ticketId, fileName)
+  // --- Media Helpers ---
+  private data class MediaSeed(
+    val sourceFilename: String,
+    val isCover: Boolean,
+    val mimeType: String
+  )
+
+  /** * Simuliert das Hochladen: Kopiert eine Datei vom Quellort in den Zielort
+   * und gibt Metadaten zurück.
+   * Du musst diese Funktion anpassen, um deine Bilder zu kopieren.
+   */
+  private fun readSourceFileAndGetDetails(type: MediaTargetType, targetId: Int, sourceFilename: String): Pair<Long, String> {
+    val destinationDir = MediaConfig.targetDir(type.name, targetId)
+    val destinationFile = File(destinationDir, sourceFilename)
+
+    val sourceFile = File("src/main/resources/seed_images", sourceFilename)
+    if (sourceFile.exists()) {
+      sourceFile.copyTo(destinationFile, overwrite = true)
+      // KORREKTUR: Gibt den eindeutigen Dateinamen zurück, nicht den festen String "OK".
+      return destinationFile.length() to sourceFilename
+    } else {
+      // FALLBACK: Tiny PNG als Platzhalter erstellen
+      createPlaceholderFile(destinationFile)
+      // KORREKTUR: Gibt den eindeutigen Dateinamen zurück, nicht den festen String "PLACEHOLDER".
+      return destinationFile.length() to sourceFilename
+    }
   }
 
-  /** NEU: Legt eine winzige 1x1 PNG-Datei für Infos im Zielverzeichnis ab. */
-  private fun createTinyPngForInfo(infoId: Int, fileName: String) {
-    createTinyPng(MediaTargetType.INFO, infoId, fileName)
+  private suspend fun seedMedia(targetType: MediaTargetType, targetId: Int, files: List<MediaSeed>) {
+    val mediaRepo = DefaultMediaRepository
+
+    files.forEach { seed ->
+      // Wir übergeben den sourceFilename, der auch der serverFilename wird.
+      val (sizeBytes, finalFilename) = readSourceFileAndGetDetails(
+        targetType, targetId, seed.sourceFilename
+      )
+
+      mediaRepo.create(
+        MediaCreateData(
+          targetType = targetType,
+          targetId = targetId,
+          serverFilename = finalFilename,
+          originalFilename = seed.sourceFilename,
+          mimeType = seed.mimeType,
+          sizeBytes = sizeBytes,
+          isCover = seed.isCover
+        )
+      )
+    }
   }
 
-  private fun createTinyPng(type: MediaTargetType, targetId: Int, fileName: String) {
+  /** Erstellt einen winzigen 1x1 PNG Platzhalter an einem File-Pfad. */
+  private fun createPlaceholderFile(file: File) {
     val bytes = Base64.getDecoder().decode(
-      // 1x1 transparent PNG
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
     )
-    val dir = MediaConfig.targetDir(type.name, targetId)
-    val f = File(dir, fileName)
-    f.outputStream().use { it.write(bytes) }
+    if (!file.parentFile.exists()) file.parentFile.mkdirs()
+    file.outputStream().use { it.write(bytes) }
   }
 
   private data class Quintet<A,B,C,D,E>(val a: A, val b: B, val c: C, val d: D, val e: E)

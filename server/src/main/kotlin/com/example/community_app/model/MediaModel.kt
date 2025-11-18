@@ -17,6 +17,7 @@ object Media : IntIdTable(name = "MEDIA") {
   val width = integer("WIDTH").nullable()
   val height = integer("HEIGHT").nullable()
   val createdAt = timestamp("CREATED_AT").defaultExpression(CurrentTimestamp)
+  val isCover = bool("IS_COVER").default(false)
 
   init {
     index(true, targetType, targetId, filename) // unique je Ziel + Dateiname
@@ -35,4 +36,5 @@ class MediaEntity(id: org.jetbrains.exposed.dao.id.EntityID<Int>) : IntEntity(id
   var width by Media.width
   var height by Media.height
   var createdAt by Media.createdAt
+  var isCover by Media.isCover
 }

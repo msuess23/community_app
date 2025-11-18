@@ -163,17 +163,17 @@ class TicketService(
     val current = statusService.currentTicketStatus(rec.id)
     val votes = repo.countVotes(rec.id)
     val userVoted = if (callerUserId != null) repo.userHasVoted(rec.id, callerUserId) else null
-    val media = mediaService.list(MediaTargetType.TICKET, rec.id, null)
 
-    // Wir nutzen das imageUrl direkt aus dem TicketRecord, das vom Repo befüllt wurde
-    return rec.toDto(current, votes, userVoted, media)
+    // Die media Liste wird NICHT mehr hier geladen oder gemappt,
+    // sondern über den Endpunkt /api/media/TICKET/{id}
+    return rec.toDto(current, votes, userVoted)
   }
 
   private fun TicketRecord.toDto(
     current: TicketStatusDto?,
     votes: Int,
-    userVoted: Boolean?,
-    media: List<MediaDto>
+    userVoted: Boolean?
+    // media: List<MediaDto> WURDE ENTFERNT
   ) = TicketDto(
     id = id,
     title = title,
@@ -187,8 +187,8 @@ class TicketService(
     currentStatus = current,
     votesCount = votes,
     userVoted = userVoted,
-    media = media,
-    imageUrl = this.imageUrl // Neu mapped
+    // media = media WURDE ENTFERNT
+    imageUrl = this.imageUrl
   )
 
   companion object {
@@ -197,8 +197,8 @@ class TicketService(
       statusService = StatusService.default(),
       mediaService = MediaService(
         repo = com.example.community_app.repository.DefaultMediaRepository,
-        ticketRepo = DefaultTicketRepository
-        // infoRepo via default parameter in MediaService constructor
+        ticketRepo = DefaultTicketRepository,
+        infoRepo = com.example.community_app.repository.DefaultInfoRepository
       )
     )
   }
