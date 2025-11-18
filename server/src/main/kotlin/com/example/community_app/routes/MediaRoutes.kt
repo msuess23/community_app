@@ -74,8 +74,8 @@ fun Route.mediaRoutes(
           return@post
         }
 
-        call.response.headers.append(HttpHeaders.Location, dto!!.url)
-        call.respond(HttpStatusCode.Created, dto!!)
+        call.response.headers.append(HttpHeaders.Location, dto.url)
+        call.respond(HttpStatusCode.Created, dto)
       }
 
       delete("/{type}/{targetId}/{mediaId}") {
@@ -146,8 +146,8 @@ fun Route.mediaRoutes(
           call.respond(HttpStatusCode.BadRequest, mapOf("error" to "No file part 'file' found"))
           return@post
         }
-        call.response.headers.append(HttpHeaders.Location, dto!!.url)
-        call.respond(HttpStatusCode.Created, dto!!)
+        call.response.headers.append(HttpHeaders.Location, dto.url)
+        call.respond(HttpStatusCode.Created, dto)
       }
       delete("/{mediaId}") {
         val ticketId = call.parameters["ticketId"]!!.toInt()
