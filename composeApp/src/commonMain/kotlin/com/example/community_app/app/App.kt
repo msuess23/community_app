@@ -12,42 +12,50 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.community_app.core.presentation.CommunityTheme
+import com.example.community_app.di.createKoinConfiguration
 import com.example.community_app.info.presentation.info_master.InfoMasterScreenRoot
 import com.example.community_app.info.presentation.info_master.InfoMasterViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.KoinMultiplatformApplication
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
 
+@OptIn(KoinExperimentalAPI::class)
 @Composable
 @Preview
 fun App() {
-  CommunityTheme {
-    val navController = rememberNavController()
-    NavHost(
-      navController = navController,
-      startDestination = Route.InfoGraph
-    ) {
-      navigation<Route.InfoGraph>(
-        startDestination = Route.InfoMaster
+  KoinMultiplatformApplication(
+    config = createKoinConfiguration()
+  ) {
+    CommunityTheme {
+      val navController = rememberNavController()
+      NavHost(
+        navController = navController,
+        startDestination = Route.InfoGraph
       ) {
-        composable<Route.InfoMaster> {
-          val viewModel = koinViewModel<InfoMasterViewModel>()
-          InfoMasterScreenRoot(
-            viewModel = viewModel,
-            onInfoClick = { info ->
-              navController.navigate(
-                Route.InfoDetail(info.id)
-              )
-            }
-          )
-        }
-        composable<Route.InfoDetail> { entry ->
-          val args = entry.toRoute<Route.InfoDetail>()
+        navigation<Route.InfoGraph>(
+          startDestination = Route.InfoMaster
+        ) {
+          composable<Route.InfoMaster> {
+            val viewModel = koinViewModel<InfoMasterViewModel>()
+            InfoMasterScreenRoot(
+              viewModel = viewModel,
+              onInfoClick = { info ->
+                navController.navigate(
+                  Route.InfoDetail(info.id)
+                )
+              }
+            )
+          }
+          composable<Route.InfoDetail> { entry ->
+            val args = entry.toRoute<Route.InfoDetail>()
 
-          Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-          ) {
-            Text("InfoDetailScreen! The ID is ${args.id}")
+            Box(
+              modifier = Modifier.fillMaxSize(),
+              contentAlignment = Alignment.Center
+            ) {
+              Text("InfoDetailScreen! The ID is ${args.id}")
+            }
           }
         }
       }

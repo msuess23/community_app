@@ -9,10 +9,17 @@ import com.example.community_app.info.presentation.info_master.InfoMasterViewMod
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.dsl.KoinConfiguration
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 expect val platformModule: Module
+
+fun createKoinConfiguration(): KoinConfiguration {
+  return KoinConfiguration {
+    modules(platformModule, sharedModule)
+  }
+}
 
 val sharedModule = module {
   single { HttpClientFactory.create(get()) }

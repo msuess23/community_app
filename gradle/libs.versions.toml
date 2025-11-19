@@ -45,7 +45,7 @@ compose-icons = { module = "br.com.devsrsouza.compose.icons:feather", version.re
 
 compose-navigation = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "composeNavigation"}
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinSerialization"}
-kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines"}
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines"}
 
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin"}
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin"}

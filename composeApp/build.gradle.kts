@@ -37,8 +37,6 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
 
-            implementation(libs.koin.android)
-            implementation(libs.koin.androidx.compose)
             implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
@@ -63,7 +61,7 @@ kotlin {
             implementation(libs.sqlite.bundled)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
-            api(libs.koin.core)
+            implementation(libs.koin.core)
 
             implementation(libs.bundles.ktor)
             implementation(libs.bundles.coil)

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <string name="search_hint">Suchen...</string>
+    <string name="clear_hint">Suche löschen</string>
+    <string name="no_search_results">Leider gibt es keine Ergebnisse, die Ihrer Suchanfrage entsprechen.</string>
+    <string name="error_disk_full">Hoppla, anscheinend ist Ihre Festplatte voll.</string>
+    <string name="error_unknown">Hoppla, etwas ist schiefgelaufen.</string>
+    <string name="error_request_timeout">Die Anfrage ist abgelaufen.</string>
+    <string name="error_no_internet">Der Server konnte nicht erreicht werden. Bitte überprüfen Sie Ihre Internetverbindung.</string>
+    <string name="error_too_many_requests">Ihre Quote scheint überschritten zu sein.</string>
+    <string name="error_serialization">Daten konnten nicht verarbeitet werden.</string>
+</resources>
