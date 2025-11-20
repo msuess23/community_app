@@ -9,7 +9,6 @@ androidx-core = "1.17.0"
 androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.9.6"
 androidx-testExt = "1.3.0"
-bcrypt = "0.10.2"
 argon2 = "1.82"
 composeMultiplatform = "1.9.3"
 exposed = "0.61.0"
@@ -47,8 +46,6 @@ compose-navigation = { group = "org.jetbrains.androidx.navigation", name = "navi
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinSerialization"}
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines"}
 
-koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin"}
-koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin"}
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin"}
 koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin"}
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin"}
@@ -92,7 +89,6 @@ exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "e
 
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 
-bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }
 argon2 = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "argon2"}
 java-jwt = { module = "com.auth0:java-jwt", version.ref = "javaJwt" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -107,15 +103,12 @@ ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp"}
-# room = { id = "androidx.room", version.ref = "room"}
 
 [bundles]
-ktor = [
-    "ktor-client-core",
-    "ktor-client-content-negotiation",
-    "ktor-client-auth",
-    "ktor-client-logging",
-    "ktor-serialization-kotlinx-json",
+koin = [
+    "koin-core",
+    "koin-compose",
+    "koin-compose-viewmodel"
 ]
 coil = [
     "coil-compose",
@@ -123,4 +116,30 @@ coil = [
     "coil-network-ktor2",
     "coil-network-ktor3",
     "coil-mp"
+]
+ktor-client = [
+    "ktor-client-core",
+    "ktor-client-content-negotiation",
+    "ktor-client-auth",
+    "ktor-client-logging",
+    "ktor-serialization-kotlinx-json",
+]
+ktor-server = [
+    "ktor-server-core",
+    "ktor-server-netty",
+    "ktor-server-hostCommon",
+    "ktor-server-contentNegotiation",
+    "ktor-server-auth",
+    "ktor-server-authJwt",
+    "ktor-server-cio",
+    "ktor-server-cors",
+    "ktor-server-statusPages",
+    "ktor-server-callLogging",
+    "ktor-server-testHost"
+]
+exposed = [
+    "exposed-core",
+    "exposed-dao",
+    "exposed-jdbc",
+    "exposed-java-time"
 ]

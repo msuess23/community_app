@@ -12,7 +12,6 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
-    //alias(libs.plugins.room)
 }
 
 kotlin {
@@ -52,21 +51,15 @@ kotlin {
             implementation(libs.compose.icons)
             implementation(libs.kotlinx.coroutines)
 
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.compose.navigation)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.room.ktx)
             implementation(libs.sqlite.bundled)
-            implementation(libs.koin.compose)
-            implementation(libs.koin.compose.viewmodel)
-            implementation(libs.koin.core)
 
-            implementation(libs.bundles.ktor)
+            implementation(libs.bundles.koin)
+            implementation(libs.bundles.ktor.client)
             implementation(libs.bundles.coil)
-
-            implementation(libs.androidx.room.runtime)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
