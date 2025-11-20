@@ -49,7 +49,7 @@ fun InfoTicketListItem(
     shape = RoundedCornerShape(32.dp),
     modifier = modifier
       .clickable(onClick = onClick),
-    color = Color.Green.copy(alpha = 0.2f)
+    color = MaterialTheme.colorScheme.surfaceContainerLow
   ) {
     Row(
       modifier = Modifier
@@ -83,7 +83,9 @@ fun InfoTicketListItem(
         )
 
         when(val result = imageLoadResult) {
-          null -> CircularProgressIndicator()
+          null -> CircularProgressIndicator(
+            color = MaterialTheme.colorScheme.primary
+          )
           else -> {
             Image(
               painter = if(result.isSuccess) painter else {
@@ -115,7 +117,8 @@ fun InfoTicketListItem(
           text = info.title,
           style = MaterialTheme.typography.titleMedium,
           maxLines = 2,
-          overflow = TextOverflow.Ellipsis
+          overflow = TextOverflow.Ellipsis,
+          color = MaterialTheme.colorScheme.onSurface
         )
         // TODO: more info attributes as text
       }
@@ -124,7 +127,8 @@ fun InfoTicketListItem(
         imageVector = FeatherIcons.ChevronRight,
         contentDescription = null,
         modifier = Modifier
-          .size(36.dp)
+          .size(36.dp),
+        tint = MaterialTheme.colorScheme.onSurfaceVariant
       )
     }
   }

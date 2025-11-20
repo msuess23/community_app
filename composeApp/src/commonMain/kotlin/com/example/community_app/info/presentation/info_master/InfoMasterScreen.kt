@@ -66,7 +66,7 @@ private fun InfoMasterScreen(
   Column(
     modifier = Modifier
       .fillMaxSize()
-      .background(Color.Blue)
+      .background(MaterialTheme.colorScheme.primary)
       .statusBarsPadding(),
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
@@ -87,7 +87,7 @@ private fun InfoMasterScreen(
       modifier = Modifier
         .weight(1f)
         .fillMaxWidth(),
-      color = Color.White,
+      color = MaterialTheme.colorScheme.surface,
       shape = RoundedCornerShape(
         topStart = 32.dp,
         topEnd = 32.dp
@@ -102,7 +102,9 @@ private fun InfoMasterScreen(
           contentAlignment = Alignment.Center
         ) {
           if(state.isLoading) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(
+              color = MaterialTheme.colorScheme.primary
+            )
           } else {
             when {
               state.errorMessage != null -> {
@@ -118,6 +120,7 @@ private fun InfoMasterScreen(
                   text = stringResource(Res.string.no_search_results),
                   textAlign = TextAlign.Center,
                   style = MaterialTheme.typography.headlineSmall,
+                  color = MaterialTheme.colorScheme.onSurface
                 )
               }
               else -> {

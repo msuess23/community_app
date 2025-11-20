@@ -37,8 +37,8 @@ fun SearchBar(
 ) {
   CompositionLocalProvider(
     LocalTextSelectionColors provides TextSelectionColors(
-      handleColor = Color.Yellow,
-      backgroundColor = Color.Yellow
+      handleColor = MaterialTheme.colorScheme.primary,
+      backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
     )
   ) {
     OutlinedTextField(
@@ -46,8 +46,15 @@ fun SearchBar(
       onValueChange = onSearchQueryChange,
       shape = RoundedCornerShape(100),
       colors = OutlinedTextFieldDefaults.colors(
-        cursorColor = Color.Blue,
-        focusedBorderColor = Color.Yellow
+        cursorColor = MaterialTheme.colorScheme.primary,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        unfocusedBorderColor = MaterialTheme.colorScheme.outline
       ),
       placeholder = {
         Text(text = stringResource(Res.string.search_hint))
@@ -89,7 +96,7 @@ fun SearchBar(
       modifier = modifier
         .background(
           shape = RoundedCornerShape(100),
-          color = Color.White
+          color = MaterialTheme.colorScheme.surface
         )
         .minimumInteractiveComponentSize()
     )
