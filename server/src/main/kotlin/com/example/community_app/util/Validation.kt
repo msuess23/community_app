@@ -27,7 +27,7 @@ fun validateAddress(addr: AddressDto?) {
   if (addr.longitude !in -180.0..180.0) throw ValidationException("longitude out of range")
   if (addr.latitude !in -90.0..90.0) throw ValidationException("latitude out of range")
 
-  if (addr.street != null && addr.street.isBlank()) throw ValidationException("Street must not be blank if provided")
+  if (addr.street != null && addr.street!!.isBlank()) throw ValidationException("Street must not be blank if provided")
   // Weitere Checks optional...
 }
 

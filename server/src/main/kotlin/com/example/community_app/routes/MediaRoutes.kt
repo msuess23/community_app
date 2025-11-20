@@ -1,5 +1,6 @@
 package com.example.community_app.routes
 
+import com.example.community_app.dto.MediaDto
 import com.example.community_app.errors.ForbiddenException
 import com.example.community_app.util.MediaTargetType
 import com.example.community_app.repository.DefaultMediaRepository
@@ -48,7 +49,7 @@ fun Route.mediaRoutes(
         val multipart = call.receiveMultipart()
 
         var created = false
-        var dto: com.example.community_app.dto.MediaDto? = null
+        var dto: MediaDto? = null
 
         multipart.forEachPart { part ->
           when (part) {
@@ -129,7 +130,7 @@ fun Route.mediaRoutes(
         val principal = call.principal<JWTPrincipal>()!!
         val multipart = call.receiveMultipart()
         var created = false
-        var dto: com.example.community_app.dto.MediaDto? = null
+        var dto: MediaDto? = null
         multipart.forEachPart { part ->
           when (part) {
             is PartData.FileItem -> {

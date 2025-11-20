@@ -1,5 +1,6 @@
 package com.example.community_app.core.data
 
+import com.example.community_app.config.AppJson
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpTimeout
@@ -17,11 +18,7 @@ object HttpClientFactory {
   fun create(engine: HttpClientEngine): HttpClient {
     return HttpClient(engine) {
       install(ContentNegotiation) {
-        json(
-          json = Json {
-            ignoreUnknownKeys = true
-          }
-        )
+        json(AppJson)
       }
       install(HttpTimeout) {
         socketTimeoutMillis = 20_000L
