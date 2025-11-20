@@ -8,7 +8,6 @@ import com.example.community_app.util.*
 import io.ktor.server.config.*
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 import java.time.Instant

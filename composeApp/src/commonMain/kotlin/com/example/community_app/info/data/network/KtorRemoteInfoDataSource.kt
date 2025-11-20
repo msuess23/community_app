@@ -3,7 +3,7 @@ package com.example.community_app.info.data.network
 import com.example.community_app.core.data.safeCall
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
-import com.example.community_app.info.data.dto.InfoDto
+import com.example.community_app.dto.InfoDto
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 
