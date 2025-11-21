@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import com.example.community_app.info.domain.Info
 import community_app.composeapp.generated.resources.Res
@@ -47,8 +48,7 @@ fun InfoTicketListItem(
 ) {
   Surface(
     shape = RoundedCornerShape(32.dp),
-    modifier = modifier
-      .clickable(onClick = onClick),
+    modifier = modifier.clickable(onClick = onClick),
     color = MaterialTheme.colorScheme.surfaceContainerLow
   ) {
     Row(
@@ -60,50 +60,45 @@ fun InfoTicketListItem(
       horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       Box(
-        modifier = Modifier
-          .height(100.dp),
+        modifier = Modifier.height(100.dp),
         contentAlignment = Alignment.Center
       ) {
-        var imageLoadResult by remember {
-          mutableStateOf<Result<Painter>?>(null)
-        }
-        val painter = rememberAsyncImagePainter(
-          model = info.imageUrl,
-          onSuccess = {
-            imageLoadResult = if(it.painter.intrinsicSize.width > 1 && it.painter.intrinsicSize.height > 1) {
-              Result.success(it.painter)
-            } else {
-              Result.failure(Exception("Invalid image size"))
-            }
-          },
-          onError = {
-            it.result.throwable.printStackTrace()
-            imageLoadResult = Result.failure(it.result.throwable)
+        if (info.imageUrl != null) {
+          var imageLoadResult by remember {
+            mutableStateOf<Result<Painter>?>(null)
           }
-        )
-
-        when(val result = imageLoadResult) {
-          null -> CircularProgressIndicator(
-            color = MaterialTheme.colorScheme.primary
-          )
-          else -> {
-            Image(
-              painter = if(result.isSuccess) painter else {
-                painterResource(Res.drawable.image_placeholder)
-              },
-              contentDescription = info.title,
-              contentScale = if(result.isSuccess) {
-                ContentScale.Crop
+          val painter = rememberAsyncImagePainter(
+            model = info.imageUrl,
+            onSuccess = {
+              imageLoadResult = if(it.painter.intrinsicSize.width > 1 && it.painter.intrinsicSize.height > 1) {
+                Result.success(it.painter)
               } else {
-                ContentScale.Fit
-              },
-              modifier = Modifier
-                .aspectRatio(
-                  ratio = 0.65f,
-                  matchHeightConstraintsFirst = true
-                )
+                Result.failure(Exception("Invalid image size"))
+              }
+            },
+            onError = {
+              it.result.throwable.printStackTrace()
+              imageLoadResult = Result.failure(it.result.throwable)
+            }
+          )
+
+          when(val result = imageLoadResult) {
+            null -> CircularProgressIndicator(
+              color = MaterialTheme.colorScheme.primary
             )
+            else -> {
+              ThumbnailImage(
+                painter = painter,
+                isSuccess = result.isSuccess,
+                contentDescription = info.title
+              )
+            }
           }
+        } else {
+          ThumbnailImage(
+            painter = null,
+            isSuccess = false
+          )
         }
       }
 
@@ -120,7 +115,13 @@ fun InfoTicketListItem(
           overflow = TextOverflow.Ellipsis,
           color = MaterialTheme.colorScheme.onSurface
         )
-        // TODO: more info attributes as text
+        info.currentStatus?.let {
+          Text(
+            text = it.name,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.secondary
+          )
+        }
       }
 
       Icon(
@@ -132,4 +133,29 @@ fun InfoTicketListItem(
       )
     }
   }
+}
+
+
+@Composable
+private fun ThumbnailImage(
+  painter: AsyncImagePainter?,
+  isSuccess: Boolean,
+  contentDescription: String = "placeholder image"
+) {
+  Image(
+    painter = if(isSuccess && painter != null) painter else {
+      painterResource(Res.drawable.image_placeholder)
+    },
+    contentDescription = contentDescription,
+    contentScale = if(isSuccess) {
+      ContentScale.Crop
+    } else {
+      ContentScale.Fit
+    },
+    modifier = Modifier
+      .aspectRatio(
+        ratio = 0.65f,
+        matchHeightConstraintsFirst = true
+      )
+  )
 }
