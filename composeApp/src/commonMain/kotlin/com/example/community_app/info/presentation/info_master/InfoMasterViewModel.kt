@@ -106,20 +106,6 @@ class InfoMasterViewModel(
       .launchIn(viewModelScope)
   }
 
-//  private fun filterInfos(query: String, infos: List<Info>) {
-//    val filteredInfos = if (query.isBlank()) {
-//      infos
-//    } else {
-//      infos.filter {
-//        it.title.contains(query, ignoreCase = true)
-//        (it.description?.contains(query, ignoreCase = true) == true)
-//      }
-//    }
-//    _state.update { it.copy(
-//      searchResults = filteredInfos
-//    ) }
-//  }
-
   private fun applyFilters() {
     val query = _state.value.searchQuery
     val filters = _state.value.filter
@@ -129,7 +115,7 @@ class InfoMasterViewModel(
 
     if (query.isNotBlank()) {
       result = result.filter {
-        it.title.contains(query, ignoreCase = true)
+        it.title.contains(query, ignoreCase = true) ||
         (it.description?.contains(query, ignoreCase = true) == true)
       }
     }
