@@ -1,0 +1,116 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "5b7271fc365971517d80e46232418c7f",
+    "entities": [
+      {
+        "tableName": "infos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `description` TEXT, `category` TEXT NOT NULL, `officeId` INTEGER, `createdAt` TEXT NOT NULL, `startsAt` TEXT NOT NULL, `endsAt` TEXT NOT NULL, `currentStatus` TEXT, `statusMessage` TEXT, `imageUrl` TEXT, `addr_street` TEXT, `addr_houseNumber` TEXT, `addr_zipCode` TEXT, `addr_city` TEXT, `addr_longitude` REAL, `addr_latitude` REAL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "officeId",
+            "columnName": "officeId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startsAt",
+            "columnName": "startsAt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endsAt",
+            "columnName": "endsAt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentStatus",
+            "columnName": "currentStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "statusMessage",
+            "columnName": "statusMessage",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "imageUrl",
+            "columnName": "imageUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "address.street",
+            "columnName": "addr_street",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "address.houseNumber",
+            "columnName": "addr_houseNumber",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "address.zipCode",
+            "columnName": "addr_zipCode",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "address.city",
+            "columnName": "addr_city",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "address.longitude",
+            "columnName": "addr_longitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "address.latitude",
+            "columnName": "addr_latitude",
+            "affinity": "REAL"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5b7271fc365971517d80e46232418c7f')"
+    ]
+  }
+}
