@@ -18,4 +18,12 @@ class KtorRemoteInfoDataSource(
       ) {}
     }
   }
+
+  override suspend fun getInfo(id: Int): Result<InfoDto, DataError.Remote> {
+    return safeCall {
+      httpClient.get(
+        urlString = "$BASE_URL/api/info/$id"
+      ) {}
+    }
+  }
 }

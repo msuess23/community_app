@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.community_app.core.presentation.CommunityTheme
 import com.example.community_app.di.createKoinConfiguration
+import com.example.community_app.info.presentation.info_detail.InfoDetailScreenRoot
 import com.example.community_app.info.presentation.info_master.InfoMasterScreenRoot
 import com.example.community_app.info.presentation.info_master.InfoMasterViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -37,9 +38,7 @@ fun App() {
           startDestination = Route.InfoMaster
         ) {
           composable<Route.InfoMaster> {
-            val viewModel = koinViewModel<InfoMasterViewModel>()
             InfoMasterScreenRoot(
-              viewModel = viewModel,
               onInfoClick = { info ->
                 navController.navigate(
                   Route.InfoDetail(info.id)
@@ -47,15 +46,10 @@ fun App() {
               }
             )
           }
-          composable<Route.InfoDetail> { entry ->
-            val args = entry.toRoute<Route.InfoDetail>()
-
-            Box(
-              modifier = Modifier.fillMaxSize(),
-              contentAlignment = Alignment.Center
-            ) {
-              Text("InfoDetailScreen! The ID is ${args.id}")
-            }
+          composable<Route.InfoDetail> { info ->
+            InfoDetailScreenRoot(
+              onNavigateBack = { navController.popBackStack() }
+            )
           }
         }
       }

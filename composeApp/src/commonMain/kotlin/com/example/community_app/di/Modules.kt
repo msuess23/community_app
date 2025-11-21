@@ -6,6 +6,7 @@ import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
 import com.example.community_app.info.data.network.RemoteInfoDataSource
 import com.example.community_app.info.data.repository.DefaultInfoRepository
 import com.example.community_app.info.domain.InfoRepository
+import com.example.community_app.info.presentation.info_detail.InfoDetailViewModel
 import com.example.community_app.info.presentation.info_master.InfoMasterViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
@@ -31,4 +32,5 @@ val sharedModule = module {
   singleOf(::DefaultInfoRepository).bind<InfoRepository>()
 
   viewModelOf(::InfoMasterViewModel)
+  viewModelOf(::InfoDetailViewModel)
 }

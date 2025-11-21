@@ -15,7 +15,7 @@ interface InfoDao {
   fun getInfos(): Flow<List<InfoEntity>>
 
   @Query("SELECT * FROM infos WHERE id = :id")
-  suspend fun getInfoById(id: Int): InfoEntity?
+  fun getInfoById(id: Int): Flow<InfoEntity?>
 
   @Query("DELETE FROM infos")
   suspend fun clearAll()

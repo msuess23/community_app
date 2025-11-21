@@ -6,4 +6,5 @@ import com.example.community_app.dto.InfoDto
 
 interface RemoteInfoDataSource {
   suspend fun getInfos(): Result<List<InfoDto>, DataError.Remote>
+  suspend fun getInfo(id: Int): Result<InfoDto, DataError.Remote>
 }
