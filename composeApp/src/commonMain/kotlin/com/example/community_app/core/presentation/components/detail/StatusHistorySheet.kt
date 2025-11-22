@@ -1,4 +1,4 @@
-package com.example.community_app.info.presentation.info_detail
+package com.example.community_app.core.presentation.components.detail
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -15,28 +15,31 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.community_app.core.presentation.helpers.toUiText
-import com.example.community_app.dto.StatusDto
-import com.example.community_app.util.InfoStatus
+import com.example.community_app.core.util.formatIsoDate
+import com.example.community_app.core.util.formatIsoTime
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.label_status_history
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Activity
 import org.jetbrains.compose.resources.stringResource
 
+data class StatusHistoryUiItem(
+  val statusText: String,
+  val message: String?,
+  val createdAt: String
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatusHistorySheet(
-  history: List<StatusDto>,
-  onAction: (InfoDetailAction) -> Unit,
+  history: List<StatusHistoryUiItem>,
+  onDismiss: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   val sheetState = rememberModalBottomSheetState()
 
   ModalBottomSheet(
-    onDismissRequest = {
-      onAction(InfoDetailAction.OnDismissStatusHistory)
-    },
+    onDismissRequest = onDismiss,
     sheetState = sheetState,
     contentColor = MaterialTheme.colorScheme.surfaceContainer,
     modifier = modifier
@@ -53,18 +56,13 @@ fun StatusHistorySheet(
       )
 
       LazyColumn {
-        items(history) { statusItem ->
+        items(history) { item ->
           ListItem(
             headlineContent = {
-              val statusEnum = try {
-                InfoStatus.valueOf(statusItem.status.name)
-              } catch (e: Exception) {
-                InfoStatus.SCHEDULED
-              }
-              Text(statusEnum.toUiText().asString())
+              Text(item.statusText)
             },
             supportingContent = {
-              statusItem.message?.let { Text(it) }
+              item.message?.let { Text(it) }
             },
             leadingContent = {
               Icon(
@@ -74,7 +72,7 @@ fun StatusHistorySheet(
             },
             trailingContent = {
               Text(
-                text = statusItem.createdAt.take(10),
+                text = "${formatIsoDate(item.createdAt)}, ${formatIsoTime(item.createdAt)}",
                 style = MaterialTheme.typography.labelSmall
               )
             }

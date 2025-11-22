@@ -1,19 +1,9 @@
 package com.example.community_app.info.presentation.info_detail
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,20 +17,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.community_app.core.presentation.components.detail.InfoTicketDetailContent
+import com.example.community_app.core.presentation.components.detail.StatusHistorySheet
+import com.example.community_app.core.presentation.components.detail.StatusHistoryUiItem
 import com.example.community_app.core.presentation.helpers.toUiText
-import com.example.community_app.info.domain.Info
-import com.example.community_app.media.presentation.ImageGallery
+import com.example.community_app.core.util.formatIsoDate
+import com.example.community_app.util.InfoStatus
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.button_back
 import community_app.composeapp.generated.resources.info_not_found
 import community_app.composeapp.generated.resources.info_singular
-import community_app.composeapp.generated.resources.label_status
-import community_app.composeapp.generated.resources.label_status_history
 import compose.icons.FeatherIcons
-import compose.icons.feathericons.Activity
 import compose.icons.feathericons.ChevronLeft
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -112,22 +100,19 @@ private fun InfoDetailScreen(
         )
       } else {
         state.info?.let { info ->
-          Column(
-            modifier = Modifier
-              .fillMaxSize()
-              .verticalScroll(rememberScrollState())
-          ) {
-            ImageGallery(
-              imageUrls = state.imageUrls.ifEmpty {
-                listOfNotNull(info.imageUrl)
-              },
-              modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 9f)
-            )
-            InfoDetailContent(info, onAction)
-          }
-
+          InfoTicketDetailContent(
+            title = info.title,
+            category = info.category.toUiText().asString(),
+            description = info.description,
+            images = state.imageUrls.ifEmpty {
+              listOfNotNull(info.imageUrl)
+            },
+            statusText = info.currentStatus?.toUiText()?.asString(),
+            startDate = info.startsAt,
+            endDate = info.endsAt,
+            onStatusClick = { onAction(InfoDetailAction.OnShowStatusHistory) },
+            addressContent = { if (info.address != null) Text("MapCard Placeholder") }
+          )
         } ?: run {
           Text(
             text = stringResource(Res.string.info_not_found),
@@ -139,85 +124,22 @@ private fun InfoDetailScreen(
   }
 
   if (state.showStatusHistory) {
+    val history = state.statusHistory.map { dto ->
+      val statusText = InfoStatus.valueOf(dto.status.toString()).toUiText().asString()
+
+      StatusHistoryUiItem(
+        statusText = statusText,
+        message = dto.message,
+        createdAt = dto.createdAt
+      )
+    }
+
     StatusHistorySheet(
-      history = state.statusHistory,
-      onAction = onAction
+      history = history,
+      onDismiss = { onAction(InfoDetailAction.OnDismissStatusHistory) }
     )
   }
 }
-
-@Composable
-private fun InfoDetailContent(
-  info: Info,
-  onAction: (InfoDetailAction) -> Unit
-) {
-  Column(
-    modifier = Modifier.padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
-  ) {
-    Column {
-      Text(
-        text = info.title,
-        style = MaterialTheme.typography.headlineMedium,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onSurface
-      )
-    }
-
-    info.currentStatus?.let { status ->
-      Card(
-        onClick = { onAction(InfoDetailAction.OnShowStatusHistory) },
-        colors = CardDefaults.cardColors(
-          containerColor = MaterialTheme.colorScheme.tertiaryContainer
-        )
-      ) {
-        Row(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-          Column {
-            Text(
-              text = stringResource(Res.string.label_status),
-              style = MaterialTheme.typography.labelMedium
-            )
-            Text(
-              text = status.toUiText().asString(),
-              style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Bold
-            )
-          }
-          Icon(
-            imageVector = FeatherIcons.Activity,
-            contentDescription = stringResource(Res.string.label_status_history)
-          )
-        }
-      }
-    }
-
-    info.description?.let { desc ->
-      Text(
-        text = desc,
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onSurface
-      )
-    }
-
-    info.address?.let {
-      Card(
-        modifier = Modifier.fillMaxWidth().height(150.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-      ) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-          Text("MapCard Placeholder")
-        }
-      }
-    }
-  }
-}
-
 
 
 //
