@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.example.community_app.app.Route
+import com.example.community_app.app.navigation.Route
 import com.example.community_app.core.domain.Result
 import com.example.community_app.info.domain.InfoRepository
 import com.example.community_app.media.domain.MediaRepository

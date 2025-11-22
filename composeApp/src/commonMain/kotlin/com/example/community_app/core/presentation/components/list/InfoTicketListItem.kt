@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
+import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.info.domain.Info
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.image_placeholder
@@ -117,7 +118,7 @@ fun InfoTicketListItem(
         )
         info.currentStatus?.let {
           Text(
-            text = it.name,
+            text = it.toUiText().asString(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.secondary
           )

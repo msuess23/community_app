@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
+    <!-- Core -->
+    <string name="app_title">Bürger-App</string>
+    <string name="label_menu">Menü</string>
+
     <!-- Info -->
     <string name="info_singular">Information</string>
     <string name="info_plural">Informationen</string>
@@ -47,6 +51,9 @@
     <string name="status_active">In Arbeit</string>
     <string name="status_done">Abgeschlossen</string>
     <string name="status_cancelled">Abgesagt</string>
+
+    <!-- Settings -->
+    <string name="settings_label">Einstellungen</string>
 
     <!-- General -->
     <string name="button_back">Zurück</string>

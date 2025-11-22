@@ -36,8 +36,10 @@ import com.example.community_app.core.presentation.components.search.SearchBar
 import com.example.community_app.info.domain.Info
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.filters_label
+import community_app.composeapp.generated.resources.label_menu
 import community_app.composeapp.generated.resources.search_no_results
 import compose.icons.FeatherIcons
+import compose.icons.feathericons.Menu
 import compose.icons.feathericons.Sliders
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -46,7 +48,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun InfoMasterScreenRoot(
   viewModel: InfoMasterViewModel = koinViewModel(),
-  onInfoClick: (Info) -> Unit
+  onInfoClick: (Info) -> Unit,
+  onOpenDrawer: () -> Unit
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -58,14 +61,16 @@ fun InfoMasterScreenRoot(
         else -> Unit
       }
       viewModel.onAction(action)
-    }
+    },
+    onOpenDrawer = onOpenDrawer
   )
 }
 
 @Composable
 private fun InfoMasterScreen(
   state: InfoMasterState,
-  onAction: (InfoMasterAction) -> Unit
+  onAction: (InfoMasterAction) -> Unit,
+  onOpenDrawer: () -> Unit
 ) {
   val keyboardController = LocalSoftwareKeyboardController.current
   val lazyListState = rememberLazyListState()
@@ -102,6 +107,19 @@ private fun InfoMasterScreen(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
       ) {
+        FilledTonalIconButton(
+          onClick = onOpenDrawer,
+          colors = IconButtonDefaults.iconButtonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+          )
+        ) {
+          Icon(
+            imageVector = FeatherIcons.Menu,
+            contentDescription = stringResource(Res.string.label_menu),
+            tint = MaterialTheme.colorScheme.onSurface
+          )
+        }
+
         SearchBar(
           searchQuery = state.searchQuery,
           onSearchQueryChange = {
