@@ -3,7 +3,7 @@ package com.example.community_app.service
 import com.example.community_app.util.InfoStatus
 import com.example.community_app.util.StatusScope
 import com.example.community_app.util.TicketStatus
-import com.example.community_app.dto.StatusDto
+import com.example.community_app.dto.InfoStatusDto
 import com.example.community_app.dto.TicketStatusDto
 import com.example.community_app.repository.DefaultStatusRepository
 import com.example.community_app.repository.StatusRecord
@@ -26,21 +26,21 @@ class StatusService(
   suspend fun latest(scope: StatusScope, scopeId: Int): StatusRecord? = repo.latest(scope, scopeId)
 
   // -------- Info helpers --------
-  suspend fun addInfoStatus(infoId: Int, status: InfoStatus, message: String?, createdByUserId: Int?): StatusDto =
+  suspend fun addInfoStatus(infoId: Int, status: InfoStatus, message: String?, createdByUserId: Int?): InfoStatusDto =
     add(StatusScope.INFO, infoId, status.name, message, createdByUserId).toInfoStatusDtoOrThrow()
 
-  suspend fun listInfoStatuses(infoId: Int): List<StatusDto> =
+  suspend fun listInfoStatuses(infoId: Int): List<InfoStatusDto> =
     list(StatusScope.INFO, infoId).mapNotNull { it.toInfoStatusDtoOrNull() }
 
-  suspend fun currentInfoStatus(infoId: Int): StatusDto? =
+  suspend fun currentInfoStatus(infoId: Int): InfoStatusDto? =
     latest(StatusScope.INFO, infoId)?.toInfoStatusDtoOrNull()
 
-  private fun StatusRecord.toInfoStatusDtoOrThrow(): StatusDto =
+  private fun StatusRecord.toInfoStatusDtoOrThrow(): InfoStatusDto =
     toInfoStatusDtoOrNull() ?: error("Invalid InfoStatus: $statusText")
 
-  private fun StatusRecord.toInfoStatusDtoOrNull(): StatusDto? =
+  private fun StatusRecord.toInfoStatusDtoOrNull(): InfoStatusDto? =
     runCatching { InfoStatus.valueOf(statusText) }.map { st ->
-      StatusDto(id, st, message, createdByUserId, createdAt.toString())
+      InfoStatusDto(id, st, message, createdByUserId, createdAt.toString())
     }.getOrNull()
 
   // -------- Ticket helpers --------

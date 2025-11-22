@@ -4,13 +4,13 @@ import com.example.community_app.util.InfoStatus
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class StatusCreateDto(
+data class InfoStatusCreateDto(
   val status: InfoStatus,
   val message: String? = null
 )
 
 @Serializable
-data class StatusDto(
+data class InfoStatusDto(
   val id: Int,
   val status: InfoStatus,
   val message: String?,

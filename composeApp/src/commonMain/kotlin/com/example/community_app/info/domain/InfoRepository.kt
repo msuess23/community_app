@@ -2,7 +2,7 @@ package com.example.community_app.info.domain
 
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
-import com.example.community_app.dto.StatusDto
+import com.example.community_app.dto.InfoStatusDto
 import kotlinx.coroutines.flow.Flow
 
 interface InfoRepository {
@@ -12,5 +12,5 @@ interface InfoRepository {
   suspend fun refreshInfos(): Result<Unit, DataError.Remote>
   suspend fun refreshInfo(id: Int): Result<Unit, DataError.Remote>
 
-  suspend fun getStatusHistory(id: Int): Result<List<StatusDto>, DataError.Remote>
+  suspend fun getStatusHistory(id: Int): Result<List<InfoStatusDto>, DataError.Remote>
 }

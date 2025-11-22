@@ -43,12 +43,12 @@ class InfoService(
     return rec.toDto(current)
   }
 
-  suspend fun listStatus(infoId: Int): List<StatusDto> {
+  suspend fun listStatus(infoId: Int): List<InfoStatusDto> {
     ensureInfoExists(infoId)
     return statusService.listInfoStatuses(infoId)
   }
 
-  suspend fun getCurrentStatus(infoId: Int): StatusDto? {
+  suspend fun getCurrentStatus(infoId: Int): InfoStatusDto? {
     ensureInfoExists(infoId)
     return statusService.currentInfoStatus(infoId)
   }
@@ -118,7 +118,7 @@ class InfoService(
     if (!repo.delete(id)) throw NotFoundException("Info not found")
   }
 
-  suspend fun addStatus(principal: JWTPrincipal, id: Int, body: StatusCreateDto): StatusDto {
+  suspend fun addStatus(principal: JWTPrincipal, id: Int, body: InfoStatusCreateDto): InfoStatusDto {
     val existing = repo.findById(id) ?: throw NotFoundException("Info not found")
     requireOfficerOfOrAdmin(principal, existing.officeId)
 
@@ -133,7 +133,7 @@ class InfoService(
     if (!exists) throw NotFoundException("Info not found")
   }
 
-  private fun InfoRecord.toDto(current: StatusDto?): InfoDto =
+  private fun InfoRecord.toDto(current: InfoStatusDto?): InfoDto =
     InfoDto(
       id = id,
       title = title,

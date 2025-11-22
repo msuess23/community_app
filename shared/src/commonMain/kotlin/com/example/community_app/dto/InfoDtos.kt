@@ -36,6 +36,6 @@ data class InfoDto(
   val createdAt: String,
   val startsAt: String,
   val endsAt: String,
-  val currentStatus: StatusDto? = null,
+  val currentStatus: InfoStatusDto? = null,
   val imageUrl: String? = null
 )

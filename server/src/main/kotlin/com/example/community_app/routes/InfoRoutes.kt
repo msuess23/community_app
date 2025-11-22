@@ -78,7 +78,7 @@ fun Route.infoRoutes(
       put("/{id}/status") {
         val principal = call.principal<JWTPrincipal>()!!
         val id = call.parameters["id"]!!.toInt()
-        val body = call.receive<StatusCreateDto>()
+        val body = call.receive<InfoStatusCreateDto>()
         val upd = service.addStatus(principal, id, body)
         call.respond(upd)
       }

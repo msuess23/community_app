@@ -1,9 +1,8 @@
 package com.example.community_app.info.data.repository
 
-import com.example.community_app.core.data.safeCall
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
-import com.example.community_app.dto.StatusDto
+import com.example.community_app.dto.InfoStatusDto
 import com.example.community_app.info.data.local.InfoDao
 import com.example.community_app.info.data.mappers.toEntity
 import com.example.community_app.info.data.mappers.toInfo
@@ -65,7 +64,7 @@ class DefaultInfoRepository(
     }
   }
 
-  override suspend fun getStatusHistory(id: Int): Result<List<StatusDto>, DataError.Remote> {
+  override suspend fun getStatusHistory(id: Int): Result<List<InfoStatusDto>, DataError.Remote> {
     return remoteInfoDataSource.getStatusHistory(id)
   }
 }
