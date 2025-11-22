@@ -2,19 +2,16 @@ package com.example.community_app.info.presentation.info_master
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -30,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,7 +35,8 @@ import com.example.community_app.core.presentation.components.list.CustomList
 import com.example.community_app.core.presentation.components.search.SearchBar
 import com.example.community_app.info.domain.Info
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.no_search_results
+import community_app.composeapp.generated.resources.filters_label
+import community_app.composeapp.generated.resources.search_no_results
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Sliders
 import org.jetbrains.compose.resources.stringResource
@@ -130,7 +127,7 @@ private fun InfoMasterScreen(
         ) {
           Icon(
             imageVector = FeatherIcons.Sliders,
-            contentDescription = "Filter",
+            contentDescription = stringResource(Res.string.filters_label),
             tint = MaterialTheme.colorScheme.onSurface
           )
         }
@@ -172,7 +169,7 @@ private fun InfoMasterScreen(
 
               state.searchResults.isEmpty() && !state.isLoading -> {
                 Text(
-                  text = stringResource(Res.string.no_search_results),
+                  text = stringResource(Res.string.search_no_results),
                   textAlign = TextAlign.Center,
                   style = MaterialTheme.typography.headlineSmall,
                   color = MaterialTheme.colorScheme.onSurface,

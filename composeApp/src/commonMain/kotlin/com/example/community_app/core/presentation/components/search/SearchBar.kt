@@ -17,11 +17,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.clear_hint
+import community_app.composeapp.generated.resources.search_clear
 import community_app.composeapp.generated.resources.search_hint
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Search
@@ -87,7 +86,7 @@ fun SearchBar(
           ) {
             Icon(
               imageVector = FeatherIcons.X,
-              contentDescription = stringResource(Res.string.clear_hint),
+              contentDescription = stringResource(Res.string.search_clear),
               tint = MaterialTheme.colorScheme.onSurface
             )
           }

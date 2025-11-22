@@ -1,8 +1,57 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
+    <!-- Info -->
+    <string name="info_singular">Information</string>
+    <string name="info_plural">Information</string>
+    <string name="info_not_found">The data for this information could not be found.</string>
+
+    <!-- Ticket -->
+    <string name="ticket_singular">Concern</string>
+    <string name="ticket_plural">Concerns</string>
+
+    <!-- Office -->
+    <string name="office_singular">Office</string>
+    <string name="office_plural">Offices</string>
+
+    <!-- Appointment -->
+    <string name="appointment_singular">Appointment</string>
+    <string name="appointment_plural">Appointments</string>
+
+    <!-- Search & Filters -->
     <string name="search_hint">Search...</string>
-    <string name="clear_hint">Clear search</string>
-    <string name="no_search_results">There are results matching your search query.</string>
+    <string name="search_clear">Clear search</string>
+    <string name="search_no_results">There are no results matching your search query.</string>
+    <string name="filters_label">Filters &amp; Sorting</string>
+    <string name="filters_clear">clear</string>
+    <string name="sorting_label">Sort by</string>
+    <string name="sorting_latest">Latest first</string>
+    <string name="sorting_oldest">Oldest first</string>
+    <string name="sorting_alphabetical">Alphabetical (A-Z)</string>
+
+    <!-- Category -->
+    <string name="category_singular">Category</string>
+    <string name="category_plural">Categories</string>
+    <!-- Category (Enum) -->
+    <string name="category_event">Event</string>
+    <string name="category_construction">Construction</string>
+    <string name="category_maintenance">Maintenance</string>
+    <string name="category_announcement">Announcement</string>
+    <string name="category_other">Other</string>
+    <string name="category_all">All</string>
+
+    <!-- Status -->
+    <string name="label_status">Status</string>
+    <string name="label_status_history">Status history</string>
+    <!-- Status (Enum) -->
+    <string name="status_scheduled">Scheduled</string>
+    <string name="status_active">Active</string>
+    <string name="status_done">Done</string>
+    <string name="status_cancelled">Cancelled</string>
+
+    <!-- General -->
+    <string name="button_back">Back</string>
+
+    <!-- Errors -->
     <string name="error_disk_full">Oops, it seems like your disk is full.</string>
     <string name="error_unknown">Oops, something went wrong.</string>
     <string name="error_request_timeout">The request timed out.</string>

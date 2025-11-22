@@ -1,8 +1,57 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
+    <!-- Info -->
+    <string name="info_singular">Information</string>
+    <string name="info_plural">Informationen</string>
+    <string name="info_not_found">Die Daten für diese Information konnten nicht gefunden werden.</string>
+
+    <!-- Ticket -->
+    <string name="ticket_singular">Anliegen</string>
+    <string name="ticket_plural">Anliegen</string>
+
+    <!-- Office -->
+    <string name="office_singular">Behörde</string>
+    <string name="office_plural">Behörden</string>
+
+    <!-- Appointment -->
+    <string name="appointment_singular">Termin</string>
+    <string name="appointment_plural">Termine</string>
+
+    <!-- Search & Filters -->
     <string name="search_hint">Suchen...</string>
-    <string name="clear_hint">Suche löschen</string>
-    <string name="no_search_results">Leider gibt es keine Ergebnisse, die Ihrer Suchanfrage entsprechen.</string>
+    <string name="search_clear">Suche löschen</string>
+    <string name="search_no_results">Leider gibt es keine Ergebnisse, die Ihrer Suchanfrage entsprechen.</string>
+    <string name="filters_label">Filter &amp; Sortierung</string>
+    <string name="filters_clear">Zurücksetzen</string>
+    <string name="sorting_label">Sortieren nach</string>
+    <string name="sorting_latest">Neueste zuerst</string>
+    <string name="sorting_oldest">Älteste zuerst</string>
+    <string name="sorting_alphabetical">Alphabetisch (A-Z)</string>
+
+    <!-- Category -->
+    <string name="category_singular">Kategorie</string>
+    <string name="category_plural">Kategorien</string>
+    <!-- Category (Enum) -->
+    <string name="category_event">Veranstaltung</string>
+    <string name="category_construction">Baustelle</string>
+    <string name="category_maintenance">Wartung</string>
+    <string name="category_announcement">Ankündigung</string>
+    <string name="category_other">Sonstiges</string>
+    <string name="category_all">Alle</string>
+
+    <!-- Status -->
+    <string name="label_status">Status</string>
+    <string name="label_status_history">Status-Verlauf</string>
+    <!-- Status (Enum) -->
+    <string name="status_scheduled">Geplant</string>
+    <string name="status_active">In Arbeit</string>
+    <string name="status_done">Abgeschlossen</string>
+    <string name="status_cancelled">Abgesagt</string>
+
+    <!-- General -->
+    <string name="button_back">Zurück</string>
+
+    <!-- Errors -->
     <string name="error_disk_full">Hoppla, anscheinend ist Ihre Festplatte voll.</string>
     <string name="error_unknown">Hoppla, etwas ist schiefgelaufen.</string>
     <string name="error_request_timeout">Die Anfrage ist abgelaufen.</string>

@@ -25,7 +25,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.util.InfoCategory
+import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.category_all
+import community_app.composeapp.generated.resources.category_plural
+import community_app.composeapp.generated.resources.filters_clear
+import community_app.composeapp.generated.resources.filters_label
+import community_app.composeapp.generated.resources.sorting_alphabetical
+import community_app.composeapp.generated.resources.sorting_label
+import community_app.composeapp.generated.resources.sorting_latest
+import community_app.composeapp.generated.resources.sorting_oldest
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +66,7 @@ fun InfoFilterSheet(
         verticalAlignment = Alignment.CenterVertically
       ) {
         Text(
-          text = "Filter & Sortierung",
+          text = stringResource(Res.string.filters_label),
           style = MaterialTheme.typography.titleLarge,
           color = MaterialTheme.colorScheme.onSurface,
           fontWeight = FontWeight.Bold
@@ -66,31 +77,31 @@ fun InfoFilterSheet(
             onAction(InfoMasterAction.OnSortChange(InfoSortOption.DATE_DESC))
           }
         ) {
-          Text("Zurücksetzen")
+          Text(stringResource(Res.string.filters_clear))
         }
       }
 
       HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
       Text(
-        text = "Sortieren nach",
+        text = stringResource(Res.string.sorting_label),
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.padding(bottom = 8.dp)
       )
       Column(modifier = Modifier.selectableGroup()) {
         SortOptionRow(
-          text = "Neueste zuerst",
+          text = stringResource(Res.string.sorting_latest),
           selected = filterState.sortBy == InfoSortOption.DATE_DESC,
           onClick = { onAction(InfoMasterAction.OnSortChange(InfoSortOption.DATE_DESC)) }
         )
         SortOptionRow(
-          text = "Älteste zuerst",
+          text = stringResource(Res.string.sorting_oldest),
           selected = filterState.sortBy == InfoSortOption.DATE_ASC,
           onClick = { onAction(InfoMasterAction.OnSortChange(InfoSortOption.DATE_ASC)) }
         )
         SortOptionRow(
-          text = "Alphabetisch (A-Z)",
+          text = stringResource(Res.string.sorting_alphabetical),
           selected = filterState.sortBy == InfoSortOption.ALPHABETICAL,
           onClick = { onAction(InfoMasterAction.OnSortChange(InfoSortOption.ALPHABETICAL)) }
         )
@@ -99,7 +110,7 @@ fun InfoFilterSheet(
       HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
       Text(
-        text = "Kategorien",
+        text = stringResource(Res.string.category_plural),
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.padding(bottom = 8.dp)
@@ -112,7 +123,7 @@ fun InfoFilterSheet(
         FilterChip(
           selected = isAllSelected,
           onClick = { onAction(InfoMasterAction.OnClearCategories) },
-          label = { Text("Alle") }
+          label = { Text(stringResource(Res.string.category_all)) }
         )
 
         InfoCategory.entries.forEach { category ->
@@ -121,9 +132,7 @@ fun InfoFilterSheet(
             selected = isSelected,
             onClick = { onAction(InfoMasterAction.OnCategorySelect(category)) },
             label = {
-              // Hier könnten wir später Strings aus resources laden
-              // Vorerst einfache Capitalization:
-              Text(category.name.lowercase().replaceFirstChar { it.uppercase() })
+              Text(category.toUiText().asString())
             }
           )
         }
