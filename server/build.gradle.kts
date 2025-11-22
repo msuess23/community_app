@@ -15,45 +15,24 @@ application {
 }
 
 dependencies {
-    // --- shared ---
+    // --- Shared ---
     implementation(projects.shared)
 
-    // --- Ktor Core ---
-    implementation(libs.ktor.serverCore)
-    implementation(libs.ktor.serverNetty)
-    implementation("io.ktor:ktor-server-host-common:${libs.versions.ktor.get()}")
+    // --- Ktor ---
+    implementation(libs.bundles.ktor.server)
+    implementation(libs.ktor.serialization.kotlinx.json)
 
-    // --- JSON Serialization ---
-    implementation("io.ktor:ktor-serialization-kotlinx-json:${libs.versions.ktor.get()}")
-    implementation("io.ktor:ktor-server-content-negotiation:${libs.versions.ktor.get()}")
-
-    // --- Auth / JWT ---
-    implementation("io.ktor:ktor-server-auth:${libs.versions.ktor.get()}")
-    implementation("io.ktor:ktor-server-auth-jwt:${libs.versions.ktor.get()}")
+    // --- Security ---
     implementation(libs.java.jwt)
-
-    // --- Password Hashing (Argon2)
-    implementation("org.bouncycastle:bcprov-jdk18on:1.82")
+    implementation(libs.argon2)
 
     // --- Database (H2 + Exposed ORM)
-    implementation(libs.exposed.core)
-    implementation(libs.exposed.dao)
-    implementation(libs.exposed.jdbc)
-    implementation("org.jetbrains.exposed:exposed-java-time:0.61.0")
+    implementation(libs.bundles.exposed)
     implementation(libs.h2)
-
-    // --- File Uploads & Static Content
-    implementation("io.ktor:ktor-server-cio:${libs.versions.ktor.get()}")
-
-    // --- CORS, Compression, StatusPages ---
-    implementation("io.ktor:ktor-server-cors:${libs.versions.ktor.get()}")
-    implementation("io.ktor:ktor-server-status-pages:${libs.versions.ktor.get()}")
-    implementation("io.ktor:ktor-server-call-logging:${libs.versions.ktor.get()}")
 
     // --- Logging ---
     implementation(libs.logback)
 
     // --- Testing ---
-    testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.kotlin.testJunit)
 }

@@ -14,7 +14,7 @@ import io.ktor.server.routing.*
 fun Route.officeRoutes(
   service: OfficeService = OfficeService(com.example.community_app.repository.DefaultOfficeRepository)
 ) {
-  route("/offices") {
+  route("/office") {
     // --- get all offices ---
     get {
       val q = call.request.queryParameters["q"]

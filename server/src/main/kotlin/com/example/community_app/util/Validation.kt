@@ -1,6 +1,6 @@
 package com.example.community_app.util
 
-import com.example.community_app.dto.LocationDto
+import com.example.community_app.dto.AddressDto
 import com.example.community_app.errors.ValidationException
 import java.time.Instant
 import java.time.format.DateTimeParseException
@@ -18,11 +18,17 @@ fun parseBbox(s: String): DoubleArray {
   return DoubleArray(4) { i -> parts[i].toDouble() }
 }
 
-/** Longitude/Latitude-Range prüfen. Null = ok (nicht vorhanden). */
-fun validateLocation(loc: LocationDto?) {
-  if (loc == null) return
-  if (loc.longitude !in -180.0..180.0) throw ValidationException("longitude out of range")
-  if (loc.latitude !in -90.0..90.0) throw ValidationException("latitude out of range")
+/** * Adresse/Geodaten prüfen.
+ * Latitude/Longitude müssen valide sein.
+ * Optionale Felder (Street etc.) könnten hier ebenfalls validiert werden (z.B. max Länge).
+ */
+fun validateAddress(addr: AddressDto?) {
+  if (addr == null) return
+  if (addr.longitude !in -180.0..180.0) throw ValidationException("longitude out of range")
+  if (addr.latitude !in -90.0..90.0) throw ValidationException("latitude out of range")
+
+  if (addr.street != null && addr.street!!.isBlank()) throw ValidationException("Street must not be blank if provided")
+  // Weitere Checks optional...
 }
 
 /** Sicherstellen, dass e nach s liegt. */

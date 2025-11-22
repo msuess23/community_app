@@ -1,5 +1,7 @@
 package com.example.community_app.routes
 
+import com.example.community_app.dto.MediaDto
+import com.example.community_app.errors.ForbiddenException
 import com.example.community_app.util.MediaTargetType
 import com.example.community_app.repository.DefaultMediaRepository
 import com.example.community_app.repository.DefaultTicketRepository
@@ -47,14 +49,20 @@ fun Route.mediaRoutes(
         val multipart = call.receiveMultipart()
 
         var created = false
-        var dto: com.example.community_app.dto.MediaDto? = null
+        var dto: MediaDto? = null
 
         multipart.forEachPart { part ->
           when (part) {
             is PartData.FileItem -> {
-              if (!created) {
-                dto = service.upload(MediaTargetType.valueOf(type), targetId, principal, part)
-                created = true
+              try {
+                if (!created) {
+                  dto = service.upload(MediaTargetType.valueOf(type), targetId, principal, part)
+                  created = true
+                }
+              } catch (e: ForbiddenException) {
+                part.streamProvider().use { it.readBytes() }
+                part.dispose()
+                throw e
               }
               part.dispose()
             }
@@ -67,8 +75,8 @@ fun Route.mediaRoutes(
           return@post
         }
 
-        call.response.headers.append(HttpHeaders.Location, dto!!.url)
-        call.respond(HttpStatusCode.Created, dto!!)
+        call.response.headers.append(HttpHeaders.Location, dto.url)
+        call.respond(HttpStatusCode.Created, dto)
       }
 
       delete("/{type}/{targetId}/{mediaId}") {
@@ -80,13 +88,14 @@ fun Route.mediaRoutes(
         call.respond(HttpStatusCode.NoContent)
       }
     }
+  }
 
-    // Binary Serving
-    get("/{mediaId}") {
-      // /media/{mediaId} muss VOR /{type}/{targetId} resolved werden,
-      // daher liegt binary serving nicht in der obigen route/{type}/{targetId}.
-      // Hier in der Praxis via distinct path gesetzt (siehe configureRouting).
-      call.respond(HttpStatusCode.NotFound) // Platzhalter, wird unten separat definiert
+  authenticate("auth-jwt") {
+    put("/media/{mediaId}/cover") {
+      val mediaId = call.parameters["mediaId"]!!.toInt()
+      val principal = call.principal<JWTPrincipal>()!!
+      val updated = service.setCover(mediaId, principal)
+      call.respond(updated)
     }
   }
 
@@ -106,7 +115,7 @@ fun Route.mediaRoutes(
   // ---------- Compatibility Ticket aliases ----------
   // Beibehalten für bestehende Clients; intern generisches Service.
 
-  route("/tickets/{ticketId}/media") {
+  route("/ticket/{ticketId}/media") {
     // list
     get {
       val ticketId = call.parameters["ticketId"]!!.toInt()
@@ -121,7 +130,7 @@ fun Route.mediaRoutes(
         val principal = call.principal<JWTPrincipal>()!!
         val multipart = call.receiveMultipart()
         var created = false
-        var dto: com.example.community_app.dto.MediaDto? = null
+        var dto: MediaDto? = null
         multipart.forEachPart { part ->
           when (part) {
             is PartData.FileItem -> {
@@ -138,8 +147,8 @@ fun Route.mediaRoutes(
           call.respond(HttpStatusCode.BadRequest, mapOf("error" to "No file part 'file' found"))
           return@post
         }
-        call.response.headers.append(HttpHeaders.Location, dto!!.url)
-        call.respond(HttpStatusCode.Created, dto!!)
+        call.response.headers.append(HttpHeaders.Location, dto.url)
+        call.respond(HttpStatusCode.Created, dto)
       }
       delete("/{mediaId}") {
         val ticketId = call.parameters["ticketId"]!!.toInt()

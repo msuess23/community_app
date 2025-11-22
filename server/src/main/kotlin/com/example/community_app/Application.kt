@@ -1,6 +1,7 @@
 package com.example.community_app
 
 import com.example.community_app.config.*
+import com.example.community_app.util.SERVER_PORT
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.application.*
 import io.ktor.server.config.HoconApplicationConfig

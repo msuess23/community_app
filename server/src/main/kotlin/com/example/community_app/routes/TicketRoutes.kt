@@ -4,7 +4,6 @@ import com.example.community_app.util.TicketCategory
 import com.example.community_app.dto.*
 import com.example.community_app.service.TicketService
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
@@ -14,7 +13,7 @@ import io.ktor.server.routing.*
 fun Route.ticketRoutes(
   service: TicketService = TicketService.default()
 ) {
-  route("/tickets") {
+  route("/ticket") {
     // --- get all tickets ---
     get {
       val officeId = call.request.queryParameters["officeId"]?.toIntOrNull()
@@ -106,7 +105,7 @@ fun Route.ticketRoutes(
     }
 
     // Votes summary (öffentlich, aber private nur wenn berechtigt)
-    get("/{id}/votes") {
+    get("/{id}/vote") {
       val id = call.parameters["id"]!!.toInt()
       val principal = call.principal<JWTPrincipal>()
       val res = service.votesSummary(id, principal)

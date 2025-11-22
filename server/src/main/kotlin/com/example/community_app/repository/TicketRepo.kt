@@ -2,10 +2,11 @@ package com.example.community_app.repository
 
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
-import com.example.community_app.dto.LocationDto
+import com.example.community_app.util.MediaTargetType
+import com.example.community_app.dto.AddressDto
 import com.example.community_app.model.*
 import com.example.community_app.util.applyBbox
-import com.example.community_app.util.createLocation
+import com.example.community_app.util.createAddress
 import com.example.community_app.util.updateFrom
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.dao.id.EntityID
@@ -20,9 +21,10 @@ data class TicketRecord(
   val category: TicketCategory,
   val officeId: Int?,
   val creatorUserId: Int,
-  val location: LocationRecord?,
+  val address: AddressRecord?, // LocationRecord replaced by AddressRecord
   val visibility: TicketVisibility,
-  val createdAt: Instant
+  val createdAt: Instant,
+  val imageUrl: String? // Titelbild
 )
 
 interface TicketRepository {
@@ -52,7 +54,7 @@ data class TicketCreateData(
   val category: TicketCategory,
   val officeId: Int,
   val creatorUserId: Int,
-  val location: LocationDto?,
+  val address: AddressDto?, // LocationDto replaced by AddressDto
   val visibility: TicketVisibility
 )
 
@@ -61,52 +63,65 @@ data class TicketUpdateData(
   val description: String?,
   val category: TicketCategory?,
   val officeId: Int?,
-  val location: LocationDto?,
+  val address: AddressDto?, // LocationDto replaced by AddressDto
   val visibility: TicketVisibility?
 )
 
 object DefaultTicketRepository : TicketRepository {
 
+  private val mediaRepo = DefaultMediaRepository
+
   override suspend fun listPublic(
     officeId: Int?, category: TicketCategory?, createdFrom: Instant?, createdTo: Instant?, bbox: DoubleArray?
   ): List<TicketRecord> = newSuspendedTransaction(Dispatchers.IO) {
-    val base: Query = (Tickets leftJoin Locations).selectAll()
+    val base: Query = (Tickets leftJoin Addresses).selectAll()
     base.andWhere { Tickets.visibility eq TicketVisibility.PUBLIC }
     if (officeId != null) base.andWhere { Tickets.office eq officeId }
     if (category != null) base.andWhere { Tickets.category eq category }
     if (createdFrom != null) base.andWhere { Tickets.createdAt greaterEq createdFrom }
     if (createdTo != null) base.andWhere { Tickets.createdAt lessEq createdTo }
     base.applyBbox(bbox)
-    base.orderBy(Tickets.createdAt to SortOrder.DESC).map { it.toRecord() }
+
+    val records = base.orderBy(Tickets.createdAt to SortOrder.DESC).toList()
+    if (records.isEmpty()) return@newSuspendedTransaction emptyList()
+
+    // Bulk-Fetch Cover Image URLs
+    val ticketIds = records.map { it[Tickets.id].value }
+    val mediaMap = fetchCoverMediaMap(MediaTargetType.TICKET, ticketIds)
+
+    records.map { it.toRecord(mediaMap[it[Tickets.id].value]) }
   }
 
   override suspend fun findById(id: Int): TicketRecord? = newSuspendedTransaction(Dispatchers.IO) {
-    (Tickets leftJoin Locations)
+    val row = (Tickets leftJoin Addresses)
       .selectAll()
       .apply { andWhere { Tickets.id eq id } }
       .limit(1)
-      .firstOrNull()
-      ?.toRecord()
+      .firstOrNull() ?: return@newSuspendedTransaction null
+
+    // Fetch individual Cover Image URL
+    val mediaUrl = fetchCoverMediaUrl(MediaTargetType.TICKET, id)
+    row.toRecord(mediaUrl)
   }
 
   override suspend fun create(data: TicketCreateData): TicketRecord = newSuspendedTransaction(Dispatchers.IO) {
     val creator = UserEntity.findById(data.creatorUserId) ?: error("Creator not found")
     val office = OfficeEntity.findById(data.officeId) ?: error("Office not found")
-    val locEntity = data.location?.let { createLocation(it) }
+    val addrEntity = data.address?.let { createAddress(it) } // using createAddress
     val ticket = TicketEntity.new {
       title = data.title
       description = data.description
       category = data.category
       this.creator = creator
       this.office = office
-      this.location = locEntity
+      this.address = addrEntity // location now refers to AddressEntity
       visibility = data.visibility
     }
-    (Tickets leftJoin Locations)
-      .selectAll()
-      .apply { andWhere { Tickets.id eq ticket.id } }
+    // Neues Ticket hat noch keine Bilder
+    (Tickets leftJoin Addresses)
+      .selectAll().apply { andWhere { Tickets.id eq ticket.id } }
       .first()
-      .toRecord()
+      .toRecord(null)
   }
 
   override suspend fun update(id: Int, patch: TicketUpdateData): TicketRecord? = newSuspendedTransaction(Dispatchers.IO) {
@@ -115,20 +130,20 @@ object DefaultTicketRepository : TicketRepository {
     patch.description?.let { t.description = it }
     patch.category?.let { t.category = it }
     patch.officeId?.let { t.office = OfficeEntity.findById(it) }
-    patch.location?.let {
-      if (t.location == null) {
-        t.location = createLocation(it)
+    patch.address?.let {
+      if (t.address == null) {
+        t.address = createAddress(it)
       } else {
-        t.location!!.updateFrom(it)
+        t.address!!.updateFrom(it) // using updateFrom (Address)
       }
     }
     patch.visibility?.let { t.visibility = it }
 
-    (Tickets leftJoin Locations)
-      .selectAll()
-      .apply { andWhere { Tickets.id eq t.id } }
+    val mediaUrl = fetchCoverMediaUrl(MediaTargetType.TICKET, id)
+    (Tickets leftJoin Addresses)
+      .selectAll().apply { andWhere { Tickets.id eq t.id } }
       .first()
-      .toRecord()
+      .toRecord(mediaUrl)
   }
 
   override suspend fun delete(id: Int): Boolean = newSuspendedTransaction(Dispatchers.IO) {
@@ -152,10 +167,7 @@ object DefaultTicketRepository : TicketRepository {
     val user = UserEntity.findById(userId) ?: return@newSuspendedTransaction false
     val exists = TicketVoteEntity.find { (TicketVotes.ticket eq ticketId) and (TicketVotes.user eq userId) }.empty().not()
     if (exists) return@newSuspendedTransaction false
-    TicketVoteEntity.new {
-      this.ticket = ticket
-      this.user = user
-    }
+    TicketVoteEntity.new { this.ticket = ticket; this.user = user }
     true
   }
 
@@ -166,17 +178,49 @@ object DefaultTicketRepository : TicketRepository {
     true
   }
 
+  // --- media helpers ---
+
+  private suspend fun fetchCoverMediaUrl(type: MediaTargetType, targetId: Int): String? {
+    return mediaRepo.getCoverMedia(type, targetId)?.let { "/api/media/${it.id}" }
+  }
+
+  private suspend fun fetchCoverMediaMap(type: MediaTargetType, ids: List<Int>): Map<Int, String> {
+    // Manuelle Optimierung für Exposed-Bulk-Fetch, die Cover-Logik beachtet:
+    val allMedia = MediaEntity.find { (Media.targetType eq type) and (Media.targetId inList ids) }
+      .orderBy(Media.createdAt to SortOrder.DESC)
+      .toList()
+
+    val coverMap = allMedia
+      .filter { it.isCover }
+      .associate { it.targetId to "/api/media/${it.id.value}" }
+      .toMutableMap()
+
+    // Fallback: Neuestes Bild für alle ohne explizites Cover
+    allMedia
+      .filter { it.targetId !in coverMap }
+      .groupBy { it.targetId }
+      .forEach { (targetId, mediaList) ->
+        // mediaList is already sorted DESC by createdAt, so the first is the newest
+        val newest = mediaList.first()
+        coverMap[targetId] = "/api/media/${newest.id.value}"
+      }
+
+    return coverMap
+  }
+
   // --- mapping ---
 
-  private fun ResultRow.toRecord(): TicketRecord {
-    val locId: EntityID<Int>? = this[Tickets.location]
-    val loc = if (locId != null) {
-      LocationRecord(
-        id = locId.value,
-        longitude = this[Locations.longitude],
-        latitude = this[Locations.latitude],
-        altitude = this[Locations.altitude],
-        accuracy = this[Locations.accuracy]
+  private fun ResultRow.toRecord(imageUrl: String?): TicketRecord {
+    val addrId: EntityID<Int>? = this[Tickets.address]
+    val addr = if (addrId != null) {
+      AddressRecord(
+        id = addrId.value,
+        street = this[Addresses.street],
+        houseNumber = this[Addresses.houseNumber],
+        zipCode = this[Addresses.zipCode],
+        city = this[Addresses.city],
+        longitude = this[Addresses.longitude],
+        latitude = this[Addresses.latitude]
       )
     } else null
 
@@ -187,9 +231,10 @@ object DefaultTicketRepository : TicketRepository {
       category = this[Tickets.category],
       officeId = this[Tickets.office]?.value,
       creatorUserId = this[Tickets.creator].value,
-      location = loc,
+      address = addr, // Location replaced by Address
       visibility = this[Tickets.visibility],
-      createdAt = this[Tickets.createdAt]
+      createdAt = this[Tickets.createdAt],
+      imageUrl = imageUrl
     )
   }
 }

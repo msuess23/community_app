@@ -5,7 +5,6 @@ import com.example.community_app.dto.UserUpdateDto
 import com.example.community_app.service.SettingsService
 import com.example.community_app.service.UserService
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
@@ -17,7 +16,7 @@ fun Route.userRoutes(
   settingsService: SettingsService = SettingsService.default()
 ) {
   authenticate("auth-jwt") {
-    route("/users/me") {
+    route("/user/me") {
       // --- get user ---
       get {
         val principal = call.principal<JWTPrincipal>()!!

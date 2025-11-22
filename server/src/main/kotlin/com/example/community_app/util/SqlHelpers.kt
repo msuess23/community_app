@@ -1,6 +1,6 @@
 package com.example.community_app.util
 
-import com.example.community_app.model.Locations
+import com.example.community_app.model.Addresses
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.andWhere
@@ -9,10 +9,10 @@ import org.jetbrains.exposed.sql.andWhere
 fun Query.applyBbox(bbox: DoubleArray?): Query = apply {
   if (bbox != null && bbox.size == 4) {
     andWhere {
-      (Locations.longitude greaterEq bbox[0]) and
-          (Locations.longitude lessEq bbox[2]) and
-          (Locations.latitude  greaterEq bbox[1]) and
-          (Locations.latitude  lessEq bbox[3])
+      (Addresses.longitude greaterEq bbox[0]) and
+          (Addresses.longitude lessEq bbox[2]) and
+          (Addresses.latitude  greaterEq bbox[1]) and
+          (Addresses.latitude  lessEq bbox[3])
     }
   }
 }

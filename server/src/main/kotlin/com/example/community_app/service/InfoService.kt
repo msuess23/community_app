@@ -2,6 +2,7 @@ package com.example.community_app.service
 
 import com.example.community_app.util.InfoCategory
 import com.example.community_app.util.InfoStatus
+import com.example.community_app.util.MediaTargetType
 import com.example.community_app.dto.*
 import com.example.community_app.errors.NotFoundException
 import com.example.community_app.repository.*
@@ -9,12 +10,14 @@ import com.example.community_app.util.ensureEndAfterStart
 import com.example.community_app.util.parseBbox
 import com.example.community_app.util.parseInstantStrict
 import com.example.community_app.util.requireOfficerOfOrAdmin
-import com.example.community_app.util.validateLocation
+import com.example.community_app.util.toDto
+import com.example.community_app.util.validateAddress
 import io.ktor.server.auth.jwt.*
 
 class InfoService(
   private val repo: InfoRepository,
-  private val statusService: StatusService
+  private val statusService: StatusService,
+  private val mediaService: MediaService
 ) {
 
   // ---- Public reads ----
@@ -40,12 +43,12 @@ class InfoService(
     return rec.toDto(current)
   }
 
-  suspend fun listStatus(infoId: Int): List<StatusDto> {
+  suspend fun listStatus(infoId: Int): List<InfoStatusDto> {
     ensureInfoExists(infoId)
     return statusService.listInfoStatuses(infoId)
   }
 
-  suspend fun getCurrentStatus(infoId: Int): StatusDto? {
+  suspend fun getCurrentStatus(infoId: Int): InfoStatusDto? {
     ensureInfoExists(infoId)
     return statusService.currentInfoStatus(infoId)
   }
@@ -53,7 +56,7 @@ class InfoService(
   // ---- Write (Officer/Admin) ----
 
   suspend fun create(principal: JWTPrincipal, dto: InfoCreateDto): InfoDto {
-    validateLocation(dto.location)
+    validateAddress(dto.address)
     val s = parseInstantStrict(dto.startsAt)
     val e = parseInstantStrict(dto.endsAt)
     ensureEndAfterStart(s, e)
@@ -66,7 +69,7 @@ class InfoService(
         description = dto.description,
         category = dto.category,
         officeId = dto.officeId,
-        location = dto.location,
+        address = dto.address,
         startsAt = s,
         endsAt = e
       )
@@ -84,7 +87,7 @@ class InfoService(
     val targetOfficeId = patch.officeId ?: existing.officeId
     requireOfficerOfOrAdmin(principal, targetOfficeId)
 
-    patch.location?.let { validateLocation(it) }
+    patch.address?.let { validateAddress(it) }
     val startsAt = patch.startsAt?.let { parseInstantStrict(it) }
     val endsAt = patch.endsAt?.let { parseInstantStrict(it) }
     if (startsAt != null && endsAt != null) ensureEndAfterStart(startsAt, endsAt)
@@ -95,7 +98,7 @@ class InfoService(
         description = patch.description,
         category = patch.category,
         officeId = patch.officeId,
-        location = patch.location,
+        address = patch.address,
         startsAt = startsAt,
         endsAt = endsAt
       )
@@ -108,10 +111,14 @@ class InfoService(
   suspend fun delete(principal: JWTPrincipal, id: Int) {
     val existing = repo.findById(id) ?: throw NotFoundException("Info not found")
     requireOfficerOfOrAdmin(principal, existing.officeId)
+
+    // Medien bereinigen
+    mediaService.deleteAllForTarget(MediaTargetType.INFO, id)
+
     if (!repo.delete(id)) throw NotFoundException("Info not found")
   }
 
-  suspend fun addStatus(principal: JWTPrincipal, id: Int, body: StatusCreateDto): StatusDto {
+  suspend fun addStatus(principal: JWTPrincipal, id: Int, body: InfoStatusCreateDto): InfoStatusDto {
     val existing = repo.findById(id) ?: throw NotFoundException("Info not found")
     requireOfficerOfOrAdmin(principal, existing.officeId)
 
@@ -126,31 +133,30 @@ class InfoService(
     if (!exists) throw NotFoundException("Info not found")
   }
 
-  private fun InfoRecord.toDto(current: StatusDto?): InfoDto =
+  private fun InfoRecord.toDto(current: InfoStatusDto?): InfoDto =
     InfoDto(
       id = id,
       title = title,
       description = description,
       category = category,
       officeId = officeId,
-      location = location?.let {
-        LocationDto(
-          longitude = it.longitude,
-          latitude = it.latitude,
-          altitude = it.altitude,
-          accuracy = it.accuracy
-        )
-      },
+      address = address?.toDto(),
       createdAt = createdAt.toString(),
       startsAt = startsAt.toString(),
       endsAt = endsAt.toString(),
-      currentStatus = current
+      currentStatus = current,
+      imageUrl = this.imageUrl
     )
 
   companion object {
     fun default(): InfoService = InfoService(
       repo = DefaultInfoRepository,
-      statusService = StatusService.default()
+      statusService = StatusService.default(),
+      mediaService = MediaService(
+        repo = com.example.community_app.repository.DefaultMediaRepository,
+        ticketRepo = DefaultTicketRepository,
+        infoRepo = DefaultInfoRepository
+      )
     )
   }
 }
