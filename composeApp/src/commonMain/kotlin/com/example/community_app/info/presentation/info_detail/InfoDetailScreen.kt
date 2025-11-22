@@ -5,14 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -22,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -30,17 +27,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
+import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.info.domain.Info
+import com.example.community_app.media.presentation.ImageGallery
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.image_placeholder
+import community_app.composeapp.generated.resources.button_back
+import community_app.composeapp.generated.resources.info_not_found
+import community_app.composeapp.generated.resources.info_singular
+import community_app.composeapp.generated.resources.label_status
+import community_app.composeapp.generated.resources.label_status_history
 import compose.icons.FeatherIcons
+import compose.icons.feathericons.Activity
 import compose.icons.feathericons.ChevronLeft
-import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -52,7 +54,12 @@ fun InfoDetailScreenRoot(
 
   InfoDetailScreen(
     state = state,
-    onNavigateBack = onNavigateBack
+    onAction = { action ->
+      when (action) {
+        InfoDetailAction.OnNavigateBack -> onNavigateBack()
+        else -> viewModel.onAction(action)
+      }
+    }
   )
 
 }
@@ -61,17 +68,25 @@ fun InfoDetailScreenRoot(
 @Composable
 private fun InfoDetailScreen(
   state: InfoDetailState,
-  onNavigateBack: () -> Unit
+  onAction: (InfoDetailAction) -> Unit
 ) {
   Scaffold(
     topBar = {
       TopAppBar(
-        title = { Text("Details") },
+        title = {
+          state.info?.let { info ->
+            Text(info.category.toUiText().asString())
+          } ?: run {
+            stringResource(Res.string.info_singular)
+          }
+        },
         navigationIcon = {
-          IconButton(onClick = onNavigateBack) {
+          IconButton(onClick = {
+            onAction(InfoDetailAction.OnNavigateBack)
+          }) {
             Icon(
               imageVector = FeatherIcons.ChevronLeft,
-              contentDescription = "Zurück"
+              contentDescription = stringResource(Res.string.button_back)
             )
           }
         },
@@ -97,109 +112,125 @@ private fun InfoDetailScreen(
         )
       } else {
         state.info?.let { info ->
-          InfoDetailContent(info)
+          Column(
+            modifier = Modifier
+              .fillMaxSize()
+              .verticalScroll(rememberScrollState())
+          ) {
+            ImageGallery(
+              imageUrls = state.imageUrls.ifEmpty {
+                listOfNotNull(info.imageUrl)
+              },
+              modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(16f / 9f)
+            )
+            InfoDetailContent(info, onAction)
+          }
+
         } ?: run {
           Text(
-            text = "Eintrag nicht gefunden.",
+            text = stringResource(Res.string.info_not_found),
             modifier = Modifier.align(Alignment.Center)
           )
         }
       }
     }
   }
+
+  if (state.showStatusHistory) {
+    StatusHistorySheet(
+      history = state.statusHistory,
+      onAction = onAction
+    )
+  }
 }
 
 @Composable
-private fun InfoDetailContent(info: Info) {
+private fun InfoDetailContent(
+  info: Info,
+  onAction: (InfoDetailAction) -> Unit
+) {
   Column(
-    modifier = Modifier
-      .fillMaxSize()
-      .verticalScroll(rememberScrollState())
+    modifier = Modifier.padding(16.dp),
+    verticalArrangement = Arrangement.spacedBy(16.dp)
   ) {
-    AsyncImage(
-      model = info.imageUrl,
-      contentDescription = info.title,
-      placeholder = painterResource(Res.drawable.image_placeholder),
-      error = painterResource(Res.drawable.image_placeholder),
-      contentScale = ContentScale.Crop,
-      modifier = Modifier
-        .fillMaxWidth()
-        .aspectRatio(16f / 9f)
-    )
+    Column {
+      Text(
+        text = info.title,
+        style = MaterialTheme.typography.headlineMedium,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onSurface
+      )
+    }
 
-    Column(
-      modifier = Modifier.padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-      Column {
-        Text(
-          text = info.title,
-          style = MaterialTheme.typography.headlineMedium,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.onSurface
+    info.currentStatus?.let { status ->
+      Card(
+        onClick = { onAction(InfoDetailAction.OnShowStatusHistory) },
+        colors = CardDefaults.cardColors(
+          containerColor = MaterialTheme.colorScheme.tertiaryContainer
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Surface(
-          color = MaterialTheme.colorScheme.secondaryContainer,
-          shape = RoundedCornerShape(8.dp)
+      ) {
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.SpaceBetween
         ) {
-          Text(
-            text = info.category.name,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+          Column {
+            Text(
+              text = stringResource(Res.string.label_status),
+              style = MaterialTheme.typography.labelMedium
+            )
+            Text(
+              text = status.toUiText().asString(),
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold
+            )
+          }
+          Icon(
+            imageVector = FeatherIcons.Activity,
+            contentDescription = stringResource(Res.string.label_status_history)
           )
         }
       }
+    }
 
-      info.currentStatus?.let { status ->
-        Card(
-          colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer
-          )
-        ) {
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-          ) {
-            Column {
-              Text(
-                text = "Status",
-                style = MaterialTheme.typography.labelMedium
-              )
-              Text(
-                text = status.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-              )
-            }
-          }
-        }
-      }
+    info.description?.let { desc ->
+      Text(
+        text = desc,
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurface
+      )
+    }
 
-      info.description?.let { desc ->
-        Text(
-          text = desc,
-          style = MaterialTheme.typography.bodyLarge,
-          color = MaterialTheme.colorScheme.onSurface
-        )
-      }
-
-      info.address?.let {
-        Card(
-          modifier = Modifier.fillMaxWidth().height(150.dp),
-          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-          Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("MapCard Placeholder")
-          }
+    info.address?.let {
+      Card(
+        modifier = Modifier.fillMaxWidth().height(150.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+      ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+          Text("MapCard Placeholder")
         }
       }
     }
   }
 }
+
+
+
+//
+//      Spacer(modifier = Modifier.height(8.dp))
+//
+//      Surface(
+//        color = MaterialTheme.colorScheme.secondaryContainer,
+//        shape = RoundedCornerShape(8.dp)
+//      ) {
+//        Text(
+//          text = info.category.toUiText().asString(),
+//          style = MaterialTheme.typography.labelLarge,
+//          color = MaterialTheme.colorScheme.onSecondaryContainer,
+//          modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+//        )
+//      }
