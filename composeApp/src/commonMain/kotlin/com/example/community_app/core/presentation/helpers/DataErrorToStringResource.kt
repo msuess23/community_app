@@ -1,6 +1,7 @@
-package com.example.community_app.core.presentation
+package com.example.community_app.core.presentation.helpers
 
 import com.example.community_app.core.domain.DataError
+import com.example.community_app.core.presentation.helpers.UiText
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.error_disk_full
 import community_app.composeapp.generated.resources.error_no_internet

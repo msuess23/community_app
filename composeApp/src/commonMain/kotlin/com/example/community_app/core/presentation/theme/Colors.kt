@@ -1,4 +1,4 @@
-package com.example.community_app.core.presentation
+package com.example.community_app.core.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

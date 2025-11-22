@@ -1,6 +1,6 @@
 package com.example.community_app.info.presentation.info_master
 
-import com.example.community_app.core.presentation.UiText
+import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.info.domain.Info
 import com.example.community_app.util.InfoCategory
 
