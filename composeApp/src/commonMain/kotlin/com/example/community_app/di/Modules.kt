@@ -8,6 +8,10 @@ import com.example.community_app.info.data.repository.DefaultInfoRepository
 import com.example.community_app.info.domain.InfoRepository
 import com.example.community_app.info.presentation.info_detail.InfoDetailViewModel
 import com.example.community_app.info.presentation.info_master.InfoMasterViewModel
+import com.example.community_app.media.data.network.KtorRemoteMediaDataSource
+import com.example.community_app.media.data.network.RemoteMediaDataSource
+import com.example.community_app.media.data.repository.DefaultMediaRepository
+import com.example.community_app.media.domain.MediaRepository
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -24,13 +28,19 @@ fun createKoinConfiguration(): KoinConfiguration {
 }
 
 val sharedModule = module {
+  // Core
   single { HttpClientFactory.create(get()) }
-
   single { get<AppDatabase>().infoDao() }
 
+  // Info Data & Repo
   singleOf(::KtorRemoteInfoDataSource).bind<RemoteInfoDataSource>()
   singleOf(::DefaultInfoRepository).bind<InfoRepository>()
 
+  // Media Data & Repo
+  singleOf(::KtorRemoteMediaDataSource).bind<RemoteMediaDataSource>()
+  singleOf(::DefaultMediaRepository).bind<MediaRepository>()
+
+  // Info VM
   viewModelOf(::InfoMasterViewModel)
   viewModelOf(::InfoDetailViewModel)
 }
