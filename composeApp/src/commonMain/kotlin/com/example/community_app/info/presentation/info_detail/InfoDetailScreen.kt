@@ -6,30 +6,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.community_app.core.presentation.components.CommunityTopAppBar
+import com.example.community_app.core.presentation.components.TopBarNavigationType
 import com.example.community_app.core.presentation.components.detail.InfoTicketDetailContent
 import com.example.community_app.core.presentation.components.detail.StatusHistorySheet
 import com.example.community_app.core.presentation.components.detail.StatusHistoryUiItem
 import com.example.community_app.core.presentation.helpers.toUiText
-import com.example.community_app.core.util.formatIsoDate
 import com.example.community_app.util.InfoStatus
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.button_back
 import community_app.composeapp.generated.resources.info_not_found
 import community_app.composeapp.generated.resources.info_singular
-import compose.icons.FeatherIcons
-import compose.icons.feathericons.ChevronLeft
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -60,30 +55,19 @@ private fun InfoDetailScreen(
 ) {
   Scaffold(
     topBar = {
-      TopAppBar(
-        title = {
-          state.info?.let { info ->
-            Text(info.category.toUiText().asString())
-          } ?: run {
-            stringResource(Res.string.info_singular)
-          }
+      CommunityTopAppBar(
+        titleContent = {
+          val titleText = state.info?.category?.toUiText()?.asString()
+            ?: stringResource(Res.string.info_singular)
+
+          Text(
+            text = titleText,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold
+          )
         },
-        navigationIcon = {
-          IconButton(onClick = {
-            onAction(InfoDetailAction.OnNavigateBack)
-          }) {
-            Icon(
-              imageVector = FeatherIcons.ChevronLeft,
-              contentDescription = stringResource(Res.string.button_back)
-            )
-          }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-          containerColor = MaterialTheme.colorScheme.primary,
-          titleContentColor = MaterialTheme.colorScheme.onPrimary,
-          navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-          actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-        )
+        navigationType = TopBarNavigationType.Back,
+        onNavigationClick = { onAction(InfoDetailAction.OnNavigateBack) },
       )
     }
   ) { padding ->

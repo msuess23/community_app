@@ -1,18 +1,15 @@
 package com.example.community_app.info.presentation.info_master
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -31,15 +28,15 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.community_app.core.presentation.components.CommunityTopAppBar
+import com.example.community_app.core.presentation.components.TopBarNavigationType
 import com.example.community_app.core.presentation.components.list.CustomList
 import com.example.community_app.core.presentation.components.search.SearchBar
 import com.example.community_app.info.domain.Info
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.filters_label
-import community_app.composeapp.generated.resources.label_menu
 import community_app.composeapp.generated.resources.search_no_results
 import compose.icons.FeatherIcons
-import compose.icons.feathericons.Menu
 import compose.icons.feathericons.Sliders
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -90,6 +87,40 @@ private fun InfoMasterScreen(
   }
 
   Scaffold(
+    topBar = {
+      CommunityTopAppBar(
+        titleContent = {
+          SearchBar(
+            searchQuery = state.searchQuery,
+            onSearchQueryChange = {
+              onAction(InfoMasterAction.OnSearchQueryChange(it))
+            },
+            onImeSearch = {
+              keyboardController?.hide()
+            },
+            modifier = Modifier.fillMaxWidth()
+          )
+        },
+        navigationType = TopBarNavigationType.Drawer,
+        onNavigationClick = onOpenDrawer,
+        actions = {
+          IconButton(
+            onClick = { onAction(InfoMasterAction.OnToggleFilterSheet) }
+          ) {
+            val iconTint = if (state.filter.selectedCategories.isNotEmpty())
+              MaterialTheme.colorScheme.tertiaryContainer
+            else
+              MaterialTheme.colorScheme.onPrimary
+
+            Icon(
+              imageVector = FeatherIcons.Sliders,
+              contentDescription = stringResource(Res.string.filters_label),
+              tint = iconTint
+            )
+          }
+        }
+      )
+    },
     snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
   ) { padding ->
     Column(
@@ -100,57 +131,6 @@ private fun InfoMasterScreen(
 //        .statusBarsPadding(),
 //      horizontalAlignment = Alignment.CenterHorizontally
     ) {
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-      ) {
-        FilledTonalIconButton(
-          onClick = onOpenDrawer,
-          colors = IconButtonDefaults.iconButtonColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-          )
-        ) {
-          Icon(
-            imageVector = FeatherIcons.Menu,
-            contentDescription = stringResource(Res.string.label_menu),
-            tint = MaterialTheme.colorScheme.onSurface
-          )
-        }
-
-        SearchBar(
-          searchQuery = state.searchQuery,
-          onSearchQueryChange = {
-            onAction(InfoMasterAction.OnSearchQueryChange(it))
-          },
-          onImeSearch = {
-            keyboardController?.hide()
-          },
-          modifier = Modifier.weight(1f)
-        )
-
-        FilledTonalIconButton(
-          onClick = {
-            onAction(InfoMasterAction.OnToggleFilterSheet)
-          },
-          colors = IconButtonDefaults.iconButtonColors(
-            containerColor = if (state.filter.selectedCategories.isNotEmpty()) {
-              MaterialTheme.colorScheme.tertiaryContainer
-            } else {
-              MaterialTheme.colorScheme.surfaceContainerHigh
-            }
-          )
-        ) {
-          Icon(
-            imageVector = FeatherIcons.Sliders,
-            contentDescription = stringResource(Res.string.filters_label),
-            tint = MaterialTheme.colorScheme.onSurface
-          )
-        }
-      }
-
       Surface(
         modifier = Modifier
           .weight(1f)

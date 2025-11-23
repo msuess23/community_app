@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
-    <!-- Core -->
+    <!-- General -->
     <string name="app_title">Community App</string>
     <string name="label_menu">Menu</string>
+    <string name="back">Back</string>
+    <string name="cancel">Cancel</string>
 
     <!-- Info -->
     <string name="info_singular">Information</string>
@@ -54,9 +56,24 @@
 
     <!-- Settings -->
     <string name="settings_label">Settings</string>
+    <!-- Theme -->
+    <string name="settings_theme_label">Color theme</string>
+    <string name="settings_theme_system">automatic</string>
+    <string name="settings_theme_light">light</string>
+    <string name="settings_theme_dark">dark</string>
+    <!-- Language -->
+    <string name="settings_lang_label">Language</string>
+    <string name="settings_lang_system">automatic</string>
+    <string name="settings_lang_english">English</string>
+    <string name="settings_lang_german">Deutsch</string>
+    <!-- Language Dialog -->
+    <string name="settings_lang_dialog_title">Change language</string>
+    <string name="settings_lang_dialog_text">The app will be restarted in order to apply the changes.</string>
+    <string name="settings_lang_dialog_confirm">Change &amp; Restart</string>
 
-    <!-- General -->
-    <string name="button_back">Back</string>
+    <!-- Authentication -->
+    <string name="logout_label">Log out</string>
+    <string name="logout_dialog">Are you sure you want to log out?</string>
 
     <!-- Errors -->
     <string name="error_disk_full">Oops, it seems like your disk is full.</string>

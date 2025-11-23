@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
-    <!-- Core -->
+    <!-- General -->
     <string name="app_title">Bürger-App</string>
     <string name="label_menu">Menü</string>
+    <string name="back">Zurück</string>
+    <string name="cancel">Abbrechen</string>
 
     <!-- Info -->
     <string name="info_singular">Information</string>
@@ -54,9 +56,24 @@
 
     <!-- Settings -->
     <string name="settings_label">Einstellungen</string>
+    <!-- Theme -->
+    <string name="settings_theme_label">Erscheinungsbild</string>
+    <string name="settings_theme_system">automatisch</string>
+    <string name="settings_theme_light">hell</string>
+    <string name="settings_theme_dark">dunkel</string>
+    <!-- Language -->
+    <string name="settings_lang_label">Sprache</string>
+    <string name="settings_lang_system">automatisch</string>
+    <string name="settings_lang_english">English</string>
+    <string name="settings_lang_german">Deutsch</string>
+    <!-- Language Dialog -->
+    <string name="settings_lang_dialog_title">Sprache ändern</string>
+    <string name="settings_lang_dialog_text">Die App wird neu gestartet, um die Spracheinstellung anzuwenden.</string>
+    <string name="settings_lang_dialog_confirm">Ändern &amp; Neustarten</string>
 
-    <!-- General -->
-    <string name="button_back">Zurück</string>
+    <!-- Authentication -->
+    <string name="logout_label">Abmelden</string>
+    <string name="logout_dialog">Möchten Sie sich wirklich abmelden?</string>
 
     <!-- Errors -->
     <string name="error_disk_full">Hoppla, anscheinend ist Ihre Festplatte voll.</string>

@@ -10,3 +10,6 @@ enum class TicketCategory { INFRASTRUCTURE, CLEANING, SAFETY, NOISE, OTHER }
 enum class TicketVisibility { PUBLIC, PRIVATE }
 
 enum class StatusScope { INFO, TICKET }
+
+enum class AppTheme { SYSTEM, LIGHT, DARK }
+enum class AppLanguage { SYSTEM, GERMAN, ENGLISH }

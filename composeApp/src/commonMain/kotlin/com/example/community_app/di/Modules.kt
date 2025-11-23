@@ -12,6 +12,9 @@ import com.example.community_app.media.data.network.KtorRemoteMediaDataSource
 import com.example.community_app.media.data.network.RemoteMediaDataSource
 import com.example.community_app.media.data.repository.DefaultMediaRepository
 import com.example.community_app.media.domain.MediaRepository
+import com.example.community_app.settings.data.DefaultSettingsRepository
+import com.example.community_app.settings.domain.SettingsRepository
+import com.example.community_app.settings.presentation.SettingsViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -32,6 +35,8 @@ val sharedModule = module {
   single { HttpClientFactory.create(get()) }
   single { get<AppDatabase>().infoDao() }
 
+  singleOf(::DefaultSettingsRepository).bind<SettingsRepository>()
+
   // Info Data & Repo
   singleOf(::KtorRemoteInfoDataSource).bind<RemoteInfoDataSource>()
   singleOf(::DefaultInfoRepository).bind<InfoRepository>()
@@ -43,4 +48,6 @@ val sharedModule = module {
   // Info VM
   viewModelOf(::InfoMasterViewModel)
   viewModelOf(::InfoDetailViewModel)
+
+  viewModelOf(::SettingsViewModel)
 }

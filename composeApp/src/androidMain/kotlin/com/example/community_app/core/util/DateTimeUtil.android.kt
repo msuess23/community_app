@@ -34,8 +34,11 @@ private fun formatIsoWithStyle(
       else -> return isoString
     }
 
+    val currentTag = localeManager.getCurrentLocaleTag()
+    val locale = Locale.forLanguageTag(currentTag)
+
     formatter
-      .withLocale(Locale.getDefault())
+      .withLocale(locale)
       .withZone(ZoneId.systemDefault())
       .format(instant)
   } catch (e: Exception) {
