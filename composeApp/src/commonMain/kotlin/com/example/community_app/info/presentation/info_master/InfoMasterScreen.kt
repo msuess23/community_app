@@ -78,10 +78,11 @@ private fun InfoMasterScreen(
     lazyListState.animateScrollToItem(0)
   }
 
-  LaunchedEffect(state.errorMessage, state.isLoading) {
-    if (state.errorMessage != null && !state.isLoading && state.searchResults.isNotEmpty()) {
+  val errorMessageText = state.errorMessage?.asString()
+  LaunchedEffect(errorMessageText, state.isLoading) {
+    if (errorMessageText != null && !state.isLoading && state.searchResults.isNotEmpty()) {
       snackbarHostState.showSnackbar(
-        message = state.errorMessage.toString()
+        message = errorMessageText
       )
     }
   }
