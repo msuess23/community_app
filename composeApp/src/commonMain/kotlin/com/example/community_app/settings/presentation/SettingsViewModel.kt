@@ -2,6 +2,7 @@ package com.example.community_app.settings.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.community_app.core.util.restartApp
 import com.example.community_app.settings.domain.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -51,6 +52,7 @@ class SettingsViewModel(
           _state.update { it.copy(
             pendingLanguage = null
           ) }
+          restartApp()
         }
       }
       is SettingsAction.OnLogoutClick -> {
