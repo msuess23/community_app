@@ -16,6 +16,8 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.example.community_app.app.navigation.AppScaffold
 import com.example.community_app.app.navigation.Route
+import com.example.community_app.auth.presentation.components.AuthGuard
+import com.example.community_app.auth.presentation.login.LoginScreenRoot
 import com.example.community_app.core.presentation.theme.CommunityTheme
 import com.example.community_app.core.util.localeManager
 import com.example.community_app.di.createKoinConfiguration
@@ -64,6 +66,35 @@ fun App() {
             navController = navController,
             startDestination = Route.InfoGraph
           ) {
+            navigation<Route.AuthGraph>(
+              startDestination = Route.Login
+            ) {
+              composable<Route.Login> {
+                LoginScreenRoot(
+                  onLoginSuccess = {
+                    navController.navigate(Route.InfoGraph) {
+                      popUpTo(Route.AuthGraph) { inclusive = true }
+                    }
+                  },
+                  onNavigateToRegister = {
+                    navController.navigate(Route.Register)
+                  },
+                  onNavigateToGuest = {
+                    navController.navigate(Route.InfoGraph) {
+                      popUpTo(Route.AuthGraph) { inclusive = true }
+                    }
+                  }
+                )
+              }
+
+              composable<Route.Register> {
+                DummyScreen(
+                  title = "Registrieren",
+                  onOpenDrawer = {}
+                )
+              }
+            }
+
             navigation<Route.InfoGraph>(
               startDestination = Route.InfoMaster
             ) {
@@ -86,7 +117,14 @@ fun App() {
 
             navigation<Route.TicketGraph>(startDestination = Route.TicketMaster) {
               composable<Route.TicketMaster> {
-                DummyScreen("Ticket Master", onOpenDrawer = { scope.launch { drawerState.open() } })
+                AuthGuard(
+                  onLoginClick = { navController.navigate(Route.AuthGraph) }
+                ) { user ->
+                  DummyScreen(
+                    title = "Ticket Master (Angemeldet als ${user.displayName})",
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                  )
+                }
               }
             }
 

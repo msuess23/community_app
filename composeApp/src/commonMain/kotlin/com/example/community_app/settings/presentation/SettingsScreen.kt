@@ -35,8 +35,8 @@ import com.example.community_app.util.AppLanguage
 import com.example.community_app.util.AppTheme
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.cancel
-import community_app.composeapp.generated.resources.logout_dialog
-import community_app.composeapp.generated.resources.logout_label
+import community_app.composeapp.generated.resources.auth_logout_dialog
+import community_app.composeapp.generated.resources.auth_logout_label
 import community_app.composeapp.generated.resources.settings_label
 import community_app.composeapp.generated.resources.settings_lang_dialog_confirm
 import community_app.composeapp.generated.resources.settings_lang_dialog_text
@@ -191,7 +191,7 @@ private fun SettingsScreen(
           contentDescription = null
         )
         Spacer(modifier = Modifier.padding(4.dp))
-        Text(stringResource(Res.string.logout_label))
+        Text(stringResource(Res.string.auth_logout_label))
       }
     }
 
@@ -199,13 +199,13 @@ private fun SettingsScreen(
     if (state.showLogoutDialog) {
       AlertDialog(
         onDismissRequest = { onAction(SettingsAction.OnLogoutCancel) },
-        title = { Text(stringResource(Res.string.logout_label)) },
-        text = { Text(stringResource(Res.string.logout_dialog)) },
+        title = { Text(stringResource(Res.string.auth_logout_label)) },
+        text = { Text(stringResource(Res.string.auth_logout_dialog)) },
         confirmButton = {
           TextButton(
             onClick = { onAction(SettingsAction.OnLogoutConfirm) }
           ) {
-            Text(stringResource(Res.string.logout_label))
+            Text(stringResource(Res.string.auth_logout_label))
           }
         },
         dismissButton = {

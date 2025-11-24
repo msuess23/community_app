@@ -72,8 +72,8 @@
     <string name="settings_lang_dialog_confirm">Ändern &amp; Neustarten</string>
 
     <!-- Authentication -->
-    <string name="logout_label">Abmelden</string>
-    <string name="logout_dialog">Möchten Sie sich wirklich abmelden?</string>
+    <string name="auth_logout_label">Abmelden</string>
+    <string name="auth_logout_dialog">Möchten Sie sich wirklich abmelden?</string>
 
     <!-- Errors -->
     <string name="error_disk_full">Hoppla, anscheinend ist Ihre Festplatte voll.</string>

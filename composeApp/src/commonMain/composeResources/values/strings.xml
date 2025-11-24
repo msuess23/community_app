@@ -72,8 +72,13 @@
     <string name="settings_lang_dialog_confirm">Change &amp; Restart</string>
 
     <!-- Authentication -->
-    <string name="logout_label">Log out</string>
-    <string name="logout_dialog">Are you sure you want to log out?</string>
+    <string name="auth_login_label">Log in</string>
+    <string name="auth_register_label">Register</string>
+    <string name="auth_logout_label">Log out</string>
+    <string name="auth_logout_dialog">Are you sure you want to log out?</string>
+    <!-- Guard -->
+    <string name="auth_guard_title">This area requires an account.</string>
+    <string name="auth_guard_text">Please login in or register a new account.</string>
 
     <!-- Errors -->
     <string name="error_disk_full">Oops, it seems like your disk is full.</string>
