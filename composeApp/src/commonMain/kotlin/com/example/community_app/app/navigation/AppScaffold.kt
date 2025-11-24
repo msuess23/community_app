@@ -14,6 +14,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -22,6 +23,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.community_app.util.AppLanguage
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.app_title
 import kotlinx.coroutines.launch
@@ -31,6 +33,8 @@ import org.jetbrains.compose.resources.stringResource
 fun AppScaffold(
   navController: NavHostController,
   drawerState: DrawerState,
+  showBottomBar: Boolean,
+  showDrawer: Boolean,
   content: @Composable () -> Unit
 ) {
   val scope = rememberCoroutineScope()
@@ -54,46 +58,51 @@ fun AppScaffold(
 
   ModalNavigationDrawer(
     drawerState = drawerState,
+    gesturesEnabled = showDrawer,
     drawerContent = {
-      ModalDrawerSheet {
-        Text(
-          text = stringResource(Res.string.app_title),
-          modifier = Modifier.padding(16.dp)
-        )
-        TopLevelDestination.entries.filter { it.showInDrawer }
-          .forEach { destination ->
-            NavigationDrawerItem(
-              label = { Text(stringResource(destination.label)) },
-              selected = isSelected(destination),
-              onClick = { navigateTo(destination) },
-              icon = {
-                Icon(
-                  imageVector = if (isSelected(destination)) destination.selectedIcon else destination.unselectedIcon,
-                  contentDescription = stringResource(destination.label)
-                )
-              },
-              modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-            )
-          }
+      if (showDrawer) {
+        ModalDrawerSheet {
+          Text(
+            text = stringResource(Res.string.app_title),
+            modifier = Modifier.padding(16.dp)
+          )
+          TopLevelDestination.entries.filter { it.showInDrawer }
+            .forEach { destination ->
+              NavigationDrawerItem(
+                label = { Text(stringResource(destination.label)) },
+                selected = isSelected(destination),
+                onClick = { navigateTo(destination) },
+                icon = {
+                  Icon(
+                    imageVector = if (isSelected(destination)) destination.selectedIcon else destination.unselectedIcon,
+                    contentDescription = stringResource(destination.label)
+                  )
+                },
+                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+              )
+            }
+        }
       }
     }
   ) {
     Scaffold(
       bottomBar = {
-        NavigationBar {
-          TopLevelDestination.entries.filter { it.showInBottomBar }.forEach { destination ->
-            val selected = isSelected(destination)
-            NavigationBarItem(
-              selected = selected,
-              onClick = { navigateTo(destination) },
-              icon = {
-                Icon(
-                  imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
-                  contentDescription = null
-                )
-              },
-              label = { Text(stringResource(destination.label)) }
-            )
+        if (showBottomBar) {
+          NavigationBar {
+            TopLevelDestination.entries.filter { it.showInBottomBar }.forEach { destination ->
+              val selected = isSelected(destination)
+              NavigationBarItem(
+                selected = selected,
+                onClick = { navigateTo(destination) },
+                icon = {
+                  Icon(
+                    imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
+                    contentDescription = null
+                  )
+                },
+                label = { Text(stringResource(destination.label)) }
+              )
+            }
           }
         }
       }

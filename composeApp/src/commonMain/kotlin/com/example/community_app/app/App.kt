@@ -10,12 +10,16 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.example.community_app.app.navigation.AppScaffold
 import com.example.community_app.app.navigation.Route
+import com.example.community_app.app.navigation.TopLevelDestination
 import com.example.community_app.auth.presentation.components.AuthGuard
 import com.example.community_app.auth.presentation.login.LoginScreenRoot
 import com.example.community_app.core.presentation.theme.CommunityTheme
@@ -58,9 +62,23 @@ fun App() {
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()
 
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
+
+        val showDrawer = TopLevelDestination.entries.any { destination ->
+          currentDestination?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
+        }
+
+        val showBottomBar = TopLevelDestination.entries.any { destination ->
+          destination.showInBottomBar &&
+              currentDestination?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
+        }
+
         AppScaffold(
           navController = navController,
-          drawerState= drawerState
+          drawerState= drawerState,
+          showBottomBar = showBottomBar,
+          showDrawer = showDrawer
         ) {
           NavHost(
             navController = navController,
