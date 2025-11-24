@@ -159,7 +159,12 @@ fun App() {
             }
 
             composable<Route.Settings> {
-              SettingsScreenRoot(onOpenDrawer = { scope.launch { drawerState.open() } })
+              SettingsScreenRoot(
+                onOpenDrawer = { scope.launch { drawerState.open() } },
+                onNavigateToLogin = {
+                  navController.navigate(Route.AuthGraph)
+                }
+              )
             }
           }
         }

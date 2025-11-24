@@ -29,11 +29,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.community_app.auth.presentation.components.AuthGuard
 import com.example.community_app.core.presentation.components.CommunityTopAppBar
 import com.example.community_app.core.presentation.components.TopBarNavigationType
 import com.example.community_app.util.AppLanguage
 import com.example.community_app.util.AppTheme
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.auth_login_label
 import community_app.composeapp.generated.resources.cancel
 import community_app.composeapp.generated.resources.auth_logout_dialog
 import community_app.composeapp.generated.resources.auth_logout_label
@@ -52,6 +54,7 @@ import community_app.composeapp.generated.resources.settings_theme_system
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Check
 import compose.icons.feathericons.Globe
+import compose.icons.feathericons.LogIn
 import compose.icons.feathericons.LogOut
 import compose.icons.feathericons.Moon
 import org.jetbrains.compose.resources.StringResource
@@ -61,14 +64,16 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun SettingsScreenRoot(
   viewModel: SettingsViewModel = koinViewModel(),
-  onOpenDrawer: () -> Unit
+  onOpenDrawer: () -> Unit,
+  onNavigateToLogin: () -> Unit
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
 
   SettingsScreen(
     state = state,
     onAction = viewModel::onAction,
-    onOpenDrawer = onOpenDrawer
+    onOpenDrawer = onOpenDrawer,
+    onNavigateToLogin = onNavigateToLogin
   )
 }
 
@@ -76,7 +81,8 @@ fun SettingsScreenRoot(
 private fun SettingsScreen(
   state: SettingsState,
   onAction: (SettingsAction) -> Unit,
-  onOpenDrawer: () -> Unit
+  onOpenDrawer: () -> Unit,
+  onNavigateToLogin: () -> Unit
 ) {
   Scaffold(
     topBar = {
@@ -178,20 +184,37 @@ private fun SettingsScreen(
       HorizontalDivider()
 
       // --- Logout ---
-      Button(
-        onClick = { onAction(SettingsAction.OnLogoutClick) },
-        colors = ButtonDefaults.buttonColors(
-          containerColor = MaterialTheme.colorScheme.error,
-          contentColor = MaterialTheme.colorScheme.onError
-        ),
-        modifier = Modifier.fillMaxWidth()
+      AuthGuard(
+        onLoginClick = onNavigateToLogin,
+        fallbackContent = {
+          Button(
+            onClick = onNavigateToLogin,
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Icon(
+              imageVector = FeatherIcons.LogIn,
+              contentDescription = null
+            )
+            Spacer(modifier = Modifier.padding(4.dp))
+            Text(stringResource(Res.string.auth_login_label))
+          }
+        }
       ) {
-        Icon(
-          imageVector = FeatherIcons.LogOut,
-          contentDescription = null
-        )
-        Spacer(modifier = Modifier.padding(4.dp))
-        Text(stringResource(Res.string.auth_logout_label))
+        Button(
+          onClick = { onAction(SettingsAction.OnLogoutClick) },
+          colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError
+          ),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Icon(
+            imageVector = FeatherIcons.LogOut,
+            contentDescription = null
+          )
+          Spacer(modifier = Modifier.padding(4.dp))
+          Text(stringResource(Res.string.auth_logout_label))
+        }
       }
     }
 
