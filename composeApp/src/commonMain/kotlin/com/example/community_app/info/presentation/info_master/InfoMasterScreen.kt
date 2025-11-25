@@ -1,21 +1,28 @@
 package com.example.community_app.info.presentation.info_master
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.core.presentation.components.CommunityTopAppBar
@@ -33,9 +41,11 @@ import com.example.community_app.core.presentation.components.TopBarNavigationTy
 import com.example.community_app.core.presentation.components.list.CustomList
 import com.example.community_app.core.presentation.components.list.ScreenMessage
 import com.example.community_app.core.presentation.components.search.SearchBar
+import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.info.domain.Info
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.filters_label
+import community_app.composeapp.generated.resources.info_plural
 import community_app.composeapp.generated.resources.search_no_results
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Sliders
@@ -139,41 +149,66 @@ private fun InfoMasterScreen(
           topEnd = 32.dp
         )
       ) {
-        PullToRefreshBox(
-          isRefreshing = state.isLoading,
-          onRefresh = { onAction(InfoMasterAction.OnRefresh) },
-          modifier = Modifier.fillMaxSize(),
-          contentAlignment = Alignment.Center
+        Column(
+          horizontalAlignment = Alignment.CenterHorizontally
         ) {
-          if (state.isLoading) {
-            CircularProgressIndicator(
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(vertical = Spacing.medium),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Spacing.small)
+          ) {
+            Text(
+              text = stringResource(Res.string.info_plural),
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.primary
             )
-          } else {
-            when {
-              state.errorMessage != null && state.searchResults.isEmpty() -> {
-                ScreenMessage(
-                  text = state.errorMessage.asString(),
-                  color = MaterialTheme.colorScheme.error
-                )
-              }
+            HorizontalDivider(
+              modifier = Modifier.height(1.dp),
+              color = MaterialTheme.colorScheme.outlineVariant
+            )
+          }
 
-              state.searchResults.isEmpty() && !state.isLoading -> {
-                ScreenMessage(
-                  text = stringResource(Res.string.search_no_results),
-                  color = MaterialTheme.colorScheme.onSurface
-                )
-              }
+          Spacer(modifier = Modifier.height(Spacing.extraSmall))
 
-              else -> {
-                CustomList(
-                  infos = state.searchResults,
-                  onInfoClick = {
-                    onAction(InfoMasterAction.OnInfoClick(it))
-                  },
-                  modifier = Modifier.fillMaxSize(),
-                  scrollState = lazyListState
-                )
+          PullToRefreshBox(
+            isRefreshing = state.isLoading,
+            onRefresh = { onAction(InfoMasterAction.OnRefresh) },
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+          ) {
+            if (state.isLoading) {
+              CircularProgressIndicator(
+                color = MaterialTheme.colorScheme.primary
+              )
+            } else {
+              when {
+                state.errorMessage != null && state.searchResults.isEmpty() -> {
+                  ScreenMessage(
+                    text = state.errorMessage.asString(),
+                    color = MaterialTheme.colorScheme.error
+                  )
+                }
+
+                state.searchResults.isEmpty() && !state.isLoading -> {
+                  ScreenMessage(
+                    text = stringResource(Res.string.search_no_results),
+                    color = MaterialTheme.colorScheme.onSurface
+                  )
+                }
+
+                else -> {
+                  CustomList(
+                    infos = state.searchResults,
+                    onInfoClick = {
+                      onAction(InfoMasterAction.OnInfoClick(it))
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                    scrollState = lazyListState
+                  )
+                }
               }
             }
           }

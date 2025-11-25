@@ -74,7 +74,7 @@ fun AppScaffold(
         if (showBottomBar) {
           NavigationBar(
             containerColor = MaterialTheme.colorScheme.primary,
-            windowInsets = WindowInsets(left = Spacing.medium, right = Spacing.medium, top = Spacing.extraSmall, bottom = Spacing.small)
+            windowInsets = WindowInsets(left = Spacing.medium, right = Spacing.medium, top = Spacing.extraSmall, bottom = Spacing.medium)
           ) {
             TopLevelDestination.entries.filter { it.showInBottomBar }.forEach { destination ->
               val selected = isSelected(destination)
