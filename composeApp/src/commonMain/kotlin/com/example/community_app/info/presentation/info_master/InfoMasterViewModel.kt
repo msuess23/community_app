@@ -54,6 +54,15 @@ class InfoMasterViewModel(
         ) }
       }
 
+      is InfoMasterAction.OnSortChange -> {
+        _state.update { it.copy(
+          filter = it.filter.copy(
+            sortBy = action.option
+          )
+        ) }
+        applyFilters()
+      }
+
       is InfoMasterAction.OnCategorySelect -> {
         _state.update { currentState ->
           val currentCategories = currentState.filter.selectedCategories
@@ -80,13 +89,41 @@ class InfoMasterViewModel(
         applyFilters()
       }
 
-      is InfoMasterAction.OnSortChange -> {
-        _state.update { it.copy(
-          filter = it.filter.copy(
-            sortBy = action.option
+      is InfoMasterAction.OnStatusSelect -> {
+        _state.update { currentState ->
+          val currentStats = currentState.filter.selectedStatuses
+          val newStats = if (currentStats.contains(action.status)) {
+            currentStats - action.status
+          } else {
+            currentStats + action.status
+          }
+          currentState.copy(
+            filter = currentState.filter.copy(selectedStatuses = newStats)
           )
-        ) }
+        }
         applyFilters()
+      }
+
+      is InfoMasterAction.OnClearStatuses -> {
+        _state.update { it.copy(filter = it.filter.copy(selectedStatuses = emptySet())) }
+        applyFilters()
+      }
+
+      is InfoMasterAction.OnDistanceChange -> {
+        _state.update { it.copy(filter = it.filter.copy(distanceRadiusKm = action.distance)) }
+        // TODO: implement
+      }
+
+      is InfoMasterAction.OnToggleSection -> {
+        _state.update { currentState ->
+          val sections = currentState.filter.expandedSections
+          val newSections = if (sections.contains(action.section)) {
+            sections - action.section
+          } else {
+            sections + action.section
+          }
+          currentState.copy(filter = currentState.filter.copy(expandedSections = newSections))
+        }
       }
     }
   }
@@ -117,6 +154,13 @@ class InfoMasterViewModel(
     if (filters.selectedCategories.isNotEmpty()) {
       result = result.filter {
         it.category in filters.selectedCategories
+      }
+    }
+
+    if (filters.selectedStatuses.isNotEmpty()) {
+      result = result.filter {
+        val status = it.currentStatus
+        status != null && status in filters.selectedStatuses
       }
     }
 

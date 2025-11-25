@@ -20,6 +20,9 @@ data class Info(
 
 data class InfoAddress(
   val street: String?,
-  val city: String?
-  // ...
+  val houseNumber: String?,
+  val zipCode: String?,
+  val city: String?,
+  val longitude: Double,
+  val latitude: Double
 )

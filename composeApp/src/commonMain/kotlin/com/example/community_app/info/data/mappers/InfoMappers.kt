@@ -47,7 +47,14 @@ fun InfoEntity.toInfo(): Info {
     },
     officeId = officeId,
     address = address?.let {
-      InfoAddress(street = it.street, city = it.city)
+      InfoAddress(
+        street = it.street,
+        houseNumber = it.houseNumber,
+        zipCode = it.zipCode,
+        city = it.city,
+        longitude = it.longitude,
+        latitude = it.latitude
+      )
     },
     createdAt = createdAt,
     startsAt = startsAt,

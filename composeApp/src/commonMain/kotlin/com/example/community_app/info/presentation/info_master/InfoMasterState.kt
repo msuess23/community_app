@@ -3,6 +3,7 @@ package com.example.community_app.info.presentation.info_master
 import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.info.domain.Info
 import com.example.community_app.util.InfoCategory
+import com.example.community_app.util.InfoStatus
 
 data class InfoMasterState(
   val searchQuery: String = "",
@@ -15,9 +16,16 @@ data class InfoMasterState(
 
 data class InfoFilterState(
   val selectedCategories: Set<InfoCategory> = emptySet(),
-  val sortBy: InfoSortOption = InfoSortOption.DATE_DESC
+  val selectedStatuses: Set<InfoStatus> = emptySet(),
+  val distanceRadiusKm: Float = 50f,
+  val sortBy: InfoSortOption = InfoSortOption.DATE_DESC,
+  val expandedSections: Set<FilterSection> = setOf(FilterSection.CATEGORY)
 )
 
 enum class InfoSortOption {
   DATE_DESC, DATE_ASC, ALPHABETICAL
+}
+
+enum class FilterSection {
+  CATEGORY, STATUS, DISTANCE
 }
