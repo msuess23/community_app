@@ -5,6 +5,8 @@
     <string name="label_menu">Menu</string>
     <string name="back">Back</string>
     <string name="cancel">Cancel</string>
+    <string name="welcome">Welcome back!</string>
+    <string name="next">Next</string>
 
     <!-- Info -->
     <string name="info_singular">Information</string>
@@ -72,13 +74,32 @@
     <string name="settings_lang_dialog_confirm">Change &amp; Restart</string>
 
     <!-- Authentication -->
+    <string name="auth_name_label">Name (optional)</string>
     <string name="auth_login_label">Log in</string>
     <string name="auth_register_label">Register</string>
+    <string name="auth_register_title">Create new account</string>
     <string name="auth_logout_label">Log out</string>
     <string name="auth_logout_dialog">Are you sure you want to log out?</string>
+    <string name="auth_remember_me">remember me</string>
+    <string name="auth_progress_without_account">Use without account</string>
+    <string name="auth_no_account_yet">Don't have an account yet?</string>
+    <string name="auth_already_has_account">Already have an account?</string>
+    <string name="auth_forgot_password_label">forgot password</string>
+    <string name="auth_forgot_password_text">Please enter your email address. We will send you a reset code via email.</string>
+    <string name="auth_forgot_password_request_code">request code</string>
+    <string name="auth_forgot_password_dialog_title">Email was sent</string>
+    <string name="auth_forgot_password_dialog_text">Please check your inbox (including spam). Enter the code in the next step.</string>
     <!-- Guard -->
     <string name="auth_guard_title">This area requires an account.</string>
     <string name="auth_guard_text">Please login in or register a new account.</string>
+    <!-- Input -->
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="password_confirm_label">Confirm password</string>
+    <!-- Auth Validation -->
+    <string name="auth_validation_email_not_empty">Email must not be empty.</string>
+    <string name="auth_validation_password_length">Password must have at least 8 characters.</string>
+    <string name="auth_validation_password_not_matching">Passwords are not matching.</string>
 
     <!-- Errors -->
     <string name="error_disk_full">Oops, it seems like your disk is full.</string>

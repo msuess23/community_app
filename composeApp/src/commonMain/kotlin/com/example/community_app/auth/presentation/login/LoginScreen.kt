@@ -9,18 +9,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -33,20 +25,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.community_app.auth.presentation.components.ButtonWithLoading
+import com.example.community_app.auth.presentation.components.CommunityCheckbox
+import com.example.community_app.auth.presentation.components.EmailTextField
+import com.example.community_app.auth.presentation.components.PasswordTextField
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.auth_login_label
+import community_app.composeapp.generated.resources.auth_no_account_yet
+import community_app.composeapp.generated.resources.auth_progress_without_account
 import community_app.composeapp.generated.resources.auth_register_label
-import compose.icons.FeatherIcons
-import compose.icons.feathericons.AtSign
-import compose.icons.feathericons.Eye
-import compose.icons.feathericons.EyeOff
-import compose.icons.feathericons.Lock
+import community_app.composeapp.generated.resources.auth_remember_me
+import community_app.composeapp.generated.resources.welcome
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -104,7 +95,7 @@ private fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
         Text(
-          text = "Willkommen",
+          text = stringResource(Res.string.welcome),
           style = MaterialTheme.typography.headlineMedium,
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.primary
@@ -112,72 +103,35 @@ private fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        OutlinedTextField(
+        EmailTextField(
           value = state.email,
-          onValueChange = { onAction(LoginAction.OnEmailChange(it)) },
-          label = { Text("E-Mail") },
-          leadingIcon = { Icon(FeatherIcons.AtSign, null) },
-          modifier = Modifier.fillMaxWidth(),
-          keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Email,
-            imeAction = ImeAction.Next
-          ),
-          singleLine = true
+          onValueChange = { onAction(LoginAction.OnEmailChange(it)) }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
+        PasswordTextField(
           value = state.password,
           onValueChange = { onAction(LoginAction.OnPasswordChange(it)) },
-          label = { Text("Passwort") },
-          leadingIcon = { Icon(FeatherIcons.Lock, null) },
-          trailingIcon = {
-            IconButton(onClick = { onAction(LoginAction.OnTogglePasswordVisibility) }) {
-              Icon(
-                imageVector = if (state.isPasswordVisible) FeatherIcons.EyeOff else FeatherIcons.Eye,
-                contentDescription = null
-              )
-            }
-          },
-          visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-          modifier = Modifier.fillMaxWidth(),
-          keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password,
-            imeAction = ImeAction.Done
-          ),
-          singleLine = true
+          isPasswordVisible = state.isPasswordVisible,
+          onTogglePasswordVisibility = { onAction(LoginAction.OnTogglePasswordVisibility) },
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          Checkbox(
-            checked = state.isRememberMeChecked,
-            onCheckedChange = { onAction(LoginAction.OnRememberMeChange(it)) }
-          )
-          Spacer(modifier = Modifier.width(8.dp))
-          Text(
-            text = "angemeldet bleiben",
-            style = MaterialTheme.typography.bodyMedium
-          )
-        }
+        CommunityCheckbox(
+          label = Res.string.auth_remember_me,
+          checked = state.isRememberMeChecked,
+          onCheckChange = { onAction(LoginAction.OnRememberMeChange(it)) }
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Button(
+        ButtonWithLoading(
+          label = Res.string.auth_login_label,
           onClick = { onAction(LoginAction.OnLoginClick) },
-          modifier = Modifier.fillMaxWidth().height(50.dp),
           enabled = !state.isLoading
-        ) {
-          if (state.isLoading) {
-            CircularProgressIndicator()
-          }
-          Text(stringResource(Res.string.auth_login_label))
-        }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -185,7 +139,7 @@ private fun LoginScreen(
           onClick = { onAction(LoginAction.OnGuestClick) },
           modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
-          Text("Ohne Anmeldung fortfahren")
+          Text(stringResource(Res.string.auth_progress_without_account))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -193,7 +147,7 @@ private fun LoginScreen(
         Row(
           verticalAlignment = Alignment.CenterVertically
         ) {
-          Text("Noch kein Konto?")
+          Text(stringResource(Res.string.auth_no_account_yet))
           TextButton(
             onClick = { onAction(LoginAction.OnRegisterClick) }
           ) {

@@ -57,17 +57,21 @@ class LoginViewModel(
         errorMessage = null
       ) }
 
-      val result = authRepository.login(
+      authRepository.login(
         LoginDto(email = email, password = password)
       )
-
-      _state.update { it.copy(isLoading = false) }
-
-      result.onSuccess {
-        _state.update { it.copy(isLoginSuccessful = true) }
-      }.onError { error ->
-        _state.update { it.copy(errorMessage = error.toUiText()) }
-      }
+        .onSuccess {
+          _state.update { it.copy(
+            isLoading = false,
+            isLoginSuccessful = true
+          ) }
+        }
+        .onError { error ->
+          _state.update { it.copy(
+            isLoading = false,
+            errorMessage = error.toUiText()
+          ) }
+        }
     }
   }
 }
