@@ -1,13 +1,18 @@
 package com.example.community_app.app.navigation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
@@ -24,6 +29,8 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.community_app.core.presentation.theme.Size
+import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.util.AppLanguage
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.app_title
@@ -65,7 +72,10 @@ fun AppScaffold(
     Scaffold(
       bottomBar = {
         if (showBottomBar) {
-          NavigationBar {
+          NavigationBar(
+            containerColor = MaterialTheme.colorScheme.primary,
+            windowInsets = WindowInsets(left = Spacing.medium, right = Spacing.medium, top = Spacing.extraSmall, bottom = Spacing.small)
+          ) {
             TopLevelDestination.entries.filter { it.showInBottomBar }.forEach { destination ->
               val selected = isSelected(destination)
               NavigationBarItem(
@@ -74,10 +84,18 @@ fun AppScaffold(
                 icon = {
                   Icon(
                     imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
-                    contentDescription = null
+                    contentDescription = null,
+                    modifier = Modifier.size(Size.iconMedium)
                   )
                 },
-                label = { Text(stringResource(destination.label)) }
+                label = { Text(stringResource(destination.label)) },
+                colors = NavigationBarItemDefaults.colors(
+                  indicatorColor = MaterialTheme.colorScheme.onPrimary,
+                  selectedIconColor = MaterialTheme.colorScheme.primary,
+                  unselectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                  selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                  unselectedTextColor = MaterialTheme.colorScheme.onPrimary
+                )
               )
             }
           }

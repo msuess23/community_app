@@ -64,7 +64,7 @@ fun InfoTicketListItem(
     modifier = modifier
       .height(120.dp)
       .clickable(onClick = onClick),
-    color = MaterialTheme.colorScheme.surfaceContainerHigh
+    color = MaterialTheme.colorScheme.surfaceContainer
   ) {
     Row(
       modifier = Modifier.fillMaxSize(),
