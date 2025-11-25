@@ -22,6 +22,7 @@ import com.example.community_app.app.navigation.Route
 import com.example.community_app.app.navigation.TopLevelDestination
 import com.example.community_app.auth.presentation.components.AuthGuard
 import com.example.community_app.auth.presentation.login.LoginScreenRoot
+import com.example.community_app.auth.presentation.register.RegisterScreenRoot
 import com.example.community_app.core.presentation.theme.CommunityTheme
 import com.example.community_app.core.util.localeManager
 import com.example.community_app.di.createKoinConfiguration
@@ -106,9 +107,20 @@ fun App() {
               }
 
               composable<Route.Register> {
-                DummyScreen(
-                  title = "Registrieren",
-                  onOpenDrawer = {}
+                RegisterScreenRoot(
+                  onRegisterSuccess = {
+                    navController.navigate(Route.InfoGraph) {
+                      popUpTo(Route.AuthGraph) { inclusive = true }
+                    }
+                  },
+                  onNavigateToLogin = {
+                    navController.navigate(Route.Login)
+                  },
+                  onNavigateToGuest = {
+                    navController.navigate(Route.InfoGraph) {
+                      popUpTo(Route.AuthGraph) { inclusive = true }
+                    }
+                  }
                 )
               }
             }
