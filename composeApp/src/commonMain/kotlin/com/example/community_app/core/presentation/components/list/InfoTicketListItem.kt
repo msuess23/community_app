@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,6 +35,9 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.core.presentation.theme.Size
+import com.example.community_app.core.presentation.theme.Spacing
+import com.example.community_app.core.util.formatIsoDate
 import com.example.community_app.info.domain.Info
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.image_placeholder
@@ -47,21 +51,29 @@ fun InfoTicketListItem(
   onClick: () -> Unit,
   modifier: Modifier = Modifier
 ) {
+  val startDate = formatIsoDate(info.startsAt)
+  val endDate = formatIsoDate(info.endsAt)
+  val dateString = if (startDate == endDate) startDate else "$startDate - $endDate"
+
+  val categoryText = info.category.toUiText().asString()
+  val statusText = info.currentStatus?.toUiText()?.asString()
+  val sublineText = if (statusText != null) "$categoryText, $statusText" else categoryText
+
   Surface(
-    shape = RoundedCornerShape(32.dp),
-    modifier = modifier.clickable(onClick = onClick),
-    color = MaterialTheme.colorScheme.surfaceContainerLow
+    shape = RoundedCornerShape(Spacing.medium),
+    modifier = modifier
+      .height(120.dp)
+      .clickable(onClick = onClick),
+    color = MaterialTheme.colorScheme.surfaceContainerHigh
   ) {
     Row(
-      modifier = Modifier
-        .padding(16.dp)
-        .fillMaxWidth()
-        .height(IntrinsicSize.Min),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(16.dp)
+      modifier = Modifier.fillMaxSize(),
+      verticalAlignment = Alignment.CenterVertically
     ) {
       Box(
-        modifier = Modifier.height(100.dp),
+        modifier = Modifier
+          .weight(0.3f)
+          .fillMaxHeight(),
         contentAlignment = Alignment.Center
       ) {
         if (info.imageUrl != null) {
@@ -71,11 +83,7 @@ fun InfoTicketListItem(
           val painter = rememberAsyncImagePainter(
             model = info.imageUrl,
             onSuccess = {
-              imageLoadResult = if(it.painter.intrinsicSize.width > 1 && it.painter.intrinsicSize.height > 1) {
-                Result.success(it.painter)
-              } else {
-                Result.failure(Exception("Invalid image size"))
-              }
+              imageLoadResult = Result.success(it.painter)
             },
             onError = {
               it.result.throwable.printStackTrace()
@@ -85,6 +93,7 @@ fun InfoTicketListItem(
 
           when(val result = imageLoadResult) {
             null -> CircularProgressIndicator(
+              modifier = Modifier.size(Size.iconMedium),
               color = MaterialTheme.colorScheme.primary
             )
             else -> {
@@ -105,9 +114,10 @@ fun InfoTicketListItem(
 
       Column(
         modifier = Modifier
+          .weight(0.7f)
           .fillMaxHeight()
-          .weight(1f),
-        verticalArrangement = Arrangement.Center
+          .padding(horizontal = Spacing.medium, vertical = Spacing.small),
+        verticalArrangement = Arrangement.Center,
       ) {
         Text(
           text = info.title,
@@ -116,20 +126,26 @@ fun InfoTicketListItem(
           overflow = TextOverflow.Ellipsis,
           color = MaterialTheme.colorScheme.onSurface
         )
-        info.currentStatus?.let {
-          Text(
-            text = it.toUiText().asString(),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.secondary
-          )
-        }
+        Text(
+          text = sublineText,
+          style = MaterialTheme.typography.bodyMedium,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+          text = dateString,
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.secondary
+        )
       }
 
       Icon(
         imageVector = FeatherIcons.ChevronRight,
         contentDescription = null,
         modifier = Modifier
-          .size(36.dp),
+          .padding(end = Spacing.medium)
+          .size(Size.iconLarge),
         tint = MaterialTheme.colorScheme.onSurfaceVariant
       )
     }
@@ -148,15 +164,7 @@ private fun ThumbnailImage(
       painterResource(Res.drawable.image_placeholder)
     },
     contentDescription = contentDescription,
-    contentScale = if(isSuccess) {
-      ContentScale.Crop
-    } else {
-      ContentScale.Fit
-    },
-    modifier = Modifier
-      .aspectRatio(
-        ratio = 0.65f,
-        matchHeightConstraintsFirst = true
-      )
+    contentScale = ContentScale.Crop,
+    modifier = Modifier.fillMaxSize()
   )
 }
