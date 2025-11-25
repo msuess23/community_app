@@ -1,5 +1,13 @@
 package com.example.community_app.di
 
+import com.example.community_app.auth.data.network.KtorRemoteAuthDataSource
+import com.example.community_app.auth.data.network.RemoteAuthDataSource
+import com.example.community_app.auth.data.repository.DefaultAuthRepository
+import com.example.community_app.auth.domain.AuthRepository
+import com.example.community_app.auth.presentation.forgot_password.ForgotPasswordViewModel
+import com.example.community_app.auth.presentation.login.LoginViewModel
+import com.example.community_app.auth.presentation.register.RegisterViewModel
+import com.example.community_app.auth.presentation.reset_password.ResetPasswordViewModel
 import com.example.community_app.core.data.HttpClientFactory
 import com.example.community_app.core.data.local.AppDatabase
 import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
@@ -12,9 +20,13 @@ import com.example.community_app.media.data.network.KtorRemoteMediaDataSource
 import com.example.community_app.media.data.network.RemoteMediaDataSource
 import com.example.community_app.media.data.repository.DefaultMediaRepository
 import com.example.community_app.media.domain.MediaRepository
+import com.example.community_app.settings.data.DefaultSettingsRepository
+import com.example.community_app.settings.domain.SettingsRepository
+import com.example.community_app.settings.presentation.SettingsViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.KoinConfiguration
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -28,19 +40,46 @@ fun createKoinConfiguration(): KoinConfiguration {
 }
 
 val sharedModule = module {
-  // Core
-  single { HttpClientFactory.create(get()) }
+  // --- HTTP Clients ---
+  single(named("publicClient")) {
+    HttpClientFactory.create(engine = get())
+  }
+  single(named("authClient")) {
+    val authRepo = get<AuthRepository>()
+    HttpClientFactory.create(
+      engine = get(),
+      tokenProvider = { authRepo.getAccessToken() }
+    )
+  }
+
+
+  // --- DATA SOURCES ---
+  single<RemoteAuthDataSource> {
+    KtorRemoteAuthDataSource(httpClient = get(named("publicClient")))
+  }
+  single<RemoteInfoDataSource> {
+    KtorRemoteInfoDataSource(httpClient = get(named("publicClient")))
+  }
+  single<RemoteMediaDataSource> {
+    KtorRemoteMediaDataSource(httpClient = get(named("authClient")))
+  }
+
+
+  // --- REPOSITORIES ---
   single { get<AppDatabase>().infoDao() }
 
-  // Info Data & Repo
-  singleOf(::KtorRemoteInfoDataSource).bind<RemoteInfoDataSource>()
+  singleOf(::DefaultAuthRepository).bind<AuthRepository>()
+  singleOf(::DefaultSettingsRepository).bind<SettingsRepository>()
   singleOf(::DefaultInfoRepository).bind<InfoRepository>()
-
-  // Media Data & Repo
-  singleOf(::KtorRemoteMediaDataSource).bind<RemoteMediaDataSource>()
   singleOf(::DefaultMediaRepository).bind<MediaRepository>()
 
-  // Info VM
+
+  // --- VIEW MODELS ---
+  viewModelOf(::LoginViewModel)
+  viewModelOf(::RegisterViewModel)
+  viewModelOf(::ForgotPasswordViewModel)
+  viewModelOf(::ResetPasswordViewModel)
+  viewModelOf(::SettingsViewModel)
   viewModelOf(::InfoMasterViewModel)
   viewModelOf(::InfoDetailViewModel)
 }

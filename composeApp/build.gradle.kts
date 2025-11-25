@@ -57,6 +57,9 @@ kotlin {
             }
             implementation(libs.sqlite.bundled)
 
+            implementation(libs.androidx.datastore)
+            implementation(libs.androidx.datastore.preferences)
+
             implementation(libs.bundles.koin)
             implementation(libs.bundles.ktor.client)
             implementation(libs.bundles.coil)

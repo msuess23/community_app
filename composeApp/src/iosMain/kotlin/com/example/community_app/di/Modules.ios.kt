@@ -1,8 +1,11 @@
 package com.example.community_app.di
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.example.community_app.core.data.local.AppDatabase
+import com.example.community_app.core.data.local.createDataStore
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.darwin.Darwin
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -27,6 +30,10 @@ actual val platformModule = module {
       .fallbackToDestructiveMigrationOnDowngrade(true)
       .fallbackToDestructiveMigration(true)
       .build()
+  }
+
+  single<DataStore<Preferences>> {
+    createDataStore()
   }
 }
 

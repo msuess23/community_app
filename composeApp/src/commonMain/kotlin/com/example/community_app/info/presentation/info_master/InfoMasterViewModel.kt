@@ -25,7 +25,7 @@ class InfoMasterViewModel(
   val state = _state
     .onStart {
       observeDb()
-      refreshData()
+      performSmartSync()
     }
     .stateIn(
       viewModelScope,
@@ -129,11 +129,20 @@ class InfoMasterViewModel(
     _state.update { it.copy(searchResults = result) }
   }
 
+  private fun performSmartSync() {
+    viewModelScope.launch {
+      if (_allInfos.value.isEmpty()) {
+        _state.update { it.copy(isLoading = true) }
+      }
+
+      infoRepository.syncInfos()
+      _state.update { it.copy(isLoading = false) }
+    }
+  }
+
   private fun refreshData() {
     viewModelScope.launch {
-      _state.update { it.copy(
-        isLoading = true
-      ) }
+      _state.update { it.copy(isLoading = true) }
 
       infoRepository.refreshInfos()
         .onSuccess {

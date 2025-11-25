@@ -32,10 +32,13 @@ private fun formatIso(
   val isoFormatter = NSISO8601DateFormatter()
   val date = isoFormatter.dateFromString(isoString) ?: return isoString
 
+  val currentTag = localeManager.getCurrentLocaleTag()
+  val locale = NSLocale(currentTag)
+
   val formatter = NSDateFormatter()
   formatter.dateStyle = dateStyle
   formatter.timeStyle = timeStyle
-  formatter.locale = NSLocale.currentLocale
+  formatter.locale = locale
 
   return formatter.stringFromDate(date)
 }
