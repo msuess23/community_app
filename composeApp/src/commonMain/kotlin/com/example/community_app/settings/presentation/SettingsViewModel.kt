@@ -72,6 +72,10 @@ class SettingsViewModel(
       is SettingsAction.OnChangePasswordDismiss -> {
         _state.update { it.copy(showPasswordResetDialog = false) }
       }
+      is SettingsAction.OnChangePasswordConfirm -> {
+        _state.update { it.copy(showPasswordResetDialog = false) }
+      }
+      else -> Unit
     }
   }
 

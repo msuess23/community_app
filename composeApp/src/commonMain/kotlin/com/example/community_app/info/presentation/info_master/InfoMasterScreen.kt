@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -15,7 +16,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,12 +25,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.core.presentation.components.CommunityTopAppBar
+import com.example.community_app.core.presentation.components.ObserveErrorMessage
 import com.example.community_app.core.presentation.components.TopBarNavigationType
 import com.example.community_app.core.presentation.components.list.CustomList
+import com.example.community_app.core.presentation.components.list.ScreenMessage
 import com.example.community_app.core.presentation.components.search.SearchBar
 import com.example.community_app.info.domain.Info
 import community_app.composeapp.generated.resources.Res
@@ -78,14 +79,11 @@ private fun InfoMasterScreen(
     lazyListState.animateScrollToItem(0)
   }
 
-  val errorMessageText = state.errorMessage?.asString()
-  LaunchedEffect(errorMessageText, state.isLoading) {
-    if (errorMessageText != null && !state.isLoading && state.searchResults.isNotEmpty()) {
-      snackbarHostState.showSnackbar(
-        message = errorMessageText
-      )
-    }
-  }
+  ObserveErrorMessage(
+    errorMessage = state.errorMessage,
+    snackbarHostState = snackbarHostState,
+    isLoading = (state.isLoading && state.searchResults.isEmpty())
+  )
 
   Scaffold(
     topBar = {
@@ -129,8 +127,7 @@ private fun InfoMasterScreen(
         .fillMaxSize()
         .padding(padding)
         .background(MaterialTheme.colorScheme.primary)
-//        .statusBarsPadding(),
-//      horizontalAlignment = Alignment.CenterHorizontally
+        .statusBarsPadding()
     ) {
       Surface(
         modifier = Modifier
@@ -144,9 +141,7 @@ private fun InfoMasterScreen(
       ) {
         PullToRefreshBox(
           isRefreshing = state.isLoading,
-          onRefresh = {
-            onAction(InfoMasterAction.OnRefresh)
-          },
+          onRefresh = { onAction(InfoMasterAction.OnRefresh) },
           modifier = Modifier.fillMaxSize(),
           contentAlignment = Alignment.Center
         ) {
@@ -157,22 +152,16 @@ private fun InfoMasterScreen(
           } else {
             when {
               state.errorMessage != null && state.searchResults.isEmpty() -> {
-                Text(
+                ScreenMessage(
                   text = state.errorMessage.asString(),
-                  textAlign = TextAlign.Center,
-                  style = MaterialTheme.typography.headlineSmall,
-                  color = MaterialTheme.colorScheme.error,
-                  modifier = Modifier.padding(16.dp)
+                  color = MaterialTheme.colorScheme.error
                 )
               }
 
               state.searchResults.isEmpty() && !state.isLoading -> {
-                Text(
+                ScreenMessage(
                   text = stringResource(Res.string.search_no_results),
-                  textAlign = TextAlign.Center,
-                  style = MaterialTheme.typography.headlineSmall,
-                  color = MaterialTheme.colorScheme.onSurface,
-                  modifier = Modifier.padding(16.dp)
+                  color = MaterialTheme.colorScheme.onSurface
                 )
               }
 

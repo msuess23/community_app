@@ -59,12 +59,7 @@ private fun InfoDetailScreen(
         titleContent = {
           val titleText = state.info?.category?.toUiText()?.asString()
             ?: stringResource(Res.string.info_singular)
-
-          Text(
-            text = titleText,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold
-          )
+          Text(titleText)
         },
         navigationType = TopBarNavigationType.Back,
         onNavigationClick = { onAction(InfoDetailAction.OnNavigateBack) },

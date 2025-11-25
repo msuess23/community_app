@@ -5,34 +5,33 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.community_app.auth.presentation.components.ButtonWithLoading
+import com.example.community_app.auth.presentation.components.AuthHeadline
 import com.example.community_app.auth.presentation.components.EmailTextField
 import com.example.community_app.auth.presentation.components.PasswordTextField
+import com.example.community_app.core.presentation.components.ObserveErrorMessage
+import com.example.community_app.core.presentation.components.button.CommunityButton
+import com.example.community_app.core.presentation.components.button.CommunityOutlinedButton
+import com.example.community_app.core.presentation.components.button.CommunityTextButton
+import com.example.community_app.core.presentation.components.input.CommunityTextField
+import com.example.community_app.core.presentation.theme.Spacing
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.auth_register_already_has_account
 import community_app.composeapp.generated.resources.auth_login_label
@@ -78,10 +77,11 @@ private fun RegisterScreen(
 ) {
   val snackbarHostState = remember { SnackbarHostState() }
 
-  val errorMessage = state.errorMessage?.asString()
-  LaunchedEffect(errorMessage) {
-    if (errorMessage != null) snackbarHostState.showSnackbar(errorMessage)
-  }
+  ObserveErrorMessage(
+    errorMessage = state.errorMessage,
+    snackbarHostState = snackbarHostState,
+    isLoading = state.isLoading
+  )
 
   Scaffold(
     snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -91,37 +91,29 @@ private fun RegisterScreen(
         .fillMaxSize()
         .padding(padding)
         .verticalScroll(rememberScrollState())
-        .padding(24.dp),
+        .padding(Spacing.screenPadding),
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
-      Text(
-        text = stringResource(Res.string.auth_register_title),
-        style = MaterialTheme.typography.headlineMedium,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary
-      )
+      AuthHeadline(Res.string.auth_register_title)
+      Spacer(modifier = Modifier.height(Spacing.extraLarge))
 
-      Spacer(modifier = Modifier.height(32.dp))
-
-      OutlinedTextField(
+      CommunityTextField(
         value = state.displayName,
         onValueChange = { onAction(RegisterAction.OnDisplayNameChange(it)) },
-        label = { Text(stringResource(Res.string.auth_name_label)) },
+        label = Res.string.auth_name_label,
         leadingIcon = { Icon(FeatherIcons.User, null) },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
       )
 
-      Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.height(Spacing.medium))
 
       EmailTextField(
         value = state.email,
         onValueChange = { onAction(RegisterAction.OnEmailChange(it)) }
       )
 
-      Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.height(Spacing.medium))
 
       PasswordTextField(
         value = state.password,
@@ -131,7 +123,7 @@ private fun RegisterScreen(
         imeAction = ImeAction.Next
       )
 
-      Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.height(Spacing.medium))
 
       PasswordTextField(
         label = Res.string.auth_password_repeat_label,
@@ -141,34 +133,31 @@ private fun RegisterScreen(
         onTogglePasswordVisibility = { onAction(RegisterAction.OnTogglePasswordVisibility) }
       )
 
-      Spacer(modifier = Modifier.height(24.dp))
+      Spacer(modifier = Modifier.height(Spacing.large))
 
-      ButtonWithLoading(
-        label = Res.string.auth_register_label,
+      CommunityButton(
+        text = Res.string.auth_register_label,
         onClick = { onAction(RegisterAction.OnRegisterClick) },
-        enabled = !state.isLoading
+        isLoading = state.isLoading
       )
 
-      Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.height(Spacing.medium))
 
-      OutlinedButton(
-        onClick = { onAction(RegisterAction.OnGuestClick) },
-        modifier = Modifier.fillMaxWidth().height(50.dp)
-      ) {
-        Text(stringResource(Res.string.auth_progress_without_account))
-      }
+      CommunityOutlinedButton(
+        text = Res.string.auth_progress_without_account,
+        onClick = { onAction(RegisterAction.OnGuestClick) }
+      )
 
-      Spacer(modifier = Modifier.height(24.dp))
+      Spacer(modifier = Modifier.height(Spacing.large))
 
       Row(
         verticalAlignment = Alignment.CenterVertically
       ) {
         Text(stringResource(Res.string.auth_register_already_has_account))
-        TextButton(
+        CommunityTextButton(
+          text = Res.string.auth_login_label,
           onClick = { onAction(RegisterAction.OnLoginClick) }
-        ) {
-          Text(stringResource(Res.string.auth_login_label))
-        }
+        )
       }
     }
   }

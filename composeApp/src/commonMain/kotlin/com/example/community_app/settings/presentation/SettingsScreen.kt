@@ -31,8 +31,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.auth.presentation.components.AuthGuard
+import com.example.community_app.auth.presentation.reset_password.ResetPasswordAction
 import com.example.community_app.core.presentation.components.CommunityTopAppBar
 import com.example.community_app.core.presentation.components.TopBarNavigationType
+import com.example.community_app.core.presentation.components.button.CommunityButton
+import com.example.community_app.core.presentation.components.button.CommunityOutlinedButton
+import com.example.community_app.core.presentation.components.dialog.CommunityDialog
+import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.util.AppLanguage
 import com.example.community_app.util.AppTheme
 import community_app.composeapp.generated.resources.Res
@@ -42,6 +47,7 @@ import community_app.composeapp.generated.resources.auth_login_label
 import community_app.composeapp.generated.resources.cancel
 import community_app.composeapp.generated.resources.auth_logout_dialog
 import community_app.composeapp.generated.resources.auth_logout_label
+import community_app.composeapp.generated.resources.auth_otp_label
 import community_app.composeapp.generated.resources.auth_reset_password_label
 import community_app.composeapp.generated.resources.settings_label
 import community_app.composeapp.generated.resources.settings_lang_dialog_confirm
@@ -76,10 +82,17 @@ fun SettingsScreenRoot(
 
   SettingsScreen(
     state = state,
-    onAction = viewModel::onAction,
+    onAction = { action ->
+      when (action) {
+        SettingsAction.OnLoginClick -> onNavigateToLogin()
+        SettingsAction.OnChangePasswordConfirm -> {
+          onNavigateToReset(state.currentUserEmail ?: "")
+          viewModel.onAction(action)
+        }
+        else -> viewModel.onAction(action)
+      }
+    },
     onOpenDrawer = onOpenDrawer,
-    onNavigateToLogin = onNavigateToLogin,
-    onNavigateToReset = onNavigateToReset
   )
 }
 
@@ -87,20 +100,12 @@ fun SettingsScreenRoot(
 private fun SettingsScreen(
   state: SettingsState,
   onAction: (SettingsAction) -> Unit,
-  onOpenDrawer: () -> Unit,
-  onNavigateToLogin: () -> Unit,
-  onNavigateToReset: (String) -> Unit
+  onOpenDrawer: () -> Unit
 ) {
   Scaffold(
     topBar = {
       CommunityTopAppBar(
-        titleContent = {
-          Text(
-            text = stringResource(Res.string.settings_label),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold
-          )
-        },
+        titleContent = { Text(stringResource(Res.string.settings_label)) },
         navigationType = TopBarNavigationType.Drawer,
         onNavigationClick = onOpenDrawer
       )
@@ -112,8 +117,8 @@ private fun SettingsScreen(
         .fillMaxSize()
         .padding(padding)
         .verticalScroll(rememberScrollState())
-        .padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(24.dp)
+        .padding(Spacing.screenPadding),
+      verticalArrangement = Arrangement.spacedBy(Spacing.large)
     ) {
       // --- Theme ---
       SettingsSection(
@@ -157,34 +162,15 @@ private fun SettingsScreen(
 
       // --- Language Dialog ---
       if (state.pendingLanguage != null) {
-        AlertDialog(
+        CommunityDialog(
+          title = Res.string.settings_lang_dialog_title,
+          text = Res.string.settings_lang_dialog_text,
           onDismissRequest = { onAction(SettingsAction.OnLanguageDismiss) },
-          icon = {
-            Icon(
-              imageVector = FeatherIcons.Globe,
-              contentDescription = null
-            )
-          },
-          title = {
-            Text(stringResource(Res.string.settings_lang_dialog_title))
-          },
-          text = {
-            Text(stringResource(Res.string.settings_lang_dialog_text))
-          },
-          confirmButton = {
-            TextButton(
-              onClick = { onAction(SettingsAction.OnLanguageConfirm) }
-            ) {
-              Text(stringResource(Res.string.settings_lang_dialog_confirm))
-            }
-          },
-          dismissButton = {
-            TextButton(
-              onClick = { onAction(SettingsAction.OnLanguageDismiss) }
-            ) {
-              Text(stringResource(Res.string.cancel))
-            }
-          }
+          confirmButtonText = Res.string.settings_lang_dialog_confirm,
+          onConfirm = { onAction(SettingsAction.OnLanguageConfirm) },
+          dismissButtonText = Res.string.cancel,
+          onDismiss = { onAction(SettingsAction.OnLanguageDismiss) },
+          icon = FeatherIcons.Globe
         )
       }
 
@@ -192,88 +178,59 @@ private fun SettingsScreen(
 
       // --- Logout ---
       AuthGuard(
-        onLoginClick = onNavigateToLogin,
+        onLoginClick = { },
         fallbackContent = {
-          Button(
-            onClick = onNavigateToLogin,
-            modifier = Modifier.fillMaxWidth()
-          ) {
-            Icon(
-              imageVector = FeatherIcons.LogIn,
-              contentDescription = null
-            )
-            Spacer(modifier = Modifier.padding(4.dp))
-            Text(stringResource(Res.string.auth_login_label))
-          }
+          CommunityButton(
+            text = Res.string.auth_login_label,
+            onClick = { onAction(SettingsAction.OnLoginClick) },
+            icon = FeatherIcons.LogIn
+          )
         }
       ) {
         Column(
           modifier = Modifier.padding().fillMaxSize(),
-          verticalArrangement = Arrangement.spacedBy(16.dp),
+          verticalArrangement = Arrangement.spacedBy(Spacing.medium),
           horizontalAlignment = Alignment.CenterHorizontally
         ) {
-          OutlinedButton(
-            onClick = { onAction(SettingsAction.OnChangePasswordClick) },
-            modifier = Modifier.fillMaxWidth()
-          ) {
-            Text(stringResource(Res.string.auth_reset_password_label))
-          }
+          CommunityOutlinedButton(
+            text = Res.string.auth_reset_password_label,
+            onClick = { onAction(SettingsAction.OnChangePasswordClick) }
+          )
 
-          Button(
+          CommunityButton(
+            text = Res.string.auth_logout_label,
             onClick = { onAction(SettingsAction.OnLogoutClick) },
+            isLoading = state.isLoading,
+            icon = FeatherIcons.LogOut,
             colors = ButtonDefaults.buttonColors(
               containerColor = MaterialTheme.colorScheme.error,
               contentColor = MaterialTheme.colorScheme.onError
             ),
-            modifier = Modifier.fillMaxWidth()
-          ) {
-            Icon(
-              imageVector = FeatherIcons.LogOut,
-              contentDescription = null
-            )
-            Spacer(modifier = Modifier.padding(4.dp))
-            Text(stringResource(Res.string.auth_logout_label))
-          }
+          )
         }
       }
     }
 
     // --- Logout Dialog ---
     if (state.showLogoutDialog) {
-      AlertDialog(
+      CommunityDialog(
+        title = Res.string.auth_logout_label,
+        text = Res.string.auth_logout_dialog,
         onDismissRequest = { onAction(SettingsAction.OnLogoutCancel) },
-        title = { Text(stringResource(Res.string.auth_logout_label)) },
-        text = { Text(stringResource(Res.string.auth_logout_dialog)) },
-        confirmButton = {
-          TextButton(
-            onClick = { onAction(SettingsAction.OnLogoutConfirm) }
-          ) {
-            Text(stringResource(Res.string.auth_logout_label))
-          }
-        },
-        dismissButton = {
-          TextButton(
-            onClick = { onAction(SettingsAction.OnLogoutCancel) }
-          ) {
-            Text(stringResource(Res.string.cancel))
-          }
-        }
+        confirmButtonText = Res.string.auth_logout_label,
+        onConfirm = { onAction(SettingsAction.OnLogoutConfirm) },
+        dismissButtonText = Res.string.cancel,
+        onDismiss = { onAction(SettingsAction.OnLogoutCancel) }
       )
     }
 
     if (state.showPasswordResetDialog) {
-      AlertDialog(
-        onDismissRequest = { /* Modal */ },
-        title = { Text(stringResource(Res.string.auth_forgot_password_dialog_title)) },
-        text = { Text(stringResource(Res.string.auth_forgot_password_dialog_text)) },
-        confirmButton = {
-          TextButton(onClick = {
-            onAction(SettingsAction.OnChangePasswordDismiss)
-            onNavigateToReset(state.currentUserEmail ?: "")
-          }) {
-            Text("Code eingeben")
-          }
-        }
+      CommunityDialog(
+        title = Res.string.auth_forgot_password_dialog_title,
+        text = Res.string.auth_forgot_password_dialog_text,
+        onDismissRequest = { },
+        confirmButtonText = Res.string.auth_otp_label,
+        onConfirm = { onAction(SettingsAction.OnChangePasswordConfirm) }
       )
     }
   }
