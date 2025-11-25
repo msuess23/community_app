@@ -1,7 +1,6 @@
 package com.example.community_app.auth.presentation.register
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,20 +31,16 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.auth.presentation.components.ButtonWithLoading
-import com.example.community_app.auth.presentation.components.CommunityCheckbox
 import com.example.community_app.auth.presentation.components.EmailTextField
 import com.example.community_app.auth.presentation.components.PasswordTextField
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.auth_already_has_account
+import community_app.composeapp.generated.resources.auth_register_already_has_account
 import community_app.composeapp.generated.resources.auth_login_label
 import community_app.composeapp.generated.resources.auth_name_label
-import community_app.composeapp.generated.resources.auth_no_account_yet
 import community_app.composeapp.generated.resources.auth_progress_without_account
 import community_app.composeapp.generated.resources.auth_register_label
 import community_app.composeapp.generated.resources.auth_register_title
-import community_app.composeapp.generated.resources.auth_remember_me
-import community_app.composeapp.generated.resources.password_confirm_label
-import community_app.composeapp.generated.resources.welcome
+import community_app.composeapp.generated.resources.auth_password_repeat_label
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.User
 import org.jetbrains.compose.resources.stringResource
@@ -139,7 +134,7 @@ private fun RegisterScreen(
       Spacer(modifier = Modifier.height(16.dp))
 
       PasswordTextField(
-        label = Res.string.password_confirm_label,
+        label = Res.string.auth_password_repeat_label,
         value = state.passwordRepeat,
         onValueChange = { onAction(RegisterAction.OnPasswordRepeatChange(it)) },
         isPasswordVisible = state.isPasswordVisible,
@@ -168,7 +163,7 @@ private fun RegisterScreen(
       Row(
         verticalAlignment = Alignment.CenterVertically
       ) {
-        Text(stringResource(Res.string.auth_already_has_account))
+        Text(stringResource(Res.string.auth_register_already_has_account))
         TextButton(
           onClick = { onAction(RegisterAction.OnLoginClick) }
         ) {

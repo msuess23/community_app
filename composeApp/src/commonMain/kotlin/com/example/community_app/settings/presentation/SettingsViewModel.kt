@@ -3,6 +3,9 @@ package com.example.community_app.settings.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.community_app.auth.domain.AuthRepository
+import com.example.community_app.auth.domain.AuthState
+import com.example.community_app.core.domain.onError
+import com.example.community_app.core.domain.onSuccess
 import com.example.community_app.core.util.restartApp
 import com.example.community_app.settings.domain.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +24,10 @@ class SettingsViewModel(
   private val _state = MutableStateFlow(SettingsState())
 
   val state = _state
-    .onStart { observeSettings() }
+    .onStart {
+      observeSettings()
+      observeAuth()
+    }
     .stateIn(
       viewModelScope,
       SharingStarted.WhileSubscribed(5000L),
@@ -37,48 +43,52 @@ class SettingsViewModel(
       }
       is SettingsAction.OnLanguageSelect -> {
         if (action.language != state.value.settings.language) {
-          _state.update { it.copy(
-            pendingLanguage = action.language
-          ) }
+          _state.update { it.copy(pendingLanguage = action.language) }
         }
       }
       is SettingsAction.OnLanguageDismiss -> {
-        _state.update { it.copy(
-          pendingLanguage = null
-        ) }
+        _state.update { it.copy(pendingLanguage = null) }
       }
       is SettingsAction.OnLanguageConfirm -> {
         val newLang = _state.value.pendingLanguage ?: return
         viewModelScope.launch {
           settingsRepository.setLanguage(newLang)
-          _state.update { it.copy(
-            pendingLanguage = null
-          ) }
+          _state.update { it.copy(pendingLanguage = null) }
           restartApp()
         }
       }
       is SettingsAction.OnLogoutClick -> {
-        _state.update { it.copy(
-          showLogoutDialog = true
-        ) }
+        _state.update { it.copy(showLogoutDialog = true) }
       }
       is SettingsAction.OnLogoutCancel -> {
-        _state.update { it.copy(
-          showLogoutDialog = false
-        ) }
+        _state.update { it.copy(showLogoutDialog = false) }
       }
       is SettingsAction.OnLogoutConfirm -> {
         performLogout()
       }
+      is SettingsAction.OnChangePasswordClick -> {
+        performPasswordResetTrigger()
+      }
+      is SettingsAction.OnChangePasswordDismiss -> {
+        _state.update { it.copy(showPasswordResetDialog = false) }
+      }
     }
   }
 
-  private fun observeSettings() {
-    settingsRepository.settings
-      .onEach { appSettings ->
-        _state.update { it.copy(settings = appSettings) }
+  private fun observeAuth() {
+    authRepository.authState.onEach { authState ->
+      if (authState is AuthState.Authenticated) {
+        _state.update { it.copy(currentUserEmail = authState.user.email) }
+      } else {
+        _state.update { it.copy(currentUserEmail = null) }
       }
-      .launchIn(viewModelScope)
+    }.launchIn(viewModelScope)
+  }
+
+  private fun observeSettings() {
+    settingsRepository.settings.onEach { appSettings ->
+        _state.update { it.copy(settings = appSettings) }
+    }.launchIn(viewModelScope)
   }
 
   private fun performLogout() {
@@ -90,6 +100,25 @@ class SettingsViewModel(
 
       authRepository.logout()
       _state.update { it.copy(isLoading = false) }
+    }
+  }
+
+  private fun performPasswordResetTrigger() {
+    val email = _state.value.currentUserEmail ?: return
+
+    viewModelScope.launch {
+      _state.update { it.copy(isLoading = true) }
+
+      authRepository.forgotPassword(email)
+        .onSuccess {
+          _state.update { it.copy(
+            isLoading = false,
+            showPasswordResetDialog = true
+          ) }
+        }
+        .onError {
+          _state.update { it.copy(isLoading = false) }
+        }
     }
   }
 }

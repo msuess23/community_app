@@ -21,8 +21,10 @@ import com.example.community_app.app.navigation.AppScaffold
 import com.example.community_app.app.navigation.Route
 import com.example.community_app.app.navigation.TopLevelDestination
 import com.example.community_app.auth.presentation.components.AuthGuard
+import com.example.community_app.auth.presentation.forgot_password.ForgotPasswordScreenRoot
 import com.example.community_app.auth.presentation.login.LoginScreenRoot
 import com.example.community_app.auth.presentation.register.RegisterScreenRoot
+import com.example.community_app.auth.presentation.reset_password.ResetPasswordScreenRoot
 import com.example.community_app.core.presentation.theme.CommunityTheme
 import com.example.community_app.core.util.localeManager
 import com.example.community_app.di.createKoinConfiguration
@@ -102,6 +104,9 @@ fun App() {
                     navController.navigate(Route.InfoGraph) {
                       popUpTo(Route.AuthGraph) { inclusive = true }
                     }
+                  },
+                  onNavigateToForgotPassword = {
+                    navController.navigate(Route.ForgotPassword)
                   }
                 )
               }
@@ -121,6 +126,26 @@ fun App() {
                       popUpTo(Route.AuthGraph) { inclusive = true }
                     }
                   }
+                )
+              }
+
+              composable<Route.ForgotPassword> {
+                ForgotPasswordScreenRoot(
+                  onNavigateBack = { navController.popBackStack() },
+                  onNavigateToReset = { email ->
+                    navController.navigate(Route.ResetPassword(email))
+                  }
+                )
+              }
+
+              composable<Route.ResetPassword> {
+                ResetPasswordScreenRoot(
+                  onSuccess = {
+                    navController.navigate(Route.InfoGraph) {
+                      popUpTo(Route.AuthGraph) { inclusive = true }
+                    }
+                  },
+                  onNavigateBack = { navController.popBackStack() }
                 )
               }
             }
@@ -175,6 +200,9 @@ fun App() {
                 onOpenDrawer = { scope.launch { drawerState.open() } },
                 onNavigateToLogin = {
                   navController.navigate(Route.AuthGraph)
+                },
+                onNavigateToReset = { email ->
+                  navController.navigate(Route.ResetPassword(email))
                 }
               )
             }

@@ -18,6 +18,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,10 +36,13 @@ import com.example.community_app.core.presentation.components.TopBarNavigationTy
 import com.example.community_app.util.AppLanguage
 import com.example.community_app.util.AppTheme
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.auth_forgot_password_dialog_text
+import community_app.composeapp.generated.resources.auth_forgot_password_dialog_title
 import community_app.composeapp.generated.resources.auth_login_label
 import community_app.composeapp.generated.resources.cancel
 import community_app.composeapp.generated.resources.auth_logout_dialog
 import community_app.composeapp.generated.resources.auth_logout_label
+import community_app.composeapp.generated.resources.auth_reset_password_label
 import community_app.composeapp.generated.resources.settings_label
 import community_app.composeapp.generated.resources.settings_lang_dialog_confirm
 import community_app.composeapp.generated.resources.settings_lang_dialog_text
@@ -65,7 +69,8 @@ import org.koin.compose.viewmodel.koinViewModel
 fun SettingsScreenRoot(
   viewModel: SettingsViewModel = koinViewModel(),
   onOpenDrawer: () -> Unit,
-  onNavigateToLogin: () -> Unit
+  onNavigateToLogin: () -> Unit,
+  onNavigateToReset: (String) -> Unit
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -73,7 +78,8 @@ fun SettingsScreenRoot(
     state = state,
     onAction = viewModel::onAction,
     onOpenDrawer = onOpenDrawer,
-    onNavigateToLogin = onNavigateToLogin
+    onNavigateToLogin = onNavigateToLogin,
+    onNavigateToReset = onNavigateToReset
   )
 }
 
@@ -82,7 +88,8 @@ private fun SettingsScreen(
   state: SettingsState,
   onAction: (SettingsAction) -> Unit,
   onOpenDrawer: () -> Unit,
-  onNavigateToLogin: () -> Unit
+  onNavigateToLogin: () -> Unit,
+  onNavigateToReset: (String) -> Unit
 ) {
   Scaffold(
     topBar = {
@@ -200,20 +207,33 @@ private fun SettingsScreen(
           }
         }
       ) {
-        Button(
-          onClick = { onAction(SettingsAction.OnLogoutClick) },
-          colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.error,
-            contentColor = MaterialTheme.colorScheme.onError
-          ),
-          modifier = Modifier.fillMaxWidth()
+        Column(
+          modifier = Modifier.padding().fillMaxSize(),
+          verticalArrangement = Arrangement.spacedBy(16.dp),
+          horizontalAlignment = Alignment.CenterHorizontally
         ) {
-          Icon(
-            imageVector = FeatherIcons.LogOut,
-            contentDescription = null
-          )
-          Spacer(modifier = Modifier.padding(4.dp))
-          Text(stringResource(Res.string.auth_logout_label))
+          OutlinedButton(
+            onClick = { onAction(SettingsAction.OnChangePasswordClick) },
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Text(stringResource(Res.string.auth_reset_password_label))
+          }
+
+          Button(
+            onClick = { onAction(SettingsAction.OnLogoutClick) },
+            colors = ButtonDefaults.buttonColors(
+              containerColor = MaterialTheme.colorScheme.error,
+              contentColor = MaterialTheme.colorScheme.onError
+            ),
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Icon(
+              imageVector = FeatherIcons.LogOut,
+              contentDescription = null
+            )
+            Spacer(modifier = Modifier.padding(4.dp))
+            Text(stringResource(Res.string.auth_logout_label))
+          }
         }
       }
     }
@@ -236,6 +256,22 @@ private fun SettingsScreen(
             onClick = { onAction(SettingsAction.OnLogoutCancel) }
           ) {
             Text(stringResource(Res.string.cancel))
+          }
+        }
+      )
+    }
+
+    if (state.showPasswordResetDialog) {
+      AlertDialog(
+        onDismissRequest = { /* Modal */ },
+        title = { Text(stringResource(Res.string.auth_forgot_password_dialog_title)) },
+        text = { Text(stringResource(Res.string.auth_forgot_password_dialog_text)) },
+        confirmButton = {
+          TextButton(onClick = {
+            onAction(SettingsAction.OnChangePasswordDismiss)
+            onNavigateToReset(state.currentUserEmail ?: "")
+          }) {
+            Text("Code eingeben")
           }
         }
       )

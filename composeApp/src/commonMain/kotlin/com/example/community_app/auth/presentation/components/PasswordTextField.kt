@@ -12,9 +12,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import com.example.community_app.auth.presentation.login.LoginAction
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.password_label
+import community_app.composeapp.generated.resources.auth_password_label
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
@@ -29,7 +28,7 @@ fun PasswordTextField(
   isPasswordVisible: Boolean,
   onTogglePasswordVisibility: () -> Unit,
   modifier: Modifier = Modifier.fillMaxWidth(),
-  label: StringResource = Res.string.password_label,
+  label: StringResource = Res.string.auth_password_label,
   imeAction: ImeAction = ImeAction.Done
 ) {
   OutlinedTextField(

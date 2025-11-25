@@ -32,12 +32,13 @@ import com.example.community_app.auth.presentation.components.CommunityCheckbox
 import com.example.community_app.auth.presentation.components.EmailTextField
 import com.example.community_app.auth.presentation.components.PasswordTextField
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.auth_forgot_password_label
 import community_app.composeapp.generated.resources.auth_login_label
-import community_app.composeapp.generated.resources.auth_no_account_yet
+import community_app.composeapp.generated.resources.auth_login_no_account_yet
 import community_app.composeapp.generated.resources.auth_progress_without_account
 import community_app.composeapp.generated.resources.auth_register_label
-import community_app.composeapp.generated.resources.auth_remember_me
-import community_app.composeapp.generated.resources.welcome
+import community_app.composeapp.generated.resources.auth_login_remember
+import community_app.composeapp.generated.resources.welcome_back
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -46,7 +47,8 @@ fun LoginScreenRoot(
   viewModel: LoginViewModel = koinViewModel(),
   onLoginSuccess: () -> Unit,
   onNavigateToRegister: () -> Unit,
-  onNavigateToGuest: () -> Unit
+  onNavigateToGuest: () -> Unit,
+  onNavigateToForgotPassword: () -> Unit
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -60,6 +62,7 @@ fun LoginScreenRoot(
       when(action) {
         is LoginAction.OnRegisterClick -> onNavigateToRegister()
         is LoginAction.OnGuestClick -> onNavigateToGuest()
+        is LoginAction.OnForgotPasswordClick -> onNavigateToForgotPassword()
         else -> viewModel.onAction(action)
       }
     }
@@ -95,7 +98,7 @@ private fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
         Text(
-          text = stringResource(Res.string.welcome),
+          text = stringResource(Res.string.welcome_back),
           style = MaterialTheme.typography.headlineMedium,
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.primary
@@ -119,13 +122,25 @@ private fun LoginScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        CommunityCheckbox(
-          label = Res.string.auth_remember_me,
-          checked = state.isRememberMeChecked,
-          onCheckChange = { onAction(LoginAction.OnRememberMeChange(it)) }
-        )
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+          CommunityCheckbox(
+            label = Res.string.auth_login_remember,
+            checked = state.isRememberMeChecked,
+            onCheckChange = { onAction(LoginAction.OnRememberMeChange(it)) }
+          )
 
-        Spacer(modifier = Modifier.height(24.dp))
+          TextButton(onClick = { onAction(LoginAction.OnForgotPasswordClick) }) {
+            Text(
+              text = stringResource(Res.string.auth_forgot_password_label),
+              style = MaterialTheme.typography.bodyMedium
+            )
+          }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
 
         ButtonWithLoading(
           label = Res.string.auth_login_label,
@@ -147,7 +162,7 @@ private fun LoginScreen(
         Row(
           verticalAlignment = Alignment.CenterVertically
         ) {
-          Text(stringResource(Res.string.auth_no_account_yet))
+          Text(stringResource(Res.string.auth_login_no_account_yet))
           TextButton(
             onClick = { onAction(LoginAction.OnRegisterClick) }
           ) {

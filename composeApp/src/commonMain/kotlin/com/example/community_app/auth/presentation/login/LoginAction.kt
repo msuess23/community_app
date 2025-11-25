@@ -8,4 +8,5 @@ sealed interface LoginAction {
   data object OnLoginClick : LoginAction
   data object OnRegisterClick : LoginAction
   data object OnGuestClick : LoginAction
+  data object OnForgotPasswordClick : LoginAction
 }

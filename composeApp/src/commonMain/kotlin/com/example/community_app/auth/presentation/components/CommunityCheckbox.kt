@@ -17,7 +17,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun CommunityCheckbox(
   label: StringResource,
-  modifier: Modifier = Modifier.fillMaxWidth(),
+  modifier: Modifier = Modifier,
   checked: Boolean = false,
   onCheckChange: (Boolean) -> Unit
 ) {

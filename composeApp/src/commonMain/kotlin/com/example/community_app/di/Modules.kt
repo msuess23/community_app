@@ -4,8 +4,10 @@ import com.example.community_app.auth.data.network.KtorRemoteAuthDataSource
 import com.example.community_app.auth.data.network.RemoteAuthDataSource
 import com.example.community_app.auth.data.repository.DefaultAuthRepository
 import com.example.community_app.auth.domain.AuthRepository
+import com.example.community_app.auth.presentation.forgot_password.ForgotPasswordViewModel
 import com.example.community_app.auth.presentation.login.LoginViewModel
 import com.example.community_app.auth.presentation.register.RegisterViewModel
+import com.example.community_app.auth.presentation.reset_password.ResetPasswordViewModel
 import com.example.community_app.core.data.HttpClientFactory
 import com.example.community_app.core.data.local.AppDatabase
 import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
@@ -75,6 +77,8 @@ val sharedModule = module {
   // --- VIEW MODELS ---
   viewModelOf(::LoginViewModel)
   viewModelOf(::RegisterViewModel)
+  viewModelOf(::ForgotPasswordViewModel)
+  viewModelOf(::ResetPasswordViewModel)
   viewModelOf(::SettingsViewModel)
   viewModelOf(::InfoMasterViewModel)
   viewModelOf(::InfoDetailViewModel)

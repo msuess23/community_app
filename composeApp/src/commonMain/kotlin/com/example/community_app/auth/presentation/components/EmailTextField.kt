@@ -9,9 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import com.example.community_app.auth.presentation.login.LoginAction
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.email_label
+import community_app.composeapp.generated.resources.auth_email_label
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.AtSign
 import org.jetbrains.compose.resources.stringResource
@@ -26,7 +25,7 @@ fun EmailTextField(
   OutlinedTextField(
     value = value,
     onValueChange = onValueChange,
-    label = { Text(stringResource(Res.string.email_label)) },
+    label = { Text(stringResource(Res.string.auth_email_label)) },
     leadingIcon = { Icon(FeatherIcons.AtSign, null) },
     modifier = modifier,
     keyboardOptions = KeyboardOptions(

@@ -11,5 +11,7 @@ data class SettingsState(
   ),
   val showLogoutDialog: Boolean = false,
   val pendingLanguage: AppLanguage? = null,
-  val isLoading: Boolean = false
+  val isLoading: Boolean = false,
+  val showPasswordResetDialog: Boolean = false,
+  val currentUserEmail: String? = null
 )

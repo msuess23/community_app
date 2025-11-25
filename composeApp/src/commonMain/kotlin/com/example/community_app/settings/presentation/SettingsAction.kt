@@ -16,4 +16,8 @@ sealed interface SettingsAction {
   data object OnLogoutClick : SettingsAction
   data object OnLogoutConfirm : SettingsAction
   data object OnLogoutCancel : SettingsAction
+
+  // Change password
+  data object OnChangePasswordClick : SettingsAction
+  data object OnChangePasswordDismiss : SettingsAction
 }
