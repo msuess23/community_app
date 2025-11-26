@@ -34,6 +34,8 @@ import com.example.community_app.settings.domain.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsScreenRoot
 import com.example.community_app.util.AppLanguage
 import com.example.community_app.util.AppTheme
+import dev.icerock.moko.permissions.PermissionsController
+import dev.icerock.moko.permissions.compose.BindEffect
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinMultiplatformApplication
@@ -47,6 +49,9 @@ fun App() {
   KoinMultiplatformApplication(
     config = createKoinConfiguration()
   ) {
+    val permissionsController = koinInject<PermissionsController>()
+    BindEffect(permissionsController)
+
     val settingsRepo = koinInject<SettingsRepository>()
     val settingsState by settingsRepo.settings.collectAsState(initial = null)
 

@@ -10,6 +10,8 @@ import com.example.community_app.auth.presentation.register.RegisterViewModel
 import com.example.community_app.auth.presentation.reset_password.ResetPasswordViewModel
 import com.example.community_app.core.data.HttpClientFactory
 import com.example.community_app.core.data.local.AppDatabase
+import com.example.community_app.core.data.permission.MokoPermissionService
+import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
 import com.example.community_app.info.data.network.RemoteInfoDataSource
 import com.example.community_app.info.data.repository.DefaultInfoRepository
@@ -51,6 +53,8 @@ val sharedModule = module {
       tokenProvider = { authRepo.getAccessToken() }
     )
   }
+
+  single<AppPermissionService> { MokoPermissionService(get()) }
 
 
   // --- DATA SOURCES ---
