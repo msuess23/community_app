@@ -16,6 +16,8 @@ import com.example.community_app.info.data.mappers.toInfo
 import com.example.community_app.info.data.network.RemoteInfoDataSource
 import com.example.community_app.info.domain.Info
 import com.example.community_app.info.domain.InfoRepository
+import com.example.community_app.util.SERVER_FETCH_INTERVAL_MS
+import com.example.community_app.util.SERVER_FETCH_RADIUS_KM
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -26,16 +28,14 @@ class DefaultInfoRepository(
   private val dataStore: DataStore<Preferences>,
   private val locationService: LocationService
 ): InfoRepository {
-  private val KEY_LAST_SYNC = longPreferencesKey("info_last_sync_timestamp")
-  private val CACHE_TIMEOUT = 24 * 60 * 60 * 1000L
-  private val SERVER_FETCH_RADIUS_KM = 50.0
+  private val keyLastSync = longPreferencesKey("info_last_sync_timestamp")
 
   override suspend fun syncInfos(): Result<Unit, DataError.Remote> {
     val prefs = dataStore.data.first()
-    val lastSync = prefs[KEY_LAST_SYNC] ?: 0L
+    val lastSync = prefs[keyLastSync] ?: 0L
     val now = getCurrentTimeMillis()
 
-    if (now - lastSync < CACHE_TIMEOUT) {
+    if (now - lastSync < SERVER_FETCH_INTERVAL_MS) {
       return Result.Success(Unit)
     }
 
@@ -57,16 +57,14 @@ class DefaultInfoRepository(
   override suspend fun refreshInfos(): Result<Unit, DataError.Remote> {
     val currentLocation = locationService.getCurrentLocation()
 
-    if (currentLocation == null) {
-      println("DefaultInfoRepository: WARNING - No location available for BBox filter!")
-    } else {
-      println("DefaultInfoRepository: Location found: $currentLocation")
-    }
-
     val bboxString = if (currentLocation != null) {
+      println("DefaultInfoRepository: Location found: $currentLocation")
       val bbox = GeoUtil.calculateBBox(currentLocation, SERVER_FETCH_RADIUS_KM)
       GeoUtil.toBBoxString(bbox)
-    } else null
+    } else {
+      println("DefaultInfoRepository: WARNING - No location available for BBox filter!")
+      null
+    }
 
     return when (val result = remoteInfoDataSource.getInfos(bboxString)) {
       is Result.Success -> {
@@ -74,7 +72,7 @@ class DefaultInfoRepository(
           val entities = result.data.map { it.toEntity() }
           infoDao.replaceAll(entities)
 
-          dataStore.edit { it[KEY_LAST_SYNC] = getCurrentTimeMillis() }
+          dataStore.edit { it[keyLastSync] = getCurrentTimeMillis() }
 
           Result.Success(Unit)
         } catch (e: Exception) {
