@@ -25,6 +25,10 @@ import com.example.community_app.media.domain.MediaRepository
 import com.example.community_app.settings.data.DefaultSettingsRepository
 import com.example.community_app.settings.domain.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsViewModel
+import com.example.community_app.ticket.data.network.KtorRemoteTicketDataSource
+import com.example.community_app.ticket.data.network.RemoteTicketDataSource
+import com.example.community_app.ticket.data.repository.DefaultTicketRepository
+import com.example.community_app.ticket.domain.TicketRepository
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -64,6 +68,9 @@ val sharedModule = module {
   single<RemoteInfoDataSource> {
     KtorRemoteInfoDataSource(httpClient = get(named("publicClient")))
   }
+  single<RemoteTicketDataSource> {
+    KtorRemoteTicketDataSource(httpClient = get(named("authClient")))
+  }
   single<RemoteMediaDataSource> {
     KtorRemoteMediaDataSource(httpClient = get(named("authClient")))
   }
@@ -75,6 +82,7 @@ val sharedModule = module {
   singleOf(::DefaultAuthRepository).bind<AuthRepository>()
   singleOf(::DefaultSettingsRepository).bind<SettingsRepository>()
   singleOf(::DefaultInfoRepository).bind<InfoRepository>()
+  singleOf(::DefaultTicketRepository).bind<TicketRepository>()
   singleOf(::DefaultMediaRepository).bind<MediaRepository>()
 
 
