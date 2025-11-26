@@ -21,7 +21,6 @@ object DatabaseSeeder {
     if (!enabled) return
 
     transaction {
-      // Locations muss durch Addresses ersetzt werden
       SchemaUtils.drop(Users, Settings, Addresses, Offices, Appointments, Infos, StatusEntries, Tickets, TicketVotes, Media)
       SchemaUtils.create(Users, Settings, Addresses, Offices, Appointments, Infos, StatusEntries, Tickets, TicketVotes, Media)
     }
@@ -40,43 +39,45 @@ object DatabaseSeeder {
   // --------------------------------------------------------------------------
 
   private suspend fun seedAll() {
+    fun loc(latOffset: Double, lonOffset: Double) = HOME_LAT + latOffset to HOME_LON + lonOffset
+
     // --- 1) Offices + Addresses ---
     val (office1Id, office2Id) = transaction {
-      // Adresse mit Adressfeldern erstellen
+      val (o1Lat, o1Lon) = loc(0.0, 0.0)
       val addr1 = AddressEntity.new {
+        street = "Alfons-Goppel-Platz"
+        houseNumber = "1"
+        zipCode = "95028"
+        city = "Hof"
+        longitude = o1Lon
+        latitude = o1Lat
+      }
+      val office1 = OfficeEntity.new {
+        name = "Studienbüro / Prüfungsamt"
+        description = "Das Studienbüro ist Ihre erste Anlaufstelle, wenn Sie Fragen rund um Ihr Studium an der Hochschule haben. Hier reichen Sie auch Anträge ein, die an die Prüfungskommissionen weitergeleitet werden. Von hier aus werden Sie über Entscheidungen der Prüfungskommissionen und gegebenenfalls des Prüfungsausschusses benachrichtigt. Hier melden Sie sich, falls Sie einen Unfall am Campus oder auf dem Weg dorthin erlitten haben."
+        services = "Fragen, Bescheinigungen, Prüfungen"
+        openingHours = "Mo-Fr 9-12"
+        contactEmail = "mail@hof-university.de"
+        phone = "+49-9281-409"
+        address = addr1
+      }
+
+      val (o2Lat, o2Lon) = loc(-2.2, 0.0)
+      val addr2 = AddressEntity.new {
         street = "Marienplatz"
         houseNumber = "1"
         zipCode = "80331"
         city = "München"
-        longitude = 11.576124
-        latitude = 48.137154
-      }
-      val office1 = OfficeEntity.new {
-        name = "Einwohnermeldeamt Altstadt"
-        description = "Meldebescheinigungen, Ausweise"
-        services = "Meldewesen, Ausweise"
-        openingHours = "Mo-Fr 8-16"
-        contactEmail = "altstadt@city.example"
-        phone = "+49-89-123456"
-        address = addr1
-      }
-
-      // Adresse mit Adressfeldern erstellen
-      val addr2 = AddressEntity.new {
-        street = "Sendlinger Straße"
-        houseNumber = "1"
-        zipCode = "80331"
-        city = "München"
-        longitude = 11.581981
-        latitude = 48.135125
+        longitude = o2Lon
+        latitude = o2Lat
       }
       val office2 = OfficeEntity.new {
-        name = "Bürgerbüro Zentrum"
-        description = "Bürgeranliegen, Fundbüro"
-        services = "Anliegen, Fundbüro"
+        name = "Landeshauptstadt München"
+        description = "Referat für Ordnung"
+        services = "Großstadtverwaltung"
         openingHours = "Mo-Do 9-17"
-        contactEmail = "zentrum@city.example"
-        phone = "+49-89-654321"
+        contactEmail = "info@muenchen.local"
+        phone = "+49-89-123456"
         address = addr2
       }
       Pair(office1.id.value, office2.id.value)
@@ -159,44 +160,46 @@ object DatabaseSeeder {
     val infoRepo = DefaultInfoRepository
     val statusService = StatusService.default()
 
+    val (i1Lat, i1Lon) = loc(-0.3, 0.05)
     val info1a = infoRepo.create(InfoCreateData(
-      title = "Altstadtfest",
-      description = "Live-Musik und Marktstände",
+      title = "Festspiele Bayreuth (Mittel)",
+      description = "Kulturveranstaltung (Mittelstrecke ~35km)",
       category = InfoCategory.EVENT,
       officeId = office1Id,
-      // AddressDto verwenden
-      address = AddressDto(street = "Marienplatz", houseNumber = "1", zipCode = "80331", city = "München", longitude = 11.575, latitude = 48.1378),
+      address = AddressDto(street = "Hügel", longitude = i1Lon, latitude = i1Lat),
       startsAt = now.plus(5, ChronoUnit.DAYS),
       endsAt = now.plus(5, ChronoUnit.DAYS).plus(6, ChronoUnit.HOURS)
     ))
+
+    val (i2Lat, i2Lon) = loc(0.004, 0.002)
     val info1b = infoRepo.create(InfoCreateData(
-      title = "Baustelle Sendlinger Tor",
-      description = "Einschränkungen im Verkehr",
+      title = "Baustelle Hauptstraße (Nah)",
+      description = "Einschränkungen direkt im Ort (sehr nah, ~500m)",
       category = InfoCategory.CONSTRUCTION,
       officeId = office1Id,
-      // AddressDto verwenden
-      address = AddressDto(street = "Sendlinger Tor Platz", longitude = 11.565, latitude = 48.132),
+      address = AddressDto(street = "Hauptstraße", longitude = i2Lon, latitude = i2Lat),
       startsAt = now,
       endsAt = now.plus(20, ChronoUnit.DAYS)
     ))
 
+    val (i3Lat, i3Lon) = loc(-2.2, 0.0)
     val info2a = infoRepo.create(InfoCreateData(
-      title = "Bürgerdialog im Zentrum",
-      description = "Sprechstunde des Bürgermeisters",
+      title = "Bürgerdialog München (Fern)",
+      description = "Weit entfernt (>200km), sollte nicht geladen werden",
       category = InfoCategory.ANNOUNCEMENT,
       officeId = office2Id,
-      // AddressDto verwenden
-      address = AddressDto(street = "Odeonsplatz", longitude = 11.5823, latitude = 48.1369),
+      address = AddressDto(street = "Odeonsplatz", longitude = i3Lon, latitude = i3Lat),
       startsAt = now.plus(2, ChronoUnit.DAYS),
       endsAt = now.plus(2, ChronoUnit.DAYS).plus(2, ChronoUnit.HOURS)
     ))
+
+    val (i4Lat, i4Lon) = loc(0.01, 0.01)
     val info2b = infoRepo.create(InfoCreateData(
       title = "Parksanierung",
       description = "Neugestaltung des Stadtparks",
       category = InfoCategory.MAINTENANCE,
       officeId = office2Id,
-      // AddressDto verwenden
-      address = AddressDto(street = "Englischer Garten", longitude = 11.59, latitude = 48.138),
+      address = AddressDto(street = "Englischer Garten", longitude = i4Lon, latitude = i4Lat),
       startsAt = now.plus(1, ChronoUnit.DAYS),
       endsAt = now.plus(14, ChronoUnit.DAYS)
     ))
@@ -224,40 +227,43 @@ object DatabaseSeeder {
     // --- 6) Tickets (je Citizen ein privates) + 1 öffentliches + Vote ---
     val ticketRepo = DefaultTicketRepository
 
-    val priv1 = ticketRepo.create(TicketCreateData(
-      title = "Defekte Laterne in der Altstadt",
-      description = "Laterne flackert permanent",
-      category = TicketCategory.INFRASTRUCTURE,
-      officeId = office1Id,
-      creatorUserId = citizen1Id,
-      // AddressDto verwenden
-      address = AddressDto(street = "Kaufinger Straße", longitude = 11.574, latitude = 48.137),
-      visibility = TicketVisibility.PRIVATE
-    ))
-    val priv2 = ticketRepo.create(TicketCreateData(
-      title = "Wilder Müll im Zentrum",
-      description = "Mehrere Säcke am Wegesrand",
-      category = TicketCategory.CLEANING, // verwende dein aktuelles Enum
-      officeId = office2Id,
-      creatorUserId = citizen2Id,
-      // AddressDto verwenden
-      address = AddressDto(street = "Isartorplatz", longitude = 11.583, latitude = 48.136),
-      visibility = TicketVisibility.PRIVATE
-    ))
+    val (t1Lat, t1Lon) = loc(-0.002, -0.001)
     val pub1 = ticketRepo.create(TicketCreateData(
-      title = "Spielplatz: kaputtes Klettergerüst",
-      description = "Bitte prüfen und reparieren",
+      title = "Defektes Klettergerüst (Nah)",
+      description = "Spielplatz um die Ecke (~200m)",
       category = TicketCategory.INFRASTRUCTURE,
       officeId = office1Id,
       creatorUserId = citizen1Id,
-      // AddressDto verwenden
-      address = AddressDto(street = "Hofgarten", longitude = 11.5765, latitude = 48.1375),
+      address = AddressDto(street = "Spielplatzweg", longitude = t1Lon, latitude = t1Lat),
       visibility = TicketVisibility.PUBLIC
     ))
 
+    val (t2Lat, t2Lon) = loc(-0.31, 0.04)
+    val priv1 = ticketRepo.create(TicketCreateData(
+      title = "Laterne Bayreuth (Mittel)",
+      description = "Mein privates Ticket (~35km)",
+      category = TicketCategory.INFRASTRUCTURE,
+      officeId = office1Id,
+      creatorUserId = citizen1Id,
+      address = AddressDto(street = "Wagner-Str", longitude = t2Lon, latitude = t2Lat),
+      visibility = TicketVisibility.PRIVATE
+    ))
+
+    val (t3Lat, t3Lon) = loc(-2.21, 0.01)
+    val pub2 = ticketRepo.create(TicketCreateData(
+      title = "Müll Isartor (Fern)",
+      description = "Weit entferntes Ticket (>200km)",
+      category = TicketCategory.CLEANING,
+      officeId = office2Id,
+      creatorUserId = citizen2Id,
+      address = AddressDto(street = "Isartor", longitude = t3Lon, latitude = t3Lat),
+      visibility = TicketVisibility.PUBLIC
+    ))
+
+
     // Ticket-Status
     statusService.addTicketStatus(priv1.id, TicketStatus.OPEN, "Erfasst", citizen1Id)
-    statusService.addTicketStatus(priv2.id, TicketStatus.OPEN, "Erfasst", citizen2Id)
+    statusService.addTicketStatus(pub2.id, TicketStatus.OPEN, "Erfasst", citizen2Id)
     statusService.addTicketStatus(pub1.id, TicketStatus.OPEN, "Erfasst", citizen1Id)
     statusService.addTicketStatus(pub1.id, TicketStatus.IN_PROGRESS, "Begutachtung läuft", officer1Id)
 
@@ -296,12 +302,9 @@ object DatabaseSeeder {
     val sourceFile = File("src/main/resources/seed_images", sourceFilename)
     if (sourceFile.exists()) {
       sourceFile.copyTo(destinationFile, overwrite = true)
-      // KORREKTUR: Gibt den eindeutigen Dateinamen zurück, nicht den festen String "OK".
       return destinationFile.length() to sourceFilename
     } else {
-      // FALLBACK: Tiny PNG als Platzhalter erstellen
       createPlaceholderFile(destinationFile)
-      // KORREKTUR: Gibt den eindeutigen Dateinamen zurück, nicht den festen String "PLACEHOLDER".
       return destinationFile.length() to sourceFilename
     }
   }
@@ -310,7 +313,6 @@ object DatabaseSeeder {
     val mediaRepo = DefaultMediaRepository
 
     files.forEach { seed ->
-      // Wir übergeben den sourceFilename, der auch der serverFilename wird.
       val (sizeBytes, finalFilename) = readSourceFileAndGetDetails(
         targetType, targetId, seed.sourceFilename
       )
