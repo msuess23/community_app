@@ -1,5 +1,6 @@
 package com.example.community_app.info.presentation.info_master
 
+import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.info.domain.Info
 import com.example.community_app.util.InfoCategory
@@ -12,6 +13,8 @@ data class InfoMasterState(
   val searchResults: List<Info> = emptyList(),
   val isLoading: Boolean = false,
   val errorMessage: UiText? = null,
+  val userLocation: Location? = null,
+  val isPermissionGranted: Boolean = false
 )
 
 data class InfoFilterState(

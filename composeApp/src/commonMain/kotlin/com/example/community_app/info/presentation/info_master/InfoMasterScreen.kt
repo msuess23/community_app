@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -83,7 +85,8 @@ private fun InfoMasterScreen(
   val keyboardController = LocalSoftwareKeyboardController.current
   val lazyListState = rememberLazyListState()
   val snackbarHostState = remember { SnackbarHostState() }
-  val scope = rememberCoroutineScope()
+
+  val emptyScrollState = rememberScrollState()
 
   LaunchedEffect(state.searchResults) {
     lazyListState.animateScrollToItem(0)
@@ -186,17 +189,31 @@ private fun InfoMasterScreen(
             } else {
               when {
                 state.errorMessage != null && state.searchResults.isEmpty() -> {
-                  ScreenMessage(
-                    text = state.errorMessage.asString(),
-                    color = MaterialTheme.colorScheme.error
-                  )
+                  Box(
+                    modifier = Modifier
+                      .fillMaxSize()
+                      .verticalScroll(emptyScrollState),
+                    contentAlignment = Alignment.Center
+                  ) {
+                    ScreenMessage(
+                      text = state.errorMessage.asString(),
+                      color = MaterialTheme.colorScheme.error
+                    )
+                  }
                 }
 
                 state.searchResults.isEmpty() && !state.isLoading -> {
-                  ScreenMessage(
-                    text = stringResource(Res.string.search_no_results),
-                    color = MaterialTheme.colorScheme.onSurface
-                  )
+                  Box(
+                    modifier = Modifier
+                      .fillMaxSize()
+                      .verticalScroll(emptyScrollState),
+                    contentAlignment = Alignment.Center
+                  ) {
+                    ScreenMessage(
+                      text = stringResource(Res.string.search_no_results),
+                      color = MaterialTheme.colorScheme.onSurface
+                    )
+                  }
                 }
 
                 else -> {

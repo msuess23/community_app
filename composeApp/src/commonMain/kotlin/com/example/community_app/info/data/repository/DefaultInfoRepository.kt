@@ -6,6 +6,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
+import com.example.community_app.core.domain.location.LocationService
+import com.example.community_app.core.util.GeoUtil
 import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.dto.InfoStatusDto
 import com.example.community_app.info.data.local.InfoDao
@@ -21,10 +23,12 @@ import kotlinx.coroutines.flow.map
 class DefaultInfoRepository(
   private val remoteInfoDataSource: RemoteInfoDataSource,
   private val infoDao: InfoDao,
-  private val dataStore: DataStore<Preferences>
+  private val dataStore: DataStore<Preferences>,
+  private val locationService: LocationService
 ): InfoRepository {
   private val KEY_LAST_SYNC = longPreferencesKey("info_last_sync_timestamp")
   private val CACHE_TIMEOUT = 24 * 60 * 60 * 1000L
+  private val SERVER_FETCH_RADIUS_KM = 50.0
 
   override suspend fun syncInfos(): Result<Unit, DataError.Remote> {
     val prefs = dataStore.data.first()
@@ -51,7 +55,20 @@ class DefaultInfoRepository(
   }
 
   override suspend fun refreshInfos(): Result<Unit, DataError.Remote> {
-    return when (val result = remoteInfoDataSource.getInfos()) {
+    val currentLocation = locationService.getCurrentLocation()
+
+    if (currentLocation == null) {
+      println("DefaultInfoRepository: WARNING - No location available for BBox filter!")
+    } else {
+      println("DefaultInfoRepository: Location found: $currentLocation")
+    }
+
+    val bboxString = if (currentLocation != null) {
+      val bbox = GeoUtil.calculateBBox(currentLocation, SERVER_FETCH_RADIUS_KM)
+      GeoUtil.toBBoxString(bbox)
+    } else null
+
+    return when (val result = remoteInfoDataSource.getInfos(bboxString)) {
       is Result.Success -> {
         try {
           val entities = result.data.map { it.toEntity() }

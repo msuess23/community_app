@@ -8,23 +8,26 @@ import com.example.community_app.dto.InfoStatusDto
 import com.example.community_app.util.BASE_URL
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 
 class KtorRemoteInfoDataSource(
   private val httpClient: HttpClient
 ): RemoteInfoDataSource {
-  override suspend fun getInfos(): Result<List<InfoDto>, DataError.Remote> {
+  override suspend fun getInfos(bbox: String?): Result<List<InfoDto>, DataError.Remote> {
+    println("KtorRemoteInfoDataSource: Fetching infos with bbox=$bbox")
+
     return safeCall {
-      httpClient.get(
-        urlString = "$BASE_URL/api/info"
-      ) {}
+      httpClient.get(urlString = "$BASE_URL/api/info") {
+        if (bbox != null) {
+          parameter("bbox", bbox)
+        }
+      }
     }
   }
 
   override suspend fun getInfo(id: Int): Result<InfoDto, DataError.Remote> {
     return safeCall {
-      httpClient.get(
-        urlString = "$BASE_URL/api/info/$id"
-      ) {}
+      httpClient.get(urlString = "$BASE_URL/api/info/$id")
     }
   }
 

@@ -2,9 +2,13 @@ package com.example.community_app.info.presentation.info_master
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.community_app.core.domain.location.Location
+import com.example.community_app.core.domain.location.LocationService
 import com.example.community_app.core.domain.onError
 import com.example.community_app.core.domain.onSuccess
+import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.core.util.GeoUtil
 import com.example.community_app.info.domain.Info
 import com.example.community_app.info.domain.InfoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +21,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class InfoMasterViewModel(
-  private val infoRepository: InfoRepository
+  private val infoRepository: InfoRepository,
+  private val locationService: LocationService,
+  private val permissionService: AppPermissionService
 ): ViewModel() {
   private val _state = MutableStateFlow(InfoMasterState())
   private val _allInfos = MutableStateFlow<List<Info>>(emptyList())
@@ -25,7 +31,7 @@ class InfoMasterViewModel(
   val state = _state
     .onStart {
       observeDb()
-      performSmartSync()
+      checkLocationPermissionAndFetch()
     }
     .stateIn(
       viewModelScope,
@@ -35,23 +41,19 @@ class InfoMasterViewModel(
 
   fun onAction(action: InfoMasterAction) {
     when(action) {
-      is InfoMasterAction.OnInfoClick -> {}
+      is InfoMasterAction.OnInfoClick -> { /* Navigation handled by UI */ }
 
       is InfoMasterAction.OnSearchQueryChange -> {
-        _state.update { it.copy(
-          searchQuery = action.query
-        ) }
+        _state.update { it.copy(searchQuery = action.query) }
         applyFilters()
       }
 
       is InfoMasterAction.OnRefresh -> {
-        refreshData()
+        checkLocationPermissionAndFetch(forceRefresh = true)
       }
 
       is InfoMasterAction.OnToggleFilterSheet -> {
-        _state.update { it.copy(
-          isFilterSheetVisible = !it.isFilterSheetVisible
-        ) }
+        _state.update { it.copy(isFilterSheetVisible = !it.isFilterSheetVisible) }
       }
 
       is InfoMasterAction.OnSortChange -> {
@@ -111,7 +113,7 @@ class InfoMasterViewModel(
 
       is InfoMasterAction.OnDistanceChange -> {
         _state.update { it.copy(filter = it.filter.copy(distanceRadiusKm = action.distance)) }
-        // TODO: implement
+        applyFilters()
       }
 
       is InfoMasterAction.OnToggleSection -> {
@@ -137,10 +139,32 @@ class InfoMasterViewModel(
       .launchIn(viewModelScope)
   }
 
+  private fun checkLocationPermissionAndFetch(forceRefresh: Boolean = false) {
+    viewModelScope.launch {
+      val hasPermission = permissionService.requestLocationPermission()
+      _state.update { it.copy(isPermissionGranted = hasPermission) }
+
+      if (hasPermission) {
+        val location = locationService.getCurrentLocation()
+        if (location != null) {
+          _state.update { it.copy(userLocation = location) }
+          applyFilters()
+        }
+      }
+
+      if (forceRefresh) {
+        refreshData()
+      } else {
+        performSmartSync()
+      }
+    }
+  }
+
   private fun applyFilters() {
     val query = _state.value.searchQuery
     val filters = _state.value.filter
     val rawInfos = _allInfos.value
+    val userLocation = _state.value.userLocation
 
     var result = rawInfos
 
@@ -161,6 +185,17 @@ class InfoMasterViewModel(
       result = result.filter {
         val status = it.currentStatus
         status != null && status in filters.selectedStatuses
+      }
+    }
+
+    if (userLocation != null) {
+      result = result.filter { info ->
+        val infoAddr = info.address
+        if (infoAddr != null) {
+          val infoLoc = Location(infoAddr.latitude, infoAddr.longitude)
+          val dist = GeoUtil.calculateDistanceKm(userLocation, infoLoc)
+          dist <= filters.distanceRadiusKm
+        } else true
       }
     }
 

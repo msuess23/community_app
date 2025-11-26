@@ -6,7 +6,7 @@ import com.example.community_app.dto.InfoDto
 import com.example.community_app.dto.InfoStatusDto
 
 interface RemoteInfoDataSource {
-  suspend fun getInfos(): Result<List<InfoDto>, DataError.Remote>
+  suspend fun getInfos(bbox: String? = null): Result<List<InfoDto>, DataError.Remote>
   suspend fun getInfo(id: Int): Result<InfoDto, DataError.Remote>
   suspend fun getStatusHistory(id: Int): Result<List<InfoStatusDto>, DataError.Remote>
 }
