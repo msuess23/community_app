@@ -75,6 +75,9 @@
     <string name="settings_lang_dialog_title">Change language</string>
     <string name="settings_lang_dialog_text">The app will be restarted in order to apply the changes.</string>
     <string name="settings_lang_dialog_confirm">Change &amp; Restart</string>
+    <!-- Radius -->
+    <string name="settings_radius_label">Search radius</string>
+    <string name="settings_radius_helper">Filters based on your current location (requires GPS).</string>
 
     <!-- Authentication -->
     <string name="auth_logout_label">Log out</string>

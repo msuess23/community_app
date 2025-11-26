@@ -31,24 +31,33 @@ class AndroidLocationService(
 
     if (!hasCoarse && !hasFine || !isGpsEnabled) return null
 
+    val priority = if (hasFine) {
+      Priority.PRIORITY_HIGH_ACCURACY
+    } else {
+      Priority.PRIORITY_BALANCED_POWER_ACCURACY
+    }
+
     return suspendCancellableCoroutine { cont ->
       client.lastLocation.addOnSuccessListener { location ->
         if (location != null) {
           cont.resume(Location(location.latitude, location.longitude))
         } else {
-          requestFreshLocation(cont)
+          requestFreshLocation(cont, priority)
         }
       }.addOnFailureListener {
-        requestFreshLocation(cont)
+        requestFreshLocation(cont, priority)
       }
     }
   }
 
-  private fun requestFreshLocation(cont: CancellableContinuation<Location?>) {
+  private fun requestFreshLocation(
+    cont: CancellableContinuation<Location?>,
+    priority: Int
+  ) {
     val cancellationTokenSource = CancellationTokenSource()
 
     client.getCurrentLocation(
-      Priority.PRIORITY_HIGH_ACCURACY,
+      priority,
       cancellationTokenSource.token
     ).addOnSuccessListener { location ->
       if (location != null) {

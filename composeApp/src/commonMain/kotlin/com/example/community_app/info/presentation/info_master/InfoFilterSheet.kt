@@ -1,11 +1,6 @@
 package com.example.community_app.info.presentation.info_master
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -13,18 +8,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -33,8 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.community_app.core.presentation.components.input.CommunityDropdownMenu
+import com.example.community_app.core.presentation.components.input.CommunitySlider
 import com.example.community_app.core.presentation.components.search.CollapsibleFilterSection
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.presentation.theme.Spacing
@@ -46,14 +41,13 @@ import community_app.composeapp.generated.resources.category_plural
 import community_app.composeapp.generated.resources.filters_clear
 import community_app.composeapp.generated.resources.filters_label
 import community_app.composeapp.generated.resources.label_status
+import community_app.composeapp.generated.resources.settings_radius_helper
+import community_app.composeapp.generated.resources.settings_radius_label
 import community_app.composeapp.generated.resources.sorting_alphabetical
 import community_app.composeapp.generated.resources.sorting_label
 import community_app.composeapp.generated.resources.sorting_latest
 import community_app.composeapp.generated.resources.sorting_oldest
 import community_app.composeapp.generated.resources.welcome_back
-import compose.icons.FeatherIcons
-import compose.icons.feathericons.ChevronDown
-import compose.icons.feathericons.ChevronUp
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
@@ -186,26 +180,37 @@ fun InfoFilterSheet(
       HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
 
       CollapsibleFilterSection(
-        title = Res.string.welcome_back,
+        title = Res.string.settings_radius_label,
         isExpanded = filterState.expandedSections.contains(FilterSection.DISTANCE),
         onToggle = { onAction(InfoMasterAction.OnToggleSection(FilterSection.DISTANCE)) }
       ) {
-        Column {
+        Column(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = Spacing.small),
+          horizontalAlignment = Alignment.CenterHorizontally
+        ) {
           Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
           ) {
-            Text("Max. Entfernung") // TODO: Res
-            Text("${filterState.distanceRadiusKm.roundToInt()} km")
+            CommunitySlider(
+              value = filterState.distanceRadiusKm,
+              onValueChange = { onAction(InfoMasterAction.OnDistanceChange(it)) },
+              valueRange = 1f..50f,
+              steps = 49,
+              modifier = Modifier.weight(1f)
+            )
+            Text(
+              text = "${filterState.distanceRadiusKm.roundToInt()} km",
+              style = MaterialTheme.typography.titleMedium,
+              color = MaterialTheme.colorScheme.onSurface
+            )
           }
-          Slider(
-            value = filterState.distanceRadiusKm,
-            onValueChange = { onAction(InfoMasterAction.OnDistanceChange(it)) },
-            valueRange = 1f..50f,
-            steps = 49
-          )
+
           Text(
-            text = "Filtert basierend auf Ihrem aktuellen Standort (benötigt GPS).", // TODO: Res
+            text = stringResource(Res.string.settings_radius_helper),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
           )
