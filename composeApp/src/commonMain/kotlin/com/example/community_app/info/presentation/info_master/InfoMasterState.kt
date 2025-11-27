@@ -22,13 +22,13 @@ data class InfoFilterState(
   val selectedStatuses: Set<InfoStatus> = emptySet(),
   val distanceRadiusKm: Float = 50f,
   val sortBy: InfoSortOption = InfoSortOption.DATE_DESC,
-  val expandedSections: Set<FilterSection> = setOf(FilterSection.CATEGORY)
+  val expandedSections: Set<InfoFilterSection> = setOf(InfoFilterSection.CATEGORY)
 )
 
 enum class InfoSortOption {
   DATE_DESC, DATE_ASC, ALPHABETICAL
 }
 
-enum class FilterSection {
+enum class InfoFilterSection {
   CATEGORY, STATUS, DISTANCE
 }

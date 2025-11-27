@@ -15,5 +15,5 @@ sealed interface InfoMasterAction {
   data class OnStatusSelect(val status: InfoStatus) : InfoMasterAction
   data object OnClearStatuses : InfoMasterAction
   data class OnDistanceChange(val distance: Float) : InfoMasterAction
-  data class OnToggleSection(val section: FilterSection) : InfoMasterAction
+  data class OnToggleSection(val section: InfoFilterSection) : InfoMasterAction
 }

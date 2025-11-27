@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,7 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -30,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -40,10 +40,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.core.presentation.components.CommunityTopAppBar
 import com.example.community_app.core.presentation.components.ObserveErrorMessage
 import com.example.community_app.core.presentation.components.TopBarNavigationType
-import com.example.community_app.core.presentation.components.list.CustomList
+import com.example.community_app.core.presentation.components.list.InfoTicketListItem
 import com.example.community_app.core.presentation.components.list.ScreenMessage
 import com.example.community_app.core.presentation.components.search.SearchBar
+import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.presentation.theme.Spacing
+import com.example.community_app.core.util.formatIsoDate
 import com.example.community_app.info.domain.Info
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.filters_label
@@ -188,20 +190,6 @@ private fun InfoMasterScreen(
               )
             } else {
               when {
-                state.errorMessage != null && state.searchResults.isEmpty() -> {
-                  Box(
-                    modifier = Modifier
-                      .fillMaxSize()
-                      .verticalScroll(emptyScrollState),
-                    contentAlignment = Alignment.Center
-                  ) {
-                    ScreenMessage(
-                      text = state.errorMessage.asString(),
-                      color = MaterialTheme.colorScheme.error
-                    )
-                  }
-                }
-
                 state.searchResults.isEmpty() && !state.isLoading -> {
                   Box(
                     modifier = Modifier
@@ -217,14 +205,36 @@ private fun InfoMasterScreen(
                 }
 
                 else -> {
-                  CustomList(
-                    infos = state.searchResults,
-                    onInfoClick = {
-                      onAction(InfoMasterAction.OnInfoClick(it))
-                    },
+                  LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    scrollState = lazyListState
-                  )
+                    state = lazyListState,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                  ) {
+                    items(
+                      items = state.searchResults,
+                      key = { it.id }
+                    ) { info ->
+                      val startDate = formatIsoDate(info.startsAt)
+                      val endDate = formatIsoDate(info.endsAt)
+                      val dateString = if (startDate == endDate) startDate else "$startDate - $endDate"
+
+                      val categoryText = info.category.toUiText().asString()
+                      val statusText = info.currentStatus?.toUiText()?.asString()
+                      val sublineText = if (statusText != null) "$categoryText, $statusText" else categoryText
+
+                      InfoTicketListItem(
+                        title = info.title,
+                        subtitle = sublineText,
+                        dateString = dateString,
+                        imageUrl = info.imageUrl,
+                        onClick = { onAction(InfoMasterAction.OnInfoClick(info)) },
+                        modifier = Modifier
+                          .fillMaxWidth()
+                          .padding(horizontal = 16.dp)
+                      )
+                    }
+                  }
                 }
               }
             }

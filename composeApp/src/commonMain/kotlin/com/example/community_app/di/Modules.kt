@@ -18,6 +18,7 @@ import com.example.community_app.info.data.repository.DefaultInfoRepository
 import com.example.community_app.info.domain.InfoRepository
 import com.example.community_app.info.presentation.info_detail.InfoDetailViewModel
 import com.example.community_app.info.presentation.info_master.InfoMasterViewModel
+import com.example.community_app.info.presentation.info_master.TicketMasterViewModel
 import com.example.community_app.media.data.network.KtorRemoteMediaDataSource
 import com.example.community_app.media.data.network.RemoteMediaDataSource
 import com.example.community_app.media.data.repository.DefaultMediaRepository
@@ -96,4 +97,5 @@ val sharedModule = module {
   viewModelOf(::SettingsViewModel)
   viewModelOf(::InfoMasterViewModel)
   viewModelOf(::InfoDetailViewModel)
+  viewModelOf(::TicketMasterViewModel)
 }

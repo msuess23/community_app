@@ -1,29 +1,25 @@
-package com.example.community_app.info.presentation.info_master
+package com.example.community_app.ticket.presentation.ticket_master
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.community_app.core.presentation.components.input.CommunityDropdownMenu
@@ -31,8 +27,8 @@ import com.example.community_app.core.presentation.components.input.CommunitySli
 import com.example.community_app.core.presentation.components.search.CollapsibleFilterSection
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.presentation.theme.Spacing
-import com.example.community_app.util.InfoCategory
-import com.example.community_app.util.InfoStatus
+import com.example.community_app.util.TicketCategory
+import com.example.community_app.util.TicketStatus
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.category_all
 import community_app.composeapp.generated.resources.category_plural
@@ -50,15 +46,15 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InfoFilterSheet(
-  filterState: InfoFilterState,
-  onAction: (InfoMasterAction) -> Unit,
+fun TicketFilterSheet(
+  filterState: TicketFilterState,
+  onAction: (TicketMasterAction) -> Unit,
   modifier: Modifier = Modifier
 ) {
   val sheetState = rememberModalBottomSheetState()
 
   ModalBottomSheet(
-    onDismissRequest = { onAction(InfoMasterAction.OnToggleFilterSheet) },
+    onDismissRequest = { onAction(TicketMasterAction.OnToggleFilterSheet) },
     sheetState = sheetState,
     contentColor = MaterialTheme.colorScheme.surfaceContainer,
     modifier = modifier
@@ -82,10 +78,11 @@ fun InfoFilterSheet(
         )
         TextButton(
           onClick = {
-            onAction(InfoMasterAction.OnSortChange(InfoSortOption.DATE_DESC))
-            onAction(InfoMasterAction.OnClearCategories)
-            onAction(InfoMasterAction.OnClearStatuses)
-            onAction(InfoMasterAction.OnDistanceChange(50f))
+            onAction(TicketMasterAction.OnSortChange(TicketSortOption.DATE_DESC))
+            onAction(TicketMasterAction.OnClearCategories)
+            onAction(TicketMasterAction.OnClearStatuses)
+            onAction(TicketMasterAction.OnDistanceChange(50f))
+            onAction(TicketMasterAction.OnToggleShowDrafts(true))
           }
         ) {
           Text(stringResource(Res.string.filters_clear))
@@ -108,14 +105,14 @@ fun InfoFilterSheet(
           modifier = Modifier.weight(0.35f)
         )
         CommunityDropdownMenu(
-          items = InfoSortOption.entries,
+          items = TicketSortOption.entries,
           selectedItem = filterState.sortBy,
-          onItemSelected = { onAction(InfoMasterAction.OnSortChange(it)) },
+          onItemSelected = { onAction(TicketMasterAction.OnSortChange(it)) },
           itemLabel = { option ->
             when (option) {
-              InfoSortOption.DATE_DESC -> stringResource(Res.string.sorting_latest)
-              InfoSortOption.DATE_ASC -> stringResource(Res.string.sorting_oldest)
-              InfoSortOption.ALPHABETICAL -> stringResource(Res.string.sorting_alphabetical)
+              TicketSortOption.DATE_DESC -> stringResource(Res.string.sorting_latest)
+              TicketSortOption.DATE_ASC -> stringResource(Res.string.sorting_oldest)
+              TicketSortOption.ALPHABETICAL -> stringResource(Res.string.sorting_alphabetical)
             }
           },
           modifier = Modifier.weight(0.55f)
@@ -124,10 +121,27 @@ fun InfoFilterSheet(
 
       HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
 
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Text(
+          text = "Entwürfe anzeigen", // TODO: Create Res
+          style = MaterialTheme.typography.titleMedium
+        )
+        Switch(
+          checked = filterState.showDrafts,
+          onCheckedChange = { onAction(TicketMasterAction.OnToggleShowDrafts(it)) }
+        )
+      }
+
+      HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
+
       CollapsibleFilterSection(
         title = Res.string.category_plural,
-        isExpanded = filterState.expandedSections.contains(InfoFilterSection.CATEGORY),
-        onToggle = { onAction(InfoMasterAction.OnToggleSection(InfoFilterSection.CATEGORY)) }
+        isExpanded = filterState.expandedSections.contains(TicketFilterSection.CATEGORY),
+        onToggle = { onAction(TicketMasterAction.OnToggleSection(TicketFilterSection.CATEGORY)) }
       ) {
         FlowRow(
           horizontalArrangement = Arrangement.spacedBy(Spacing.small)
@@ -135,13 +149,13 @@ fun InfoFilterSheet(
           val isAllSelected = filterState.selectedCategories.isEmpty()
           FilterChip(
             selected = isAllSelected,
-            onClick = { onAction(InfoMasterAction.OnClearCategories) },
+            onClick = { onAction(TicketMasterAction.OnClearCategories) },
             label = { Text(stringResource(Res.string.category_all)) }
           )
-          InfoCategory.entries.forEach { category ->
+          TicketCategory.entries.forEach { category ->
             FilterChip(
               selected = category in filterState.selectedCategories,
-              onClick = { onAction(InfoMasterAction.OnCategorySelect(category)) },
+              onClick = { onAction(TicketMasterAction.OnCategorySelect(category)) },
               label = { Text(category.toUiText().asString()) }
             )
           }
@@ -152,8 +166,8 @@ fun InfoFilterSheet(
 
       CollapsibleFilterSection(
         title = Res.string.label_status,
-        isExpanded = filterState.expandedSections.contains(InfoFilterSection.STATUS),
-        onToggle = { onAction(InfoMasterAction.OnToggleSection(InfoFilterSection.STATUS)) }
+        isExpanded = filterState.expandedSections.contains(TicketFilterSection.STATUS),
+        onToggle = { onAction(TicketMasterAction.OnToggleSection(TicketFilterSection.STATUS)) }
       ) {
         FlowRow(
           horizontalArrangement = Arrangement.spacedBy(Spacing.small)
@@ -161,13 +175,13 @@ fun InfoFilterSheet(
           val isAllSelected = filterState.selectedStatuses.isEmpty()
           FilterChip(
             selected = isAllSelected,
-            onClick = { onAction(InfoMasterAction.OnClearStatuses) },
+            onClick = { onAction(TicketMasterAction.OnClearStatuses) },
             label = { Text(stringResource(Res.string.category_all)) }
           )
-          InfoStatus.entries.forEach { status ->
+          TicketStatus.entries.forEach { status ->
             FilterChip(
               selected = status in filterState.selectedStatuses,
-              onClick = { onAction(InfoMasterAction.OnStatusSelect(status)) },
+              onClick = { onAction(TicketMasterAction.OnStatusSelect(status)) },
               label = { Text(status.toUiText().asString()) }
             )
           }
@@ -178,8 +192,8 @@ fun InfoFilterSheet(
 
       CollapsibleFilterSection(
         title = Res.string.settings_radius_label,
-        isExpanded = filterState.expandedSections.contains(InfoFilterSection.DISTANCE),
-        onToggle = { onAction(InfoMasterAction.OnToggleSection(InfoFilterSection.DISTANCE)) }
+        isExpanded = filterState.expandedSections.contains(TicketFilterSection.DISTANCE),
+        onToggle = { onAction(TicketMasterAction.OnToggleSection(TicketFilterSection.DISTANCE)) }
       ) {
         Column(
           modifier = Modifier
@@ -194,7 +208,7 @@ fun InfoFilterSheet(
           ) {
             CommunitySlider(
               value = filterState.distanceRadiusKm,
-              onValueChange = { onAction(InfoMasterAction.OnDistanceChange(it)) },
+              onValueChange = { onAction(TicketMasterAction.OnDistanceChange(it)) },
               valueRange = 1f..50f,
               steps = 49,
               modifier = Modifier.weight(1f)
@@ -214,35 +228,5 @@ fun InfoFilterSheet(
         }
       }
     }
-  }
-}
-
-@Composable
-private fun SortOptionRow(
-  text: String,
-  selected: Boolean,
-  onClick: () -> Unit
-) {
-  Row(
-    Modifier
-      .fillMaxWidth()
-      .height(48.dp)
-      .selectable(
-        selected = selected,
-        onClick = onClick,
-        role = Role.RadioButton
-      ),
-    verticalAlignment = Alignment.CenterVertically
-  ) {
-    RadioButton(
-      selected = selected,
-      onClick = null
-    )
-    Spacer(Modifier.padding(start = 16.dp))
-    Text(
-      text = text,
-      style = MaterialTheme.typography.bodyLarge,
-      color = MaterialTheme.colorScheme.onSurface,
-    )
   }
 }

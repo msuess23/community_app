@@ -32,6 +32,7 @@ import com.example.community_app.info.presentation.info_detail.InfoDetailScreenR
 import com.example.community_app.info.presentation.info_master.InfoMasterScreenRoot
 import com.example.community_app.settings.domain.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsScreenRoot
+import com.example.community_app.ticket.presentation.ticket_master.TicketMasterScreenRoot
 import com.example.community_app.util.AppLanguage
 import com.example.community_app.util.AppTheme
 import dev.icerock.moko.permissions.PermissionsController
@@ -180,14 +181,11 @@ fun App() {
 
               navigation<Route.TicketGraph>(startDestination = Route.TicketMaster) {
                 composable<Route.TicketMaster> {
-                  AuthGuard(
-                    onLoginClick = { navController.navigate(Route.AuthGraph) }
-                  ) { user ->
-                    DummyScreen(
-                      title = "Ticket Master (Angemeldet als ${user.displayName})",
-                      onOpenDrawer = { scope.launch { drawerState.open() } }
-                    )
-                  }
+                  TicketMasterScreenRoot(
+                    onNavigateToTicketDetail = {},
+                    onNavigateToTicketEdit = {},
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                  )
                 }
               }
 
@@ -199,7 +197,14 @@ fun App() {
 
               navigation<Route.AppointmentGraph>(startDestination = Route.AppointmentMaster) {
                 composable<Route.AppointmentMaster> {
-                  DummyScreen("Appointments Master", onOpenDrawer = { scope.launch { drawerState.open() } })
+                  AuthGuard(
+                    onLoginClick = { navController.navigate(Route.AuthGraph) }
+                  ) { user ->
+                    DummyScreen(
+                      title = "Appointment Master (Angemeldet als ${user.displayName})",
+                      onOpenDrawer = { scope.launch { drawerState.open() } }
+                    )
+                  }
                 }
               }
 

@@ -5,15 +5,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,11 +30,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
-import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.presentation.theme.Size
 import com.example.community_app.core.presentation.theme.Spacing
-import com.example.community_app.core.util.formatIsoDate
-import com.example.community_app.info.domain.Info
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.image_placeholder
 import compose.icons.FeatherIcons
@@ -47,17 +40,21 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun InfoTicketListItem(
-  info: Info,
+  title: String,
+  subtitle: String?,
+  dateString: String,
+  imageUrl: String?,
+  isDraft: Boolean = false,
   onClick: () -> Unit,
   modifier: Modifier = Modifier
 ) {
-  val startDate = formatIsoDate(info.startsAt)
-  val endDate = formatIsoDate(info.endsAt)
-  val dateString = if (startDate == endDate) startDate else "$startDate - $endDate"
-
-  val categoryText = info.category.toUiText().asString()
-  val statusText = info.currentStatus?.toUiText()?.asString()
-  val sublineText = if (statusText != null) "$categoryText, $statusText" else categoryText
+//  val startDate = formatIsoDate(info.startsAt)
+//  val endDate = formatIsoDate(info.endsAt)
+//  val dateString = if (startDate == endDate) startDate else "$startDate - $endDate"
+//
+//  val categoryText = info.category.toUiText().asString()
+//  val statusText = info.currentStatus?.toUiText()?.asString()
+//  val sublineText = if (statusText != null) "$categoryText, $statusText" else categoryText
 
   Surface(
     shape = RoundedCornerShape(Spacing.medium),
@@ -76,15 +73,13 @@ fun InfoTicketListItem(
           .fillMaxHeight(),
         contentAlignment = Alignment.Center
       ) {
-        if (info.imageUrl != null) {
+        if (imageUrl != null) {
           var imageLoadResult by remember {
             mutableStateOf<Result<Painter>?>(null)
           }
           val painter = rememberAsyncImagePainter(
-            model = info.imageUrl,
-            onSuccess = {
-              imageLoadResult = Result.success(it.painter)
-            },
+            model = imageUrl,
+            onSuccess = { imageLoadResult = Result.success(it.painter) },
             onError = {
               it.result.throwable.printStackTrace()
               imageLoadResult = Result.failure(it.result.throwable)
@@ -100,7 +95,7 @@ fun InfoTicketListItem(
               ThumbnailImage(
                 painter = painter,
                 isSuccess = result.isSuccess,
-                contentDescription = info.title
+                contentDescription = title
               )
             }
           }
@@ -119,20 +114,37 @@ fun InfoTicketListItem(
           .padding(horizontal = Spacing.medium, vertical = Spacing.small),
         verticalArrangement = Arrangement.Center,
       ) {
+        if (isDraft) {
+          Surface(
+            color = MaterialTheme.colorScheme.tertiaryContainer,
+            shape = RoundedCornerShape(4.dp),
+            modifier = Modifier.padding(end = 8.dp)
+          ) {
+            Text(
+              text = "Entwurf", // TODO Res
+              style = MaterialTheme.typography.labelSmall,
+              color = MaterialTheme.colorScheme.onTertiaryContainer,
+              modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+            )
+          }
+        }
+
         Text(
-          text = info.title,
+          text = title,
           style = MaterialTheme.typography.titleMedium,
           maxLines = 2,
           overflow = TextOverflow.Ellipsis,
           color = MaterialTheme.colorScheme.onSurface
         )
-        Text(
-          text = sublineText,
-          style = MaterialTheme.typography.bodyMedium,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-          color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        if (!subtitle.isNullOrBlank()) {
+          Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+          )
+        }
         Text(
           text = dateString,
           style = MaterialTheme.typography.bodySmall,
