@@ -15,6 +15,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,6 +29,7 @@ import community_app.composeapp.generated.resources.label_status
 import community_app.composeapp.generated.resources.label_status_history
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Activity
+import compose.icons.feathericons.User
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -39,7 +42,9 @@ fun InfoTicketDetailContent(
   onStatusClick: () -> Unit,
   startDate: String?,
   endDate: String?,
-  addressContent: @Composable (() -> Unit)? = null
+  addressContent: @Composable (() -> Unit)? = null,
+  isDraft: Boolean = false,
+  isOwner: Boolean = false
 ) {
   Column(
     modifier = Modifier
@@ -58,6 +63,25 @@ fun InfoTicketDetailContent(
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       Column {
+        if (isDraft) {
+          SuggestionChip(
+            onClick = {},
+            label = { Text("Entwurf - Nicht veröffentlicht") },
+            colors = SuggestionChipDefaults.suggestionChipColors(
+              containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+              labelColor = MaterialTheme.colorScheme.onTertiaryContainer
+            ),
+            modifier = Modifier.padding(bottom = 8.dp)
+          )
+        } else if (isOwner) {
+          SuggestionChip(
+            onClick = {},
+            label = { Text("Mein Anliegen") },
+            icon = { Icon(FeatherIcons.User, null) },
+            modifier = Modifier.padding(bottom = 8.dp)
+          )
+        }
+
         Text(
           text = title,
           style = MaterialTheme.typography.headlineMedium,
@@ -66,7 +90,7 @@ fun InfoTicketDetailContent(
         )
       }
 
-      statusText?.let { status ->
+      if (!isDraft && statusText != null) {
         Card(
           onClick = onStatusClick,
           colors = CardDefaults.cardColors(
@@ -86,7 +110,7 @@ fun InfoTicketDetailContent(
                 style = MaterialTheme.typography.labelMedium
               )
               Text(
-                text = status,
+                text = statusText,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
               )

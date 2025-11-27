@@ -29,6 +29,7 @@ import com.example.community_app.ticket.data.network.KtorRemoteTicketDataSource
 import com.example.community_app.ticket.data.network.RemoteTicketDataSource
 import com.example.community_app.ticket.data.repository.DefaultTicketRepository
 import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.ticket.presentation.ticket_detail.TicketDetailViewModel
 import com.example.community_app.ticket.presentation.ticket_master.TicketMasterViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
@@ -98,4 +99,5 @@ val sharedModule = module {
   viewModelOf(::InfoMasterViewModel)
   viewModelOf(::InfoDetailViewModel)
   viewModelOf(::TicketMasterViewModel)
+  viewModelOf(::TicketDetailViewModel)
 }
