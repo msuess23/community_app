@@ -238,7 +238,7 @@ object DatabaseSeeder {
       visibility = TicketVisibility.PUBLIC
     ))
 
-    val (t2Lat, t2Lon) = loc(-0.31, 0.04)
+    val (t2Lat, t2Lon) = loc(-0.25, 0.04)
     val priv1 = ticketRepo.create(TicketCreateData(
       title = "Laterne Bayreuth (Mittel)",
       description = "Mein privates Ticket (~35km)",

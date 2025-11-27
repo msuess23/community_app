@@ -26,6 +26,14 @@ fun Route.ticketRoutes(
       call.respond(list)
     }
 
+    authenticate("auth-jwt") {
+      get("/mine") {
+        val principal = call.principal<JWTPrincipal>()!!
+        val list = service.listMine(principal)
+        call.respond(list)
+      }
+    }
+
     // --- get specific ticket ---
     get("/{id}") {
       val id = call.parameters["id"]!!.toInt()
