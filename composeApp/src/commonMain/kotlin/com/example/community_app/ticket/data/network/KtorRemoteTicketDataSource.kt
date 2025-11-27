@@ -23,13 +23,9 @@ class KtorRemoteTicketDataSource(
   private val httpClient: HttpClient
 ): RemoteTicketDataSource {
   override suspend fun getTickets(bbox: String?): Result<List<TicketDto>, DataError.Remote> {
-    println("KtorRemoteTicketDataSource: Fetching infos with bbox=$bbox")
-
     return safeCall {
       httpClient.get(urlString = "$BASE_URL/api/ticket") {
-        if (bbox != null) {
-          parameter("bbox", bbox)
-        }
+        if (bbox != null) parameter("bbox", bbox)
       }
     }
   }

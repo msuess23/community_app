@@ -16,4 +16,24 @@ class DefaultMediaRepository(
   ): Result<List<MediaDto>, DataError.Remote> {
     return remoteDataSource.getMediaList(targetType, targetId)
   }
+
+  override suspend fun uploadMedia(
+    targetType: MediaTargetType,
+    targetId: Int,
+    bytes: ByteArray
+  ): Result<MediaDto, DataError.Remote> {
+    return remoteDataSource.uploadMedia(targetType, targetId, bytes, "upload.jpg")
+  }
+
+  override suspend fun deleteMedia(
+    targetType: MediaTargetType,
+    targetId: Int,
+    mediaId: Int
+  ): Result<Unit, DataError.Remote> {
+    return remoteDataSource.deleteMedia(targetType, targetId, mediaId)
+  }
+
+  override suspend fun setCover(mediaId: Int): Result<MediaDto, DataError.Remote> {
+    return remoteDataSource.setCover(mediaId)
+  }
 }

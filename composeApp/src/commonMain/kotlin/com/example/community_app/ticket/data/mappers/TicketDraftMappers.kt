@@ -2,6 +2,7 @@ package com.example.community_app.ticket.data.mappers
 
 import com.example.community_app.core.domain.model.Address
 import com.example.community_app.ticket.data.local.draft.TicketDraftEntity
+import com.example.community_app.ticket.data.local.draft.TicketDraftWithImages
 import com.example.community_app.ticket.data.local.ticket.TicketAddressEntity
 import com.example.community_app.ticket.domain.TicketDraft
 import com.example.community_app.util.TicketCategory
@@ -25,19 +26,20 @@ fun TicketDraft.toEntity(): TicketDraftEntity {
       )
     },
     visibility = visibility.name,
-    localImageUri = localImageUri,
     lastModified = lastModified
   )
 }
 
-fun TicketDraftEntity.toTicketDraft(): TicketDraft {
+fun TicketDraftWithImages.toTicketDraft(): TicketDraft {
   return TicketDraft(
-    id = id,
-    title = title,
-    description = description,
-    category = category?.let { runCatching { TicketCategory.valueOf(it) }.getOrNull() },
-    officeId = officeId,
-    address = address?.let {
+    id = draft.id,
+    title = draft.title,
+    description = draft.description,
+    category = draft.category?.let {
+      runCatching { TicketCategory.valueOf(it) }.getOrNull()
+    },
+    officeId = draft.officeId,
+    address = draft.address?.let {
       Address(
         street = it.street,
         houseNumber = it.houseNumber,
@@ -48,11 +50,11 @@ fun TicketDraftEntity.toTicketDraft(): TicketDraft {
       )
     },
     visibility = try {
-      TicketVisibility.valueOf(visibility)
+      TicketVisibility.valueOf(draft.visibility)
     } catch (e: Exception) {
       TicketVisibility.PRIVATE
     },
-    localImageUri = localImageUri,
-    lastModified = lastModified
+    images = images.map { it.localUri },
+    lastModified = draft.lastModified
   )
 }

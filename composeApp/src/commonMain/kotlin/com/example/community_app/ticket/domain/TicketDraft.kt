@@ -12,6 +12,6 @@ data class TicketDraft(
   val officeId: Int? = null,
   val address: Address? = null,
   val visibility: TicketVisibility = TicketVisibility.PRIVATE,
-  val localImageUri: String? = null,
+  val images: List<String> = emptyList(),
   val lastModified: String
 )

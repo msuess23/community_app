@@ -6,5 +6,23 @@ import com.example.community_app.dto.MediaDto
 import com.example.community_app.util.MediaTargetType
 
 interface RemoteMediaDataSource {
-  suspend fun getMediaList(targetType: MediaTargetType, targetId: Int): Result<List<MediaDto>, DataError.Remote>
+  suspend fun getMediaList(
+    targetType: MediaTargetType,
+    targetId: Int
+  ): Result<List<MediaDto>, DataError.Remote>
+
+  suspend fun uploadMedia(
+    targetType: MediaTargetType,
+    targetId: Int,
+    bytes: ByteArray,
+    fileName: String
+  ): Result<MediaDto, DataError.Remote>
+
+  suspend fun deleteMedia(
+    targetType: MediaTargetType,
+    targetId: Int,
+    mediaId: Int
+  ): Result<Unit, DataError.Remote>
+
+  suspend fun setCover(mediaId: Int): Result<MediaDto, DataError.Remote>
 }

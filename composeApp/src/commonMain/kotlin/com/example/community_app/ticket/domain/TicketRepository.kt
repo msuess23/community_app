@@ -11,21 +11,23 @@ import kotlinx.coroutines.flow.Flow
 interface TicketRepository {
   fun getTickets(): Flow<List<Ticket>>
   fun getTicket(id: Int): Flow<Ticket?>
+  fun getCommunityTickets(userId: Int): Flow<List<Ticket>>
+  fun getUserTickets(userId: Int): Flow<List<Ticket>>
+
 
   suspend fun syncTickets(): Result<Unit, DataError.Remote>
-
   suspend fun refreshTickets(): Result<Unit, DataError.Remote>
   suspend fun refreshTicket(id: Int): Result<Unit, DataError.Remote>
-
   suspend fun getStatusHistory(id: Int): Result<List<TicketStatusDto>, DataError.Remote>
 
-  suspend fun createTicket(
-    title: String,
-    description: String,
-    category: TicketCategory,
-    officeId: Int,
-    address: AddressDto,
-    visibility: TicketVisibility
+  fun getDrafts(): Flow<List<TicketDraft>>
+  suspend fun getDraft(id: Long): TicketDraft?
+  suspend fun saveDraft(draft: TicketDraft): Long
+  suspend fun deleteDraft(id: Long)
+
+  suspend fun uploadDraft(
+    draft: TicketDraft,
+    imageProvider: suspend (String) -> ByteArray?
   ): Result<Ticket, DataError.Remote>
 
   suspend fun updateTicket(
@@ -42,9 +44,4 @@ interface TicketRepository {
 
   suspend fun voteTicket(id: Int): Result<Unit, DataError.Remote>
   suspend fun unvoteTicket(id: Int): Result<Unit, DataError.Remote>
-
-  fun getDrafts(): Flow<List<TicketDraft>>
-  suspend fun getDraft(id: Long): TicketDraft?
-  suspend fun saveDraft(draft: TicketDraft): Long
-  suspend fun deleteDraft(id: Long)
 }

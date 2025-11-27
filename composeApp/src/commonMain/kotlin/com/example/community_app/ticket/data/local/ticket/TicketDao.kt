@@ -11,8 +11,14 @@ interface TicketDao {
   @Upsert
   suspend fun upsertTickets(tickets: List<TicketEntity>)
 
-  @Query("SELECT * FROM infos")
+  @Query("SELECT * FROM tickets")
   fun getTickets(): Flow<List<TicketEntity>>
+
+  @Query("SELECT * FROM tickets WHERE creatorUserId != :userId")
+  fun getCommunityTickets(userId: Int): Flow<List<TicketEntity>>
+
+  @Query("SELECT * FROM tickets WHERE creatorUserId = :userId")
+  fun getUserTickets(userId: Int): Flow<List<TicketEntity>>
 
   @Query("SELECT * FROM tickets WHERE id = :id")
   fun getTicketById(id: Int): Flow<TicketEntity?>

@@ -6,11 +6,26 @@ import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import com.example.community_app.info.data.local.InfoDao
 import com.example.community_app.info.data.local.InfoEntity
+import com.example.community_app.ticket.data.local.draft.TicketDraftDao
+import com.example.community_app.ticket.data.local.draft.TicketDraftEntity
+import com.example.community_app.ticket.data.local.draft.TicketDraftImageEntity
+import com.example.community_app.ticket.data.local.ticket.TicketDao
+import com.example.community_app.ticket.data.local.ticket.TicketEntity
 
-@Database(entities = [InfoEntity::class], version = 2)
+@Database(
+  entities = [
+    InfoEntity::class,
+    TicketEntity::class,
+    TicketDraftEntity::class,
+    TicketDraftImageEntity::class
+  ],
+  version = 3
+)
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
   abstract fun infoDao(): InfoDao
+  abstract fun ticketDao(): TicketDao
+  abstract fun ticketDraftDao(): TicketDraftDao
 }
 
 @Suppress("KotlinNoActualForExpect")

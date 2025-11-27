@@ -78,6 +78,8 @@ val sharedModule = module {
 
   // --- REPOSITORIES ---
   single { get<AppDatabase>().infoDao() }
+  single { get<AppDatabase>().ticketDao() }
+  single { get<AppDatabase>().ticketDraftDao() }
 
   singleOf(::DefaultAuthRepository).bind<AuthRepository>()
   singleOf(::DefaultSettingsRepository).bind<SettingsRepository>()
