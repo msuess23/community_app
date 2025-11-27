@@ -30,6 +30,12 @@ class KtorRemoteTicketDataSource(
     }
   }
 
+  override suspend fun getUserTickets(): Result<List<TicketDto>, DataError.Remote> {
+    return safeCall {
+      httpClient.get(urlString = "$BASE_URL/api/ticket/mine")
+    }
+  }
+
   override suspend fun getTicket(id: Int): Result<TicketDto, DataError.Remote> {
     return safeCall {
       httpClient.get(urlString = "$BASE_URL/api/ticket/$id")

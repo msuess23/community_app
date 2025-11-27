@@ -46,8 +46,8 @@ import com.example.community_app.core.presentation.components.list.InfoTicketLis
 import com.example.community_app.core.presentation.components.list.ScreenMessage
 import com.example.community_app.core.presentation.components.search.SearchBar
 import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatIsoDate
-import com.example.community_app.info.presentation.info_master.TicketMasterViewModel
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.filters_label
 import community_app.composeapp.generated.resources.search_no_results
@@ -91,10 +91,16 @@ private fun TicketMasterScreen(
   val snackbarHostState = remember { SnackbarHostState() }
   val tabs = listOf("Community", "Meins") // TODO: localize
 
+  val currentList = if (state.selectedTabIndex == 0) {
+    state.communitySearchResults
+  } else {
+    state.userSearchResults
+  }
+
   val lazyListState = rememberLazyListState()
   val emptyScrollState = rememberScrollState()
 
-  LaunchedEffect(state.searchResults) {
+  LaunchedEffect(state.selectedTabIndex) {
     lazyListState.animateScrollToItem(0)
   }
 
@@ -176,7 +182,10 @@ private fun TicketMasterScreen(
             selectedTabIndex = state.selectedTabIndex,
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.primary,
-            divider = { HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant) }
+            divider = { HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant) },
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(vertical = Spacing.medium)
           ) {
             tabs.forEachIndexed { index, title ->
               Tab(
@@ -205,7 +214,7 @@ private fun TicketMasterScreen(
                 )
               }
 
-              state.searchResults.isEmpty() && !state.isLoading -> {
+              currentList.isEmpty() && !state.isLoading -> {
                 Box(
                   modifier = Modifier
                     .fillMaxSize()
@@ -226,7 +235,7 @@ private fun TicketMasterScreen(
                   verticalArrangement = Arrangement.spacedBy(12.dp),
                   horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                  items(state.searchResults) { item ->
+                  items(currentList) { item ->
                     val (title, subtitle, date, image, isDraft) = when(item) {
                       is TicketUiItem.Remote -> {
                         val cat = item.ticket.category.toUiText().asString()
@@ -278,6 +287,7 @@ private fun TicketMasterScreen(
       if (state.isFilterSheetVisible) {
         TicketFilterSheet(
           filterState = state.filter,
+          isCommunityTab = state.selectedTabIndex == 0,
           onAction = onAction
         )
       }

@@ -18,7 +18,6 @@ import com.example.community_app.info.data.repository.DefaultInfoRepository
 import com.example.community_app.info.domain.InfoRepository
 import com.example.community_app.info.presentation.info_detail.InfoDetailViewModel
 import com.example.community_app.info.presentation.info_master.InfoMasterViewModel
-import com.example.community_app.info.presentation.info_master.TicketMasterViewModel
 import com.example.community_app.media.data.network.KtorRemoteMediaDataSource
 import com.example.community_app.media.data.network.RemoteMediaDataSource
 import com.example.community_app.media.data.repository.DefaultMediaRepository
@@ -30,6 +29,7 @@ import com.example.community_app.ticket.data.network.KtorRemoteTicketDataSource
 import com.example.community_app.ticket.data.network.RemoteTicketDataSource
 import com.example.community_app.ticket.data.repository.DefaultTicketRepository
 import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.ticket.presentation.ticket_master.TicketMasterViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf

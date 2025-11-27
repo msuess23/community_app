@@ -10,6 +10,7 @@ import com.example.community_app.dto.TicketVoteSummaryDto
 
 interface RemoteTicketDataSource {
   suspend fun getTickets(bbox: String? = null): Result<List<TicketDto>, DataError.Remote>
+  suspend fun getUserTickets(): Result<List<TicketDto>, DataError.Remote>
   suspend fun getTicket(id: Int): Result<TicketDto, DataError.Remote>
   suspend fun getStatusHistory(id: Int): Result<List<TicketStatusDto>, DataError.Remote>
 

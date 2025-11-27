@@ -48,6 +48,7 @@ import kotlin.math.roundToInt
 @Composable
 fun TicketFilterSheet(
   filterState: TicketFilterState,
+  isCommunityTab: Boolean = true,
   onAction: (TicketMasterAction) -> Unit,
   modifier: Modifier = Modifier
 ) {
@@ -121,22 +122,25 @@ fun TicketFilterSheet(
 
       HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
 
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Text(
-          text = "Entwürfe anzeigen", // TODO: Create Res
-          style = MaterialTheme.typography.titleMedium
-        )
-        Switch(
-          checked = filterState.showDrafts,
-          onCheckedChange = { onAction(TicketMasterAction.OnToggleShowDrafts(it)) }
-        )
-      }
+      if (!isCommunityTab) {
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Text(
+            text = "Entwürfe anzeigen", // TODO: Create Res
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+          )
+          Switch(
+            checked = filterState.showDrafts,
+            onCheckedChange = { onAction(TicketMasterAction.OnToggleShowDrafts(it)) }
+          )
+        }
 
-      HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
+        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
+      }
 
       CollapsibleFilterSection(
         title = Res.string.category_plural,
@@ -188,43 +192,45 @@ fun TicketFilterSheet(
         }
       }
 
-      HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
+      if (isCommunityTab) {
+        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
 
-      CollapsibleFilterSection(
-        title = Res.string.settings_radius_label,
-        isExpanded = filterState.expandedSections.contains(TicketFilterSection.DISTANCE),
-        onToggle = { onAction(TicketMasterAction.OnToggleSection(TicketFilterSection.DISTANCE)) }
-      ) {
-        Column(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = Spacing.small),
-          horizontalAlignment = Alignment.CenterHorizontally
+        CollapsibleFilterSection(
+          title = Res.string.settings_radius_label,
+          isExpanded = filterState.expandedSections.contains(TicketFilterSection.DISTANCE),
+          onToggle = { onAction(TicketMasterAction.OnToggleSection(TicketFilterSection.DISTANCE)) }
         ) {
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(vertical = Spacing.small),
+            horizontalAlignment = Alignment.CenterHorizontally
           ) {
-            CommunitySlider(
-              value = filterState.distanceRadiusKm,
-              onValueChange = { onAction(TicketMasterAction.OnDistanceChange(it)) },
-              valueRange = 1f..50f,
-              steps = 49,
-              modifier = Modifier.weight(1f)
-            )
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(12.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              CommunitySlider(
+                value = filterState.distanceRadiusKm,
+                onValueChange = { onAction(TicketMasterAction.OnDistanceChange(it)) },
+                valueRange = 1f..50f,
+                steps = 49,
+                modifier = Modifier.weight(1f)
+              )
+              Text(
+                text = "${filterState.distanceRadiusKm.roundToInt()} km",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+              )
+            }
+
             Text(
-              text = "${filterState.distanceRadiusKm.roundToInt()} km",
-              style = MaterialTheme.typography.titleMedium,
-              color = MaterialTheme.colorScheme.onSurface
+              text = stringResource(Res.string.settings_radius_helper),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant
             )
           }
-
-          Text(
-            text = stringResource(Res.string.settings_radius_helper),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
         }
       }
     }

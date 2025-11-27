@@ -249,9 +249,9 @@ object DatabaseSeeder {
       visibility = TicketVisibility.PRIVATE
     ))
 
-    val (t3Lat, t3Lon) = loc(-2.21, 0.01)
+    val (t3Lat, t3Lon) = loc(0.30, 0.01)
     val pub2 = ticketRepo.create(TicketCreateData(
-      title = "Müll Isartor (Fern)",
+      title = "Müll Isartor (Mittel)",
       description = "Weit entferntes Ticket (>200km)",
       category = TicketCategory.CLEANING,
       officeId = office2Id,

@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
+import com.example.community_app.auth.domain.AuthRepository
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.location.LocationService
@@ -34,7 +35,8 @@ class DefaultTicketRepository(
   private val ticketDao: TicketDao,
   private val ticketDraftDao: TicketDraftDao,
   private val dataStore: DataStore<Preferences>,
-  private val locationService: LocationService
+  private val locationService: LocationService,
+  private val authRepository: AuthRepository
 ): TicketRepository {
   private val keyLastSync = longPreferencesKey("ticket_last_sync_timestamp")
 
@@ -78,22 +80,36 @@ class DefaultTicketRepository(
     val currentLocation = locationService.getCurrentLocation()
 
     val bboxString = if (currentLocation != null) {
-      println("DefaultTicketRepository: Location found: $currentLocation")
       val bbox = GeoUtil.calculateBBox(currentLocation, SERVER_FETCH_RADIUS_KM)
       GeoUtil.toBBoxString(bbox)
-    } else {
-      println("DefaultTicketRepository: WARNING - No location available for BBox filter!")
-      null
+    } else null
+
+    val communityResult = remoteTicketDataSource.getTickets(bboxString)
+
+    val allTickets = mutableListOf<TicketDto>()
+
+    if (communityResult is Result.Success) {
+      allTickets.addAll(communityResult.data)
     }
 
-    return when (val result = remoteTicketDataSource.getTickets(bboxString)) {
-      is Result.Success -> {
-        ticketDao.replaceAll(result.data.map { it.toEntity() })
-        dataStore.edit { it[keyLastSync] = getCurrentTimeMillis() }
-        Result.Success(Unit)
+    val token = authRepository.getAccessToken()
+    if (token != null) {
+      val myResult = remoteTicketDataSource.getUserTickets()
+      if (myResult is Result.Success) {
+        allTickets.addAll(myResult.data)
       }
-      is Result.Error -> Result.Error(result.error)
     }
+
+    if (communityResult is Result.Error && token == null) {
+      return Result.Error(communityResult.error)
+    }
+
+    val distinctTickets = allTickets.distinctBy { it.id }
+
+    ticketDao.replaceAll(distinctTickets.map { it.toEntity() })
+    dataStore.edit { it[keyLastSync] = getCurrentTimeMillis() }
+
+    return Result.Success(Unit)
   }
 
   override suspend fun refreshTicket(id: Int): Result<Unit, DataError.Remote> {

@@ -1,4 +1,4 @@
-package com.example.community_app.info.presentation.info_master
+package com.example.community_app.ticket.presentation.ticket_master
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -150,20 +150,26 @@ class TicketMasterViewModel(
         observeTickets(authState.user.id)
       } else {
         _state.update { it.copy(isUserLoggedIn = false) }
-        observeTickets()
+        observeTickets(null)
       }
     }.launchIn(viewModelScope)
   }
 
   private fun observeTickets(userId: Int? = null) {
-    if (userId != null) {
+    // Community tickets
+    val communityFlow = if (userId != null) {
       ticketRepository.getCommunityTickets(userId)
-        .onEach { tickets ->
-          _state.update { it.copy(communityTickets = tickets) }
-          applyFilters()
-        }
-        .launchIn(viewModelScope)
+    } else {
+      ticketRepository.getTickets()
+    }
 
+    communityFlow.onEach { tickets ->
+      _state.update { it.copy(communityTickets = tickets) }
+      applyFilters()
+    }.launchIn(viewModelScope)
+
+    // User tickets and drafts
+    if (userId != null) {
       combine(
         ticketRepository.getUserTickets(userId),
         ticketRepository.getDrafts()
@@ -171,20 +177,15 @@ class TicketMasterViewModel(
         val combined = mutableListOf<TicketUiItem>()
         combined.addAll(drafts.map { TicketUiItem.Local(it) })
         combined.addAll(tickets.map { TicketUiItem.Remote(it) })
-        combined
+        combined.toList()
       }
         .onEach { items ->
           _state.update { it.copy(userTicketsAndDrafts = items) }
           applyFilters()
-        }
-        .launchIn(viewModelScope)
+        }.launchIn(viewModelScope)
     } else {
-      ticketRepository.getTickets()
-        .onEach { tickets ->
-          _state.update { it.copy(communityTickets = tickets) }
-          applyFilters()
-        }
-        .launchIn(viewModelScope)
+      _state.update { it.copy(userTicketsAndDrafts = emptyList()) }
+      applyFilters()
     }
   }
 
@@ -211,17 +212,28 @@ class TicketMasterViewModel(
 
   private fun applyFilters() {
     val currentState = _state.value
-    val query = currentState.searchQuery
-    val filter = currentState.filter
-    val userLocation = currentState.userLocation
 
-    val sourceList = if (currentState.selectedTabIndex == 0) {
-      currentState.communityTickets.map { TicketUiItem.Remote(it) }
-    } else {
-      currentState.userTicketsAndDrafts
-    }
+    val communitySource = currentState.communityTickets.map { TicketUiItem.Remote(it) }
+    val filteredCommunity = filterList(communitySource, isUserList = false)
 
-    var result = sourceList
+    val userSource = currentState.userTicketsAndDrafts
+    val filteredUser = filterList(userSource, isUserList = true)
+
+    _state.update { it.copy(
+      communitySearchResults = filteredCommunity,
+      userSearchResults = filteredUser
+    ) }
+  }
+
+  private fun filterList(
+    source: List<TicketUiItem>,
+    isUserList: Boolean
+  ): List<TicketUiItem> {
+    val query = _state.value.searchQuery
+    val filter = _state.value.filter
+    val userLocation = _state.value.userLocation
+
+    var result = source
 
     if (query.isNotBlank()) {
       result = result.filter { item ->
@@ -255,7 +267,7 @@ class TicketMasterViewModel(
       }
     }
 
-    if (userLocation != null) {
+    if (!isUserList && userLocation != null) {
       result = result.filter { item ->
         val address = when(item) {
           is TicketUiItem.Remote -> item.ticket.address
@@ -269,11 +281,11 @@ class TicketMasterViewModel(
       }
     }
 
-    if (currentState.selectedTabIndex == 1 && !filter.showDrafts) {
+    if (isUserList && !filter.showDrafts) {
       result = result.filter { it !is TicketUiItem.Local }
     }
 
-    result = when(filter.sortBy) {
+    return when(filter.sortBy) {
       TicketSortOption.DATE_DESC -> result.sortedByDescending {
         when(it) {
           is TicketUiItem.Remote -> it.ticket.createdAt
@@ -293,8 +305,6 @@ class TicketMasterViewModel(
         }
       }
     }
-
-    _state.update { it.copy(searchResults = result) }
   }
 
   private fun performSmartSync() {
