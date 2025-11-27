@@ -15,7 +15,8 @@ sealed interface Route {
 
   @Serializable data object TicketGraph : Route
   @Serializable data object TicketMaster : Route
-  @Serializable data class TicketDetail(val id: Int): Route
+  @Serializable data class TicketDetail(val id: Long, val isDraft: Boolean): Route
+  @Serializable data class TicketEdit(val draftId: Long? = null, val ticketId: Int? = null): Route
 
   @Serializable data object OfficeGraph : Route
   @Serializable data object OfficeMaster : Route

@@ -62,7 +62,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun TicketMasterScreenRoot(
   viewModel: TicketMasterViewModel = koinViewModel(),
   onOpenDrawer: () -> Unit,
-  onNavigateToTicketDetail: (Int) -> Unit,
+  onNavigateToTicketDetail: (Long, Boolean) -> Unit,
   onNavigateToTicketEdit: (Long?) -> Unit
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
@@ -72,8 +72,8 @@ fun TicketMasterScreenRoot(
     onAction = { action ->
       when (action) {
         is TicketMasterAction.OnCreateTicketClick -> onNavigateToTicketEdit(null)
-        is TicketMasterAction.OnTicketClick -> onNavigateToTicketDetail(action.ticket.id)
-        is TicketMasterAction.OnDraftClick -> onNavigateToTicketEdit(action.draft.id)
+        is TicketMasterAction.OnTicketClick -> onNavigateToTicketDetail(action.ticket.id.toLong(), false)
+        is TicketMasterAction.OnDraftClick -> onNavigateToTicketDetail(action.draft.id, true)
         else -> viewModel.onAction(action)
       }
     },

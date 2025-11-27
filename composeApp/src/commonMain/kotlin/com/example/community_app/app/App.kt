@@ -32,6 +32,7 @@ import com.example.community_app.info.presentation.info_detail.InfoDetailScreenR
 import com.example.community_app.info.presentation.info_master.InfoMasterScreenRoot
 import com.example.community_app.settings.domain.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsScreenRoot
+import com.example.community_app.ticket.presentation.ticket_detail.TicketDetailScreenRoot
 import com.example.community_app.ticket.presentation.ticket_master.TicketMasterScreenRoot
 import com.example.community_app.util.AppLanguage
 import com.example.community_app.util.AppTheme
@@ -182,10 +183,27 @@ fun App() {
               navigation<Route.TicketGraph>(startDestination = Route.TicketMaster) {
                 composable<Route.TicketMaster> {
                   TicketMasterScreenRoot(
-                    onNavigateToTicketDetail = {},
-                    onNavigateToTicketEdit = {},
+                    onNavigateToTicketDetail = { id, isDraft ->
+                      navController.navigate(Route.TicketDetail(id, isDraft))
+                    },
+                    onNavigateToTicketEdit = { draftId ->
+                      navController.navigate(Route.TicketEdit(draftId = draftId))
+                    },
                     onOpenDrawer = { scope.launch { drawerState.open() } }
                   )
+                }
+
+                composable<Route.TicketDetail> {
+                  TicketDetailScreenRoot(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToEdit = { ticketId, draftId ->
+                      navController.navigate(Route.TicketEdit(ticketId = ticketId, draftId = draftId))
+                    }
+                  )
+                }
+
+                composable<Route.TicketEdit> {
+                  DummyScreen("Ticket Edit", onOpenDrawer = { scope.launch { drawerState.open() } })
                 }
               }
 
