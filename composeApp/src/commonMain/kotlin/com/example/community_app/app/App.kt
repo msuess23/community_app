@@ -33,6 +33,7 @@ import com.example.community_app.info.presentation.info_master.InfoMasterScreenR
 import com.example.community_app.settings.domain.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsScreenRoot
 import com.example.community_app.ticket.presentation.ticket_detail.TicketDetailScreenRoot
+import com.example.community_app.ticket.presentation.ticket_edit.TicketEditScreenRoot
 import com.example.community_app.ticket.presentation.ticket_master.TicketMasterScreenRoot
 import com.example.community_app.util.AppLanguage
 import com.example.community_app.util.AppTheme
@@ -187,7 +188,7 @@ fun App() {
                       navController.navigate(Route.TicketDetail(id, isDraft))
                     },
                     onNavigateToTicketEdit = { draftId ->
-                      navController.navigate(Route.TicketEdit(draftId = draftId))
+                      navController.navigate(Route.TicketEdit(draftId = draftId, ticketId = null))
                     },
                     onOpenDrawer = { scope.launch { drawerState.open() } }
                   )
@@ -203,7 +204,9 @@ fun App() {
                 }
 
                 composable<Route.TicketEdit> {
-                  DummyScreen("Ticket Edit", onOpenDrawer = { scope.launch { drawerState.open() } })
+                  TicketEditScreenRoot(
+                    onNavigateBack = { navController.popBackStack() }
+                  )
                 }
               }
 
