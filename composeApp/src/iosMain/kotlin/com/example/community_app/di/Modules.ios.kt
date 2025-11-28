@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.example.community_app.core.data.local.AppDatabase
+import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.data.local.createDataStore
 import com.example.community_app.core.domain.location.IosLocationService
 import com.example.community_app.core.domain.location.LocationService
@@ -40,6 +41,8 @@ actual val platformModule = module {
   single<LocationService> { IosLocationService() }
 
   single { PermissionsController() }
+
+  single { FileStorage() }
 }
 
 @OptIn(ExperimentalForeignApi::class)
