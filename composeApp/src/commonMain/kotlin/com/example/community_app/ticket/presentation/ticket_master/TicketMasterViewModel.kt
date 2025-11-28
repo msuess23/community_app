@@ -12,10 +12,6 @@ import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.util.GeoUtil
 import com.example.community_app.ticket.domain.TicketRepository
-import com.example.community_app.ticket.presentation.ticket_master.TicketMasterAction
-import com.example.community_app.ticket.presentation.ticket_master.TicketMasterState
-import com.example.community_app.ticket.presentation.ticket_master.TicketSortOption
-import com.example.community_app.ticket.presentation.ticket_master.TicketUiItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -192,7 +188,7 @@ class TicketMasterViewModel(
   private fun checkLocationPermissionAndFetch(forceRefresh: Boolean = false) {
     viewModelScope.launch {
       val hasPermission = permissionService.requestLocationPermission()
-      _state.update { it.copy(isPermissionGranted = hasPermission) }
+      _state.update { it.copy(locationPermissionGranted = hasPermission) }
 
       if (hasPermission) {
         val location = locationService.getCurrentLocation()

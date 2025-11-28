@@ -142,7 +142,7 @@ class InfoMasterViewModel(
   private fun checkLocationPermissionAndFetch(forceRefresh: Boolean = false) {
     viewModelScope.launch {
       val hasPermission = permissionService.requestLocationPermission()
-      _state.update { it.copy(isPermissionGranted = hasPermission) }
+      _state.update { it.copy(locationPermissionGranted = hasPermission) }
 
       if (hasPermission) {
         val location = locationService.getCurrentLocation()

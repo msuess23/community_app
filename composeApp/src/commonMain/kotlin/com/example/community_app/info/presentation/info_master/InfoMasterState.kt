@@ -14,7 +14,7 @@ data class InfoMasterState(
   val isLoading: Boolean = false,
   val errorMessage: UiText? = null,
   val userLocation: Location? = null,
-  val isPermissionGranted: Boolean = false
+  val locationPermissionGranted: Boolean = false
 )
 
 data class InfoFilterState(
