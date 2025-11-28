@@ -24,7 +24,9 @@ import com.example.community_app.core.presentation.components.detail.StatusHisto
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.util.TicketStatus
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.info_not_found
+import community_app.composeapp.generated.resources.draft_label
+import community_app.composeapp.generated.resources.edit
+import community_app.composeapp.generated.resources.error_data_not_found
 import community_app.composeapp.generated.resources.ticket_singular
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Edit
@@ -70,8 +72,8 @@ private fun TicketDetailScreen(
     topBar = {
       CommunityTopAppBar(
         titleContent = {
-          val title = if (state.isDraft) "Entwurf" else stringResource(Res.string.ticket_singular)
-          Text(title)
+          val title = if (state.isDraft) Res.string.draft_label else Res.string.ticket_singular
+          Text(stringResource(title))
         },
         navigationType = TopBarNavigationType.Back,
         onNavigationClick = { onAction(TicketDetailAction.OnNavigateBack) },
@@ -80,7 +82,7 @@ private fun TicketDetailScreen(
             IconButton(onClick = { onAction(TicketDetailAction.OnEditClick) }) {
               Icon(
                 imageVector = FeatherIcons.Edit,
-                contentDescription = "Bearbeiten", // TODO: Res
+                contentDescription = stringResource(Res.string.edit),
                 tint = MaterialTheme.colorScheme.onPrimary
               )
             }
@@ -129,7 +131,7 @@ private fun TicketDetailScreen(
           )
         } else {
           Text(
-            text = stringResource(Res.string.info_not_found),
+            text = stringResource(Res.string.error_data_not_found),
             modifier = Modifier.align(Alignment.Center)
           )
         }

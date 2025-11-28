@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.community_app.auth.presentation.components.AuthGuard
 import com.example.community_app.core.presentation.components.CommunityTopAppBar
 import com.example.community_app.core.presentation.components.ObserveErrorMessage
 import com.example.community_app.core.presentation.components.TopBarNavigationType
@@ -49,8 +50,11 @@ import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatIsoDate
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.draft_created_on
 import community_app.composeapp.generated.resources.filters_label
 import community_app.composeapp.generated.resources.search_no_results
+import community_app.composeapp.generated.resources.ticket_ownership_community
+import community_app.composeapp.generated.resources.ticket_ownership_user
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Plus
 import compose.icons.feathericons.Sliders
@@ -63,7 +67,8 @@ fun TicketMasterScreenRoot(
   viewModel: TicketMasterViewModel = koinViewModel(),
   onOpenDrawer: () -> Unit,
   onNavigateToTicketDetail: (Long, Boolean) -> Unit,
-  onNavigateToTicketEdit: (Long?) -> Unit
+  onNavigateToTicketEdit: (Long?) -> Unit,
+  onNavigateToLogin: () -> Unit
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -74,6 +79,7 @@ fun TicketMasterScreenRoot(
         is TicketMasterAction.OnCreateTicketClick -> onNavigateToTicketEdit(null)
         is TicketMasterAction.OnTicketClick -> onNavigateToTicketDetail(action.ticket.id.toLong(), false)
         is TicketMasterAction.OnDraftClick -> onNavigateToTicketDetail(action.draft.id, true)
+        is TicketMasterAction.OnLoginClick -> onNavigateToLogin()
         else -> viewModel.onAction(action)
       }
     },
@@ -89,7 +95,7 @@ private fun TicketMasterScreen(
 ) {
   val keyboardController = LocalSoftwareKeyboardController.current
   val snackbarHostState = remember { SnackbarHostState() }
-  val tabs = listOf("Community", "Meins") // TODO: localize
+  val tabs = listOf(Res.string.ticket_ownership_community, Res.string.ticket_ownership_user)
 
   val currentList = if (state.selectedTabIndex == 0) {
     state.communitySearchResults
@@ -185,7 +191,7 @@ private fun TicketMasterScreen(
             divider = { HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant) },
             modifier = Modifier
               .fillMaxWidth()
-              .padding(vertical = Spacing.medium)
+              .padding(bottom = Spacing.medium, top = Spacing.extraSmall)
           ) {
             tabs.forEachIndexed { index, title ->
               Tab(
@@ -193,8 +199,10 @@ private fun TicketMasterScreen(
                 onClick = { onAction(TicketMasterAction.OnTabChange(index)) },
                 text = {
                   Text(
-                    text = title,
-                    fontWeight = if (state.selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                    text = stringResource(title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (state.selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.primary
                   )
                 }
               )
@@ -211,6 +219,13 @@ private fun TicketMasterScreen(
               state.isLoading -> {
                 CircularProgressIndicator(
                   color = MaterialTheme.colorScheme.primary
+                )
+              }
+
+              state.selectedTabIndex == 1 && !state.isUserLoggedIn -> {
+                AuthGuard(
+                  onLoginClick = { onAction(TicketMasterAction.OnLoginClick) },
+                  content = { }
                 )
               }
 
@@ -242,21 +257,22 @@ private fun TicketMasterScreen(
                         val status = item.ticket.currentStatus?.toUiText()?.asString()
                         val sub = if(status != null) "$cat, $status" else cat
                         TicketItemData(
-                          item.ticket.title,
-                          sub,
-                          formatIsoDate(item.ticket.createdAt),
-                          item.ticket.imageUrl,
-                          false
+                          title = item.ticket.title,
+                          subtitle = sub,
+                          date = formatIsoDate(item.ticket.createdAt),
+                          image = item.ticket.imageUrl,
+                          isDraft = false
                         )
                       }
                       is TicketUiItem.Local -> {
                         val cat = item.draft.category?.toUiText()?.asString() ?: "-"
                         TicketItemData(
-                          item.draft.title.ifBlank { "Neues Anliegen (Entwurf)" },
-                          cat,
-                          "Entwurf vom ${formatIsoDate(item.draft.lastModified)}",
-                          item.draft.images.firstOrNull(),
-                          true
+                          title = item.draft.title,
+                          subtitle = cat,
+                          date = stringResource(Res.string.draft_created_on)
+                              + formatIsoDate(item.draft.lastModified),
+                          image = item.draft.images.firstOrNull(),
+                          isDraft = true
                         )
                       }
                     }

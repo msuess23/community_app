@@ -19,9 +19,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -38,7 +39,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.rememberAsyncImagePainter
@@ -56,15 +60,25 @@ import com.example.community_app.core.util.ImagePickerFactory
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.auth_logout_dialog
 import community_app.composeapp.generated.resources.auth_logout_label
+import community_app.composeapp.generated.resources.camera
 import community_app.composeapp.generated.resources.cancel
 import community_app.composeapp.generated.resources.category_singular
+import community_app.composeapp.generated.resources.delete
+import community_app.composeapp.generated.resources.draft_edit_label
+import community_app.composeapp.generated.resources.gallery
+import community_app.composeapp.generated.resources.images_label
 import community_app.composeapp.generated.resources.next
 import community_app.composeapp.generated.resources.save
 import community_app.composeapp.generated.resources.ticket_singular
 import community_app.composeapp.generated.resources.info_singular
-import community_app.composeapp.generated.resources.settings_radius_label
+import community_app.composeapp.generated.resources.ticket_delete_dialog_text
+import community_app.composeapp.generated.resources.ticket_edit_label
+import community_app.composeapp.generated.resources.ticket_upload_dialog_text
+import community_app.composeapp.generated.resources.ticket_visibility_info_text
+import community_app.composeapp.generated.resources.ticket_visibility_label
+import community_app.composeapp.generated.resources.upload
+import community_app.composeapp.generated.resources.use_current_location
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Camera
 import compose.icons.feathericons.Image
@@ -119,7 +133,10 @@ private fun TicketEditScreen(
   Scaffold(
     topBar = {
       CommunityTopAppBar(
-        titleContent = { Text(if (state.isDraft) "Entwurf bearbeiten" else "Ticket bearbeiten") },
+        titleContent = { Text(text =
+          if (state.isDraft) stringResource(Res.string.draft_edit_label)
+          else stringResource(Res.string.ticket_edit_label)
+        ) },
         navigationType = TopBarNavigationType.Back,
         onNavigationClick = { onAction(TicketEditAction.OnNavigateBack) },
         actions = {
@@ -127,7 +144,7 @@ private fun TicketEditScreen(
             IconButton(onClick = { onAction(TicketEditAction.OnDeleteClick) }) {
               Icon(
                 imageVector = FeatherIcons.Trash2,
-                contentDescription = "Löschen",
+                contentDescription = stringResource(Res.string.delete),
                 tint = MaterialTheme.colorScheme.error
               )
             }
@@ -150,6 +167,10 @@ private fun TicketEditScreen(
         value = state.title,
         onValueChange = { onAction(TicketEditAction.OnTitleChange(it)) },
         label = Res.string.ticket_singular,
+        keyboardOptions = KeyboardOptions(
+          keyboardType = KeyboardType.Text,
+          imeAction = ImeAction.Next
+        )
       )
 
       CommunityTextField(
@@ -157,6 +178,10 @@ private fun TicketEditScreen(
         onValueChange = { onAction(TicketEditAction.OnDescriptionChange(it)) },
         label = Res.string.info_singular,
         singleLine = false,
+        keyboardOptions = KeyboardOptions(
+          keyboardType = KeyboardType.Text,
+          imeAction = ImeAction.Done
+        ),
         modifier = Modifier.height(120.dp)
       )
 
@@ -169,7 +194,28 @@ private fun TicketEditScreen(
         label = stringResource(Res.string.category_singular)
       )
 
-      // Office Mock
+      // Visibility
+      Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.Start
+      ) {
+        CommunityDropdownMenu(
+          items = TicketVisibility.entries,
+          selectedItem = state.visibility,
+          onItemSelected = { onAction(TicketEditAction.OnVisibilityChange(it)) },
+          itemLabel = { it.toUiText().asString() },
+          label = stringResource(Res.string.ticket_visibility_label)
+        )
+        Text(
+          text = stringResource(Res.string.ticket_visibility_info_text),
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.padding(Spacing.extraSmall)
+        )
+      }
+
+      // TODO: SearchBar with result
+      // (https://developer.android.com/develop/ui/compose/components/search-bar?hl=en)
       OutlinedButton(
         onClick = { /* TODO: Search Dialog */ },
         modifier = Modifier.fillMaxWidth()
@@ -179,26 +225,16 @@ private fun TicketEditScreen(
 
       // Location
       CommunityCheckbox(
-        label = Res.string.settings_radius_label, // Fallback: "Standort verwenden" wäre besser
+        label = Res.string.use_current_location,
         checked = state.useCurrentLocation,
         onCheckChange = { onAction(TicketEditAction.OnUseLocationChange(it)) }
       )
 
-      // Visibility
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("Sichtbarkeit:", style = MaterialTheme.typography.bodyMedium)
-        Spacer(Modifier.width(8.dp))
-        CommunityDropdownMenu(
-          items = TicketVisibility.entries,
-          selectedItem = state.visibility,
-          onItemSelected = { onAction(TicketEditAction.OnVisibilityChange(it)) },
-          itemLabel = { it.name },
-          modifier = Modifier.weight(1f)
-        )
-      }
-
       // Images Section
-      Text("Bilder", style = MaterialTheme.typography.titleMedium)
+      Text(
+        text = stringResource(Res.string.images_label),
+        style = MaterialTheme.typography.titleMedium
+      )
       LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.fillMaxWidth().height(100.dp)
@@ -226,12 +262,11 @@ private fun TicketEditScreen(
               .clip(RoundedCornerShape(8.dp))
               .border(
                 width = if (isCover) 3.dp else 0.dp,
-                color = if (isCover) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent,
+                color = if (isCover) MaterialTheme.colorScheme.primary else Color.Transparent,
                 shape = RoundedCornerShape(8.dp)
               )
               .clickable { onAction(TicketEditAction.OnSetCoverImage(image)) }
           ) {
-            // Coil lädt auch lokale Dateien via Pfad/URI
             Image(
               painter = rememberAsyncImagePainter(image.uri),
               contentDescription = null,
@@ -264,13 +299,14 @@ private fun TicketEditScreen(
           CommunityButton(
             text = Res.string.save,
             onClick = { onAction(TicketEditAction.OnSaveDraftClick) },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            enabled = state.title.isNotBlank()
           )
           CommunityButton(
-            text = Res.string.next, // Use "Upload" Res ideally
+            text = Res.string.upload,
             onClick = { onAction(TicketEditAction.OnUploadClick) },
             modifier = Modifier.weight(1f),
-            enabled = state.title.isNotBlank() // Simple validation
+            enabled = state.title.isNotBlank()
           )
         }
       } else {
@@ -286,8 +322,8 @@ private fun TicketEditScreen(
   // Dialogs
   if (state.showDeleteDialog) {
     CommunityDialog(
-      title = Res.string.auth_logout_label, // Use "Löschen" Res
-      text = Res.string.auth_logout_dialog, // Use "Wirklich löschen?" Res
+      title = Res.string.delete,
+      text = if (state.isDraft) Res.string.ticket_delete_dialog_text else Res.string.ticket_delete_dialog_text,
       onDismissRequest = { onAction(TicketEditAction.OnDeleteDismiss) },
       confirmButtonText = Res.string.auth_logout_label,
       onConfirm = { onAction(TicketEditAction.OnDeleteConfirm) },
@@ -298,8 +334,8 @@ private fun TicketEditScreen(
 
   if (state.showUploadDialog) {
     CommunityDialog(
-      title = Res.string.next, // "Veröffentlichen"
-      text = Res.string.next, // "Soll das Anliegen jetzt veröffentlicht werden?"
+      title = Res.string.upload,
+      text = Res.string.ticket_upload_dialog_text,
       onDismissRequest = { onAction(TicketEditAction.OnUploadDismiss) },
       confirmButtonText = Res.string.next,
       onConfirm = { onAction(TicketEditAction.OnUploadConfirm) }
@@ -314,7 +350,7 @@ private fun TicketEditScreen(
       text = {
         Column {
           ListItem(
-            headlineContent = { Text("Kamera") },
+            headlineContent = { Text(stringResource(Res.string.camera)) },
             leadingContent = { Icon(FeatherIcons.Camera, null) },
             modifier = Modifier.clickable {
               onAction(TicketEditAction.OnImageSourceDialogDismiss)
@@ -322,7 +358,7 @@ private fun TicketEditScreen(
             }
           )
           ListItem(
-            headlineContent = { Text("Galerie") },
+            headlineContent = { Text(stringResource(Res.string.gallery)) },
             leadingContent = { Icon(FeatherIcons.Image, null) },
             modifier = Modifier.clickable {
               onAction(TicketEditAction.OnImageSourceDialogDismiss)

@@ -190,6 +190,7 @@ fun App() {
                     onNavigateToTicketEdit = { draftId ->
                       navController.navigate(Route.TicketEdit(draftId = draftId, ticketId = null))
                     },
+                    onNavigateToLogin = { navController.navigate(Route.AuthGraph) },
                     onOpenDrawer = { scope.launch { drawerState.open() } }
                   )
                 }

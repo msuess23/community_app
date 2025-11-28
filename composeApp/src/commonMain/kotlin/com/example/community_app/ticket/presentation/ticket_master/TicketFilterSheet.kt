@@ -32,6 +32,7 @@ import com.example.community_app.util.TicketStatus
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.category_all
 import community_app.composeapp.generated.resources.category_plural
+import community_app.composeapp.generated.resources.draft_show_filter
 import community_app.composeapp.generated.resources.filters_clear
 import community_app.composeapp.generated.resources.filters_label
 import community_app.composeapp.generated.resources.label_status
@@ -129,7 +130,7 @@ fun TicketFilterSheet(
           verticalAlignment = Alignment.CenterVertically
         ) {
           Text(
-            text = "Entwürfe anzeigen", // TODO: Create Res
+            text = stringResource(Res.string.draft_show_filter),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
           )

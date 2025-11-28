@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.community_app.media.presentation.ImageGallery
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.draft_label_long
 import community_app.composeapp.generated.resources.label_status
 import community_app.composeapp.generated.resources.label_status_history
 import compose.icons.FeatherIcons
@@ -66,7 +67,7 @@ fun InfoTicketDetailContent(
         if (isDraft) {
           SuggestionChip(
             onClick = {},
-            label = { Text("Entwurf - Nicht veröffentlicht") },
+            label = { Text(stringResource(Res.string.draft_label_long)) },
             colors = SuggestionChipDefaults.suggestionChipColors(
               containerColor = MaterialTheme.colorScheme.tertiaryContainer,
               labelColor = MaterialTheme.colorScheme.onTertiaryContainer

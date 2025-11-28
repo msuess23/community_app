@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.core.presentation.components.CommunityTopAppBar
 import com.example.community_app.core.presentation.components.TopBarNavigationType
@@ -23,7 +22,7 @@ import com.example.community_app.core.presentation.components.detail.StatusHisto
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.util.InfoStatus
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.info_not_found
+import community_app.composeapp.generated.resources.error_data_not_found
 import community_app.composeapp.generated.resources.info_singular
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -94,7 +93,7 @@ private fun InfoDetailScreen(
           )
         } ?: run {
           Text(
-            text = stringResource(Res.string.info_not_found),
+            text = stringResource(Res.string.error_data_not_found),
             modifier = Modifier.align(Alignment.Center)
           )
         }

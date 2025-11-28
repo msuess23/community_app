@@ -33,10 +33,12 @@ import coil3.compose.rememberAsyncImagePainter
 import com.example.community_app.core.presentation.theme.Size
 import com.example.community_app.core.presentation.theme.Spacing
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.draft_label
 import community_app.composeapp.generated.resources.image_placeholder
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ChevronRight
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun InfoTicketListItem(
@@ -121,7 +123,7 @@ fun InfoTicketListItem(
             modifier = Modifier.padding(end = 8.dp)
           ) {
             Text(
-              text = "Entwurf", // TODO Res
+              text = stringResource(Res.string.draft_label),
               style = MaterialTheme.typography.labelSmall,
               color = MaterialTheme.colorScheme.onTertiaryContainer,
               modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)

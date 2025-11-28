@@ -18,7 +18,7 @@ data class TicketEditState(
   val title: String = "",
   val description: String = "",
   val category: TicketCategory = TicketCategory.OTHER,
-  val visibility: TicketVisibility = TicketVisibility.PUBLIC,
+  val visibility: TicketVisibility = TicketVisibility.PRIVATE,
   val officeId: Int? = null,
   val useCurrentLocation: Boolean = true,
 

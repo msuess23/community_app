@@ -4,16 +4,27 @@ import com.example.community_app.util.InfoCategory
 import com.example.community_app.util.InfoStatus
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketStatus
+import com.example.community_app.util.TicketVisibility
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.category_announcement
+import community_app.composeapp.generated.resources.category_cleaning
 import community_app.composeapp.generated.resources.category_construction
 import community_app.composeapp.generated.resources.category_event
+import community_app.composeapp.generated.resources.category_infrastructure
 import community_app.composeapp.generated.resources.category_maintenance
+import community_app.composeapp.generated.resources.category_noise
 import community_app.composeapp.generated.resources.category_other
+import community_app.composeapp.generated.resources.category_safety
 import community_app.composeapp.generated.resources.status_active
 import community_app.composeapp.generated.resources.status_cancelled
 import community_app.composeapp.generated.resources.status_done
+import community_app.composeapp.generated.resources.status_in_progress
+import community_app.composeapp.generated.resources.status_open
+import community_app.composeapp.generated.resources.status_rejected
+import community_app.composeapp.generated.resources.status_resolved
 import community_app.composeapp.generated.resources.status_scheduled
+import community_app.composeapp.generated.resources.ticket_visibility_private
+import community_app.composeapp.generated.resources.ticket_visibility_public
 import community_app.composeapp.generated.resources.welcome_back
 
 fun InfoCategory.toUiText(): UiText {
@@ -39,22 +50,30 @@ fun InfoStatus.toUiText(): UiText {
 
 fun TicketCategory.toUiText(): UiText {
   val res = when(this) {
-    TicketCategory.INFRASTRUCTURE -> Res.string.welcome_back // TODO
-    TicketCategory.CLEANING -> Res.string.welcome_back // TODO
-    TicketCategory.SAFETY -> Res.string.welcome_back // TODO
-    TicketCategory.NOISE -> Res.string.welcome_back // TODO
-    TicketCategory.OTHER -> Res.string.welcome_back // TODO
+    TicketCategory.INFRASTRUCTURE -> Res.string.category_infrastructure
+    TicketCategory.CLEANING -> Res.string.category_cleaning
+    TicketCategory.SAFETY -> Res.string.category_safety
+    TicketCategory.NOISE -> Res.string.category_noise
+    TicketCategory.OTHER -> Res.string.category_other
   }
   return UiText.StringResourceId(res)
 }
 
 fun TicketStatus.toUiText(): UiText {
   val res = when(this) {
-    TicketStatus.OPEN -> Res.string.welcome_back // TODO
-    TicketStatus.IN_PROGRESS -> Res.string.welcome_back // TODO
-    TicketStatus.RESOLVED -> Res.string.welcome_back // TODO
-    TicketStatus.REJECTED -> Res.string.welcome_back // TODO
-    TicketStatus.CANCELLED -> Res.string.welcome_back // TODO
+    TicketStatus.OPEN -> Res.string.status_open
+    TicketStatus.IN_PROGRESS -> Res.string.status_in_progress
+    TicketStatus.RESOLVED -> Res.string.status_resolved
+    TicketStatus.CANCELLED -> Res.string.status_cancelled
+    TicketStatus.REJECTED -> Res.string.status_rejected
+  }
+  return UiText.StringResourceId(res)
+}
+
+fun TicketVisibility.toUiText(): UiText {
+  val res = when(this) {
+    TicketVisibility.PUBLIC -> Res.string.ticket_visibility_public
+    TicketVisibility.PRIVATE -> Res.string.ticket_visibility_private
   }
   return UiText.StringResourceId(res)
 }

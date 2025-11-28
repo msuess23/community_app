@@ -22,9 +22,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -33,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,6 +50,7 @@ import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatIsoDate
 import com.example.community_app.info.domain.Info
+import com.example.community_app.ticket.presentation.ticket_master.TicketMasterAction
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.filters_label
 import community_app.composeapp.generated.resources.info_plural
@@ -157,26 +161,35 @@ private fun InfoMasterScreen(
         Column(
           horizontalAlignment = Alignment.CenterHorizontally
         ) {
-          Column(
+          SecondaryTabRow(
+            selectedTabIndex = 0,
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.outlineVariant,
+            divider = {
+              HorizontalDivider(
+                modifier = Modifier.height(1.dp),
+                color = MaterialTheme.colorScheme.outlineVariant
+              )
+            },
+            indicator = { },
             modifier = Modifier
               .fillMaxWidth()
-              .padding(vertical = Spacing.medium),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.small)
+              .padding(bottom = Spacing.medium, top = Spacing.extraSmall)
           ) {
-            Text(
-              text = stringResource(Res.string.info_plural),
-              style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.primary
-            )
-            HorizontalDivider(
-              modifier = Modifier.height(1.dp),
-              color = MaterialTheme.colorScheme.outlineVariant
+            Tab(
+              selected = false,
+              enabled = false,
+              onClick = { },
+              text = {
+                Text(
+                  text = stringResource(Res.string.info_plural),
+                  style = MaterialTheme.typography.titleMedium,
+                  fontWeight = FontWeight.Bold,
+                  color = MaterialTheme.colorScheme.primary
+                )
+              }
             )
           }
-
-          Spacer(modifier = Modifier.height(Spacing.extraSmall))
 
           PullToRefreshBox(
             isRefreshing = state.isLoading,
