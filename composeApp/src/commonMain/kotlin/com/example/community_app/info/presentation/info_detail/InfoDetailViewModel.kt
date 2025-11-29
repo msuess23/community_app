@@ -12,11 +12,9 @@ import com.example.community_app.util.BASE_URL
 import com.example.community_app.util.MediaTargetType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class InfoDetailViewModel(
@@ -26,75 +24,67 @@ class InfoDetailViewModel(
 ) : ViewModel() {
   private val infoId = savedStateHandle.toRoute<Route.InfoDetail>().id
 
-  private val _state = MutableStateFlow(InfoDetailState())
-  val state = _state
-    .onStart {
-      observeInfo()
-      fetchUpdate()
-      fetchImages()
-    }
-    .stateIn(
-      viewModelScope,
-      SharingStarted.WhileSubscribed(5000L),
-      _state.value
+  private val _showStatusHistory = MutableStateFlow(false)
+  private val _isLoading = MutableStateFlow(false)
+
+  private val infoFlow = infoRepository.getInfo(infoId)
+  private val additionalDataFlow = flow {
+    _isLoading.value = true
+    val imagesResult = mediaRepository.getMediaList(
+      targetType = MediaTargetType.INFO,
+      targetId = infoId
     )
 
+    val historyResult = infoRepository.getStatusHistory(infoId)
+
+    val imageUrls = if (imagesResult is Result.Success) {
+      imagesResult.data.map { "$BASE_URL${it.url}" }
+    } else emptyList()
+
+    val history = if (historyResult is Result.Success) {
+      historyResult.data
+    } else emptyList()
+
+    emit(Pair(imageUrls, history))
+    _isLoading.value = false
+  }
+
+  val state = combine(
+    infoFlow,
+    additionalDataFlow,
+    _showStatusHistory,
+    _isLoading
+  ) { info, (images, history), showHistory, loading ->
+    val finalImages = images.ifEmpty { listOfNotNull(info?.imageUrl) }
+
+    InfoDetailState(
+      isLoading = loading,
+      info = info,
+      imageUrls = finalImages,
+      showStatusHistory = showHistory,
+      statusHistory = history
+    )
+  }.stateIn(
+    viewModelScope,
+    SharingStarted.WhileSubscribed(5000L),
+    InfoDetailState(isLoading = true)
+  )
+
+  init {
+    refreshInfoData()
+  }
+
   fun onAction(action: InfoDetailAction) {
-    when(action) {
-      InfoDetailAction.OnShowStatusHistory -> fetchHistory()
-      InfoDetailAction.OnDismissStatusHistory -> {
-        _state.update { it.copy(showStatusHistory = false) }
-      }
+    when (action) {
+      InfoDetailAction.OnShowStatusHistory -> _showStatusHistory.value = true
+      InfoDetailAction.OnDismissStatusHistory -> _showStatusHistory.value = false
       else -> Unit
     }
   }
 
-  private fun observeInfo() {
-    infoRepository.getInfo(infoId)
-      .onEach { info ->
-        _state.update { it.copy(info = info) }
-      }
-      .launchIn(viewModelScope)
-  }
-
-  private fun fetchUpdate() {
+  private fun refreshInfoData() {
     viewModelScope.launch {
-      if (_state.value.info == null) {
-        _state.update { it.copy(isLoading = true) }
-      }
-
-      val result = infoRepository.refreshInfo(infoId)
-      _state.update { it.copy(isLoading = false) }
-
-      if (result is Result.Error) {
-        println("Detail refresh failed: ${result.error}")
-      }
-    }
-  }
-
-  private fun fetchImages() {
-    viewModelScope.launch {
-      val result = mediaRepository.getMediaList(
-        MediaTargetType.INFO,
-        infoId
-      )
-
-      if (result is Result.Success) {
-        val urls = result.data.map { "$BASE_URL${it.url}" }
-        _state.update { it.copy(imageUrls = urls) }
-      }
-    }
-  }
-
-  private fun fetchHistory() {
-    viewModelScope.launch {
-      val result = infoRepository.getStatusHistory(infoId)
-      if (result is Result.Success) {
-        _state.update { it.copy(
-          statusHistory = result.data,
-          showStatusHistory = true
-        )}
-      }
+      infoRepository.refreshInfo(infoId)
     }
   }
 }
