@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import com.example.community_app.auth.domain.AuthRepository
+import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.location.LocationService
@@ -36,7 +37,8 @@ class DefaultTicketRepository(
   private val ticketDraftDao: TicketDraftDao,
   private val dataStore: DataStore<Preferences>,
   private val locationService: LocationService,
-  private val authRepository: AuthRepository
+  private val authRepository: AuthRepository,
+  private val fileStorage: FileStorage
 ): TicketRepository {
   private val keyLastSync = longPreferencesKey("ticket_last_sync_timestamp")
 
@@ -128,12 +130,20 @@ class DefaultTicketRepository(
 
   override fun getDrafts(): Flow<List<TicketDraft>> {
     return ticketDraftDao.getDrafts().map { list ->
-      list.map { it.toTicketDraft() }
+      list.map {
+        val draft = it.toTicketDraft()
+        draft.copy(images = draft.images.map { name ->
+          fileStorage.getFullPath(name)
+        })
+      }
     }
   }
 
   override suspend fun getDraft(id: Long): TicketDraft? {
-    return ticketDraftDao.getDraftById(id)?.toTicketDraft()
+    val draft = ticketDraftDao.getDraftById(id)?.toTicketDraft() ?: return null
+    return draft.copy(images = draft.images.map { name ->
+      fileStorage.getFullPath(name)
+    })
   }
 
   override suspend fun saveDraft(draft: TicketDraft): Long {
@@ -144,18 +154,15 @@ class DefaultTicketRepository(
     ticketDraftDao.deleteDraft(id)
   }
 
-  override suspend fun uploadDraft(
-    draft: TicketDraft,
-    imageProvider: suspend (String) -> ByteArray?
-  ): Result<Ticket, DataError.Remote> {
+  override suspend fun uploadDraft(draft: TicketDraft): Result<Ticket, DataError.Remote> {
     val createRequest = TicketCreateDto(
       title = draft.title,
       description = draft.description,
       category = draft.category ?: TicketCategory.OTHER,
-      officeId = draft.officeId ?: return Result.Error(DataError.Remote.UNKNOWN),
+      officeId = draft.officeId ?: 1, // Mock
       address = draft.address?.let {
         AddressDto(it.street, it.houseNumber, it.zipCode, it.city, it.longitude, it.latitude)
-                                   },
+      },
       visibility = draft.visibility
     )
 
@@ -168,11 +175,18 @@ class DefaultTicketRepository(
     val newTicket = (ticketResult as Result.Success).data
     val ticketId = newTicket.id
 
-    draft.images.forEach { localUri ->
-      val bytes = imageProvider(localUri)
-      if (bytes != null) {
-        mediaRepository.uploadMedia(MediaTargetType.TICKET, ticketId, bytes)
+    draft.images.forEach { imageString ->
+      val fileName = if (imageString.contains("/")) {
+        imageString.substringAfterLast("/")
+      } else {
+        imageString
       }
+
+      mediaRepository.uploadMedia(
+        targetType = MediaTargetType.TICKET,
+        targetId = ticketId,
+        fileName = fileName
+      )
     }
 
     val refreshResult = refreshTicket(ticketId)
@@ -180,6 +194,7 @@ class DefaultTicketRepository(
 
     return if(refreshResult is Result.Success) {
       val entity = ticketDao.getTicketById(ticketId).first()
+
       if (entity != null) {
         Result.Success(entity.toTicket())
       } else {

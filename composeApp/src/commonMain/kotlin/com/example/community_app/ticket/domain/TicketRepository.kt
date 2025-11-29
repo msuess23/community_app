@@ -25,10 +25,7 @@ interface TicketRepository {
   suspend fun saveDraft(draft: TicketDraft): Long
   suspend fun deleteDraft(id: Long)
 
-  suspend fun uploadDraft(
-    draft: TicketDraft,
-    imageProvider: suspend (String) -> ByteArray?
-  ): Result<Ticket, DataError.Remote>
+  suspend fun uploadDraft(draft: TicketDraft): Result<Ticket, DataError.Remote>
 
   suspend fun updateTicket(
     id: Int,

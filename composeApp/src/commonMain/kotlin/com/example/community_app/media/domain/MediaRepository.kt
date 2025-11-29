@@ -11,10 +11,15 @@ interface MediaRepository {
     targetId: Int
   ): Result<List<MediaDto>, DataError.Remote>
 
+  suspend fun downloadMedia(
+    url: String,
+    saveToFileName: String
+  ): Result<String, DataError.Remote>
+
   suspend fun uploadMedia(
     targetType: MediaTargetType,
     targetId: Int,
-    bytes: ByteArray
+    fileName: String
   ): Result<MediaDto, DataError.Remote>
 
   suspend fun deleteMedia(

@@ -8,8 +8,11 @@ import com.example.community_app.app.navigation.Route
 import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.location.LocationService
+import com.example.community_app.core.domain.model.Address
 import com.example.community_app.core.domain.permission.AppPermissionService
+import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.media.domain.MediaRepository
 import com.example.community_app.ticket.domain.TicketDraft
 import com.example.community_app.ticket.domain.TicketRepository
@@ -30,7 +33,7 @@ class TicketEditViewModel(
   private val mediaRepository: MediaRepository,
   private val locationService: LocationService,
   private val permissionService: AppPermissionService,
-  private val fileStorage: FileStorage // NEU: Injiziert
+  private val fileStorage: FileStorage
 ) : ViewModel() {
 
   private val args = savedStateHandle.toRoute<Route.TicketEdit>()
@@ -75,24 +78,21 @@ class TicketEditViewModel(
     }
   }
 
-  // Callback vom ImagePicker: Speichert Bytes direkt persistent
-  fun onImagePicked(bytes: ByteArray) {
+  fun onImagePicked(tempPath: String) {
     viewModelScope.launch {
-      // 1. In Dateisystem schreiben
-      val path = fileStorage.saveImage(bytes)
+      val fileName = fileStorage.moveFromTemp(tempPath)
+      val fullPath = fileStorage.getFullPath(fileName)
 
-      // 2. Pfad in den State aufnehmen
       val newImage = TicketImageState(
-        uri = path, // Das ist jetzt ein echter Dateipfad
+        uri = fullPath,
         isLocal = true,
-        id = path
+        id = fullPath
       )
 
       _state.update { currentState ->
         val newImages = currentState.images + newImage
         currentState.copy(
           images = newImages,
-          // Wenn erstes Bild -> automatisch Cover
           coverImageUri = currentState.coverImageUri ?: newImage.uri,
           showImageSourceDialog = false
         )
@@ -114,7 +114,10 @@ class TicketEditViewModel(
     viewModelScope.launch {
       _state.update { it.copy(isLoading = true, isDraft = false, ticketId = id) }
       val ticket = ticketRepository.getTicket(id).first()
-      val mediaResult = mediaRepository.getMediaList(MediaTargetType.TICKET, id)
+      val mediaResult = mediaRepository.getMediaList(
+        targetType = MediaTargetType.TICKET,
+        targetId = id
+      )
 
       if (ticket != null) {
         val images = if (mediaResult is Result.Success) {
@@ -145,12 +148,9 @@ class TicketEditViewModel(
     viewModelScope.launch {
       val draft = ticketRepository.getDraft(id)
       if (draft != null) {
-        // Hier laden wir die Pfade aus der DB.
-        // Da wir 'FileStorage' nutzen, sind diese Pfade persistent.
         val images = draft.images.map { path ->
           TicketImageState(uri = path, isLocal = true, id = path)
         }
-
         _state.update { it.copy(
           isDraft = true,
           draftId = id,
@@ -178,19 +178,23 @@ class TicketEditViewModel(
 
   private fun removeImage(image: TicketImageState) {
     viewModelScope.launch {
-      // Wenn lokal, Datei physisch löschen
       if (image.isLocal) {
-        fileStorage.deleteImage(image.uri)
+        val fileName = getFileNameFromPath(image.uri)
+        fileStorage.deleteImage(fileName)
+      } else if (!state.value.isDraft && state.value.ticketId != null) {
+        mediaRepository.deleteMedia(
+          targetType = MediaTargetType.TICKET,
+          targetId = state.value.ticketId!!,
+          mediaId = image.id.toInt()
+        )
       }
-      // Wenn Remote, Server-Delete
-      else if (!state.value.isDraft && state.value.ticketId != null) {
-        mediaRepository.deleteMedia(MediaTargetType.TICKET, state.value.ticketId!!, image.id.toInt())
-      }
-
       _state.update { currentState ->
         val newImages = currentState.images - image
-        // Cover zurücksetzen falls gelöscht
-        val newCover = if (currentState.coverImageUri == image.uri) newImages.firstOrNull()?.uri else currentState.coverImageUri
+        val newCover = if (currentState.coverImageUri == image.uri) {
+          newImages.firstOrNull()?.uri
+        } else {
+          currentState.coverImageUri
+        }
         currentState.copy(images = newImages, coverImageUri = newCover)
       }
     }
@@ -199,6 +203,9 @@ class TicketEditViewModel(
   private fun saveDraft() {
     viewModelScope.launch {
       val currentState = _state.value
+      val imageFileNames = currentState.images
+        .filter { it.isLocal }
+        .map { getFileNameFromPath(it.uri) }
 
       val draft = TicketDraft(
         id = currentState.draftId ?: 0L,
@@ -207,20 +214,17 @@ class TicketEditViewModel(
         category = currentState.category,
         officeId = currentState.officeId,
         visibility = currentState.visibility,
-        // Wir speichern nur die Pfade in der DB. Die Dateien liegen sicher im FileStorage.
-        images = currentState.images.filter { it.isLocal }.map { it.uri },
-        address = if (currentState.useCurrentLocation) {
-          locationService.getCurrentLocation()?.let {
-            com.example.community_app.core.domain.model.Address(
-              latitude = it.latitude, longitude = it.longitude
-            )
-          }
+        images = imageFileNames,
+        address = if (currentState.useCurrentLocation) locationService.getCurrentLocation()?.let {
+          Address(
+            latitude = it.latitude,
+            longitude = it.longitude
+          )
         } else null,
-        lastModified = com.example.community_app.core.util.getCurrentTimeMillis().toString()
+        lastModified = getCurrentTimeMillis().toString()
       )
-
       ticketRepository.saveDraft(draft)
-      _state.update { it.copy(isUploadSuccess = true) } // Navigate back
+      _state.update { it.copy(isUploadSuccess = true) }
     }
   }
 
@@ -228,38 +232,37 @@ class TicketEditViewModel(
     viewModelScope.launch {
       _state.update { it.copy(isSaving = true, showUploadDialog = false) }
       val currentState = _state.value
+      val imageFileNames = currentState.images.filter { it.isLocal }.map {
+        getFileNameFromPath(it.uri)
+      }
 
       val draft = TicketDraft(
         id = currentState.draftId ?: 0L,
         title = currentState.title,
         description = currentState.description,
         category = currentState.category,
-        officeId = 1, // Mock
+        officeId = 1,
         visibility = currentState.visibility,
-        images = currentState.images.filter { it.isLocal }.map { it.uri },
-        address = if (currentState.useCurrentLocation) {
-          locationService.getCurrentLocation()?.let {
-            com.example.community_app.core.domain.model.Address(
-              latitude = it.latitude, longitude = it.longitude
-            )
-          }
+        images = imageFileNames,
+        address = if (currentState.useCurrentLocation) locationService.getCurrentLocation()?.let {
+          Address(
+            latitude = it.latitude,
+            longitude = it.longitude
+          )
         } else null,
         lastModified = ""
       )
 
-      // Image Provider: Liest Datei vom Speicher
-      val imageProvider: suspend (String) -> ByteArray? = { path ->
-        fileStorage.readImage(path)
-      }
-
-      val result = ticketRepository.uploadDraft(draft, imageProvider)
+      val result = ticketRepository.uploadDraft(draft)
 
       if (result is Result.Success) {
-        // Bei Erfolg: Lokale Dateien aufräumen
-        draft.images.forEach { fileStorage.deleteImage(it) }
+        imageFileNames.forEach { fileStorage.deleteImage(it) }
         _state.update { it.copy(isSaving = false, isUploadSuccess = true) }
       } else {
-        _state.update { it.copy(isSaving = false, errorMessage = (result as Result.Error).error.toUiText()) }
+        _state.update { it.copy(
+          isSaving = false,
+          errorMessage = (result as Result.Error).error.toUiText())
+        }
       }
     }
   }
@@ -268,52 +271,80 @@ class TicketEditViewModel(
     viewModelScope.launch {
       val currentState = _state.value
       val ticketId = currentState.ticketId ?: return@launch
-
       _state.update { it.copy(isSaving = true) }
 
-      // 1. Metadata Update
-      ticketRepository.updateTicket(
+      val updateResult = ticketRepository.updateTicket(
         id = ticketId,
         title = currentState.title,
         description = currentState.description,
         category = currentState.category,
         officeId = currentState.officeId,
-        address = null,
+        address = null, // TODO
         visibility = currentState.visibility
       )
 
-      // 2. Upload neuer lokaler Bilder (die noch nicht auf dem Server sind)
-      currentState.images.filter { it.isLocal }.forEach { img ->
-        fileStorage.readImage(img.uri)?.let { bytes ->
-          mediaRepository.uploadMedia(MediaTargetType.TICKET, ticketId, bytes)
-          // Nach Upload lokal löschen
-          fileStorage.deleteImage(img.uri)
+      if (updateResult is Result.Error) {
+        _state.update { it.copy(
+          isSaving = false,
+          errorMessage = updateResult.error.toUiText())
+        }
+        return@launch
+      }
+
+      val localImages = currentState.images.filter { it.isLocal }
+      var uploadFailed = false
+
+      for (img in localImages) {
+        val fileName = getFileNameFromPath(img.uri)
+        val uploadResult = mediaRepository.uploadMedia(
+          targetType = MediaTargetType.TICKET,
+          targetId = ticketId,
+          fileName = fileName
+        )
+
+        if (uploadResult is Result.Success) {
+          fileStorage.deleteImage(fileName)
+          if (img.uri == currentState.coverImageUri) {
+            mediaRepository.setCover(uploadResult.data.id)
+          }
+        } else {
+          uploadFailed = true
+          println("Failed to upload image $fileName")
         }
       }
 
-      // 3. Update Cover (falls ein Server-Bild gewählt wurde)
-      currentState.images.find { it.uri == currentState.coverImageUri && !it.isLocal }?.let { cover ->
-        mediaRepository.setCover(cover.id.toInt())
+      val remoteCover = currentState.images.find {
+        it.uri == currentState.coverImageUri && !it.isLocal
+      }
+      if (remoteCover != null) {
+        mediaRepository.setCover(remoteCover.id.toInt())
       }
 
-      _state.update { it.copy(isSaving = false, isUploadSuccess = true) }
+      _state.update { it.copy(
+        isSaving = false,
+        isUploadSuccess = !uploadFailed,
+        errorMessage = if (uploadFailed) UiText.DynamicString("Some images failed to upload") else null
+      ) }
     }
   }
 
   private fun deleteEntity() {
     viewModelScope.launch {
       _state.update { it.copy(showDeleteDialog = false) }
-
       if (_state.value.isDraft) {
-        // Draft: Dateien löschen
-        state.value.images.filter { it.isLocal }.forEach { fileStorage.deleteImage(it.uri) }
+        state.value.images.filter { it.isLocal }.forEach {
+          fileStorage.deleteImage(getFileNameFromPath(it.uri))
+        }
         _state.value.draftId?.let { ticketRepository.deleteDraft(it) }
       } else {
-        // Ticket: Server delete
         _state.value.ticketId?.let { ticketRepository.deleteTicket(it) }
       }
-
       _state.update { it.copy(isDeleteSuccess = true) }
     }
+  }
+
+  private fun getFileNameFromPath(path: String): String {
+    val i = path.lastIndexOf('/')
+    return if (i >= 0) path.substring(i + 1) else path
   }
 }

@@ -7,6 +7,7 @@ import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
 import com.example.community_app.auth.domain.AuthRepository
 import com.example.community_app.auth.domain.getUserIdOrNull
+import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.domain.Result
 import com.example.community_app.media.domain.MediaRepository
 import com.example.community_app.ticket.domain.TicketRepository
@@ -25,7 +26,8 @@ class TicketDetailViewModel(
   savedStateHandle: SavedStateHandle,
   private val ticketRepository: TicketRepository,
   private val mediaRepository: MediaRepository,
-  private val authRepository: AuthRepository
+  private val authRepository: AuthRepository,
+  private val fileStorage: FileStorage
 ) : ViewModel() {
 
   private val args = savedStateHandle.toRoute<Route.TicketDetail>()
@@ -81,20 +83,44 @@ class TicketDetailViewModel(
             isDraft = false,
             isOwner = isOwner
           ) }
-          fetchImages(id)
         }
       }
       .launchIn(viewModelScope)
 
-    viewModelScope.launch { ticketRepository.refreshTicket(id) }
+    viewModelScope.launch {
+      ticketRepository.refreshTicket(id)
+      fetchImages(id)
+    }
   }
 
   private fun fetchImages(ticketId: Int) {
     viewModelScope.launch {
-      val result = mediaRepository.getMediaList(MediaTargetType.TICKET, ticketId)
+      val result = mediaRepository.getMediaList(
+        targetType = MediaTargetType.TICKET,
+        targetId = ticketId
+      )
+
       if (result is Result.Success) {
-        val urls = result.data.map { "$BASE_URL${it.url}" }
-        _state.update { it.copy(imageUrls = urls) }
+        val imagePaths = result.data.map { mediaDto ->
+          val fileName = "ticket_${ticketId}_${mediaDto.id}.jpg"
+          if (fileStorage.exists(fileName)) {
+            fileStorage.getFullPath(fileName)
+          } else if (_state.value.isOwner) {
+            val dlResult = mediaRepository.downloadMedia(
+              url = mediaDto.url,
+              saveToFileName = fileName
+            )
+
+            if (dlResult is Result.Success) {
+              fileStorage.getFullPath(fileName)
+            } else {
+              "$BASE_URL${mediaDto.url}"
+            }
+          } else {
+            "$BASE_URL${mediaDto.url}"
+          }
+        }
+        _state.update { it.copy(imageUrls = imagePaths) }
       }
     }
   }

@@ -117,7 +117,7 @@ fun TicketEditScreenRoot(
 private fun TicketEditScreen(
   state: TicketEditState,
   onAction: (TicketEditAction) -> Unit,
-  onImagePicked: (ByteArray) -> Unit
+  onImagePicked: (String) -> Unit
 ) {
   val snackbarHostState = remember { SnackbarHostState() }
 

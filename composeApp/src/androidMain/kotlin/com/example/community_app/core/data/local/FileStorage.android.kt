@@ -1,32 +1,65 @@
 package com.example.community_app.core.data.local
 
 import android.content.Context
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.core.Input
+import io.ktor.utils.io.streams.asInput
+import io.ktor.utils.io.jvm.javaio.copyTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.util.UUID
 
 actual class FileStorage(private val context: Context) {
-  actual suspend fun saveImage(bytes: ByteArray): String = withContext(Dispatchers.IO) {
-    val fileName = "draft_${UUID.randomUUID()}.jpg"
-    val directory = File(context.filesDir, "drafts")
-    if (!directory.exists()) directory.mkdirs()
+  private val imagesDir: File
+    get() = File(context.filesDir, "images").apply { if (!exists()) mkdirs() }
 
-    val file = File(directory, fileName)
-    file.writeBytes(bytes)
-    file.absolutePath
-  }
+  actual suspend fun moveFromTemp(sourcePath: String): String = withContext(Dispatchers.IO) {
+    val sourceFile = File(sourcePath)
+    val fileName = "img_${UUID.randomUUID()}.jpg"
+    val destFile = File(imagesDir, fileName)
 
-  actual suspend fun readImage(path: String): ByteArray? = withContext(Dispatchers.IO) {
-    val file = File(path)
-    if (file.exists()) file.readBytes() else null
-  }
-
-  actual suspend fun deleteImage(path: String) = withContext(Dispatchers.IO) {
-    val file = File(path)
-    if (file.exists()) {
-      file.delete()
+    if (!sourceFile.renameTo(destFile)) {
+      sourceFile.copyTo(destFile, overwrite = true)
+      sourceFile.delete()
     }
+    fileName
+  }
+
+  actual suspend fun saveFile(
+    fileName: String,
+    channel: ByteReadChannel): String = withContext(Dispatchers.IO) {
+    val file = File(imagesDir, fileName)
+    FileOutputStream(file).use { output ->
+      channel.copyTo(output)
+    }
+    fileName
+  }
+
+  actual fun readFileAsInput(fileName: String): Input? {
+    val file = File(imagesDir, fileName)
+    if (!file.exists()) return null
+    return FileInputStream(file).asInput()
+  }
+
+  actual fun getFileSize(fileName: String): Long {
+    val file = File(imagesDir, fileName)
+    return if (file.exists()) file.length() else 0L
+  }
+
+  actual suspend fun deleteImage(fileName: String) = withContext(Dispatchers.IO) {
+    val file = File(imagesDir, fileName)
+    if (file.exists()) file.delete()
     Unit
+  }
+
+  actual fun exists(fileName: String): Boolean {
+    return File(imagesDir, fileName).exists()
+  }
+
+  actual fun getFullPath(fileName: String): String {
+    return File(imagesDir, fileName).absolutePath
   }
 }

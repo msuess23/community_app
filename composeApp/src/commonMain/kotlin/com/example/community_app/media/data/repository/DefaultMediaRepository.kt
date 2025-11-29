@@ -1,14 +1,18 @@
 package com.example.community_app.media.data.repository
 
+import com.example.community_app.core.data.local.FileStorage
+import com.example.community_app.core.data.safeCall
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
+import com.example.community_app.core.domain.map
 import com.example.community_app.dto.MediaDto
 import com.example.community_app.media.data.network.RemoteMediaDataSource
 import com.example.community_app.media.domain.MediaRepository
 import com.example.community_app.util.MediaTargetType
 
 class DefaultMediaRepository(
-  private val remoteDataSource: RemoteMediaDataSource
+  private val remoteDataSource: RemoteMediaDataSource,
+  private val fileStorage: FileStorage
 ) : MediaRepository {
   override suspend fun getMediaList(
     targetType: MediaTargetType,
@@ -17,12 +21,42 @@ class DefaultMediaRepository(
     return remoteDataSource.getMediaList(targetType, targetId)
   }
 
+  override suspend fun downloadMedia(url: String, saveToFileName: String): Result<String, DataError.Remote> {
+    return when (val result = remoteDataSource.downloadMedia(url)) {
+      is Result.Success -> {
+        try {
+          fileStorage.saveFile(saveToFileName, result.data)
+          Result.Success(saveToFileName)
+        } catch (e: Exception) {
+          Result.Error(DataError.Remote.UNKNOWN)
+        }
+      }
+      is Result.Error -> Result.Error(result.error)
+    }
+  }
+
   override suspend fun uploadMedia(
     targetType: MediaTargetType,
     targetId: Int,
-    bytes: ByteArray
+    fileName: String
   ): Result<MediaDto, DataError.Remote> {
-    return remoteDataSource.uploadMedia(targetType, targetId, bytes, "upload.jpg")
+    val fileSize = fileStorage.getFileSize(fileName)
+    if (fileSize == 0L) {
+      println("Upload failed: File $fileName has size 0 or not found")
+      return Result.Error(DataError.Remote.UNKNOWN)
+    }
+
+    val inputProvider = {
+      fileStorage.readFileAsInput(fileName) ?: error("File not found: $fileName")
+    }
+
+    return remoteDataSource.uploadMedia(
+      targetType = targetType,
+      targetId = targetId,
+      inputProvider = inputProvider,
+      fileName = fileName,
+      contentLength = fileSize
+    )
   }
 
   override suspend fun deleteMedia(

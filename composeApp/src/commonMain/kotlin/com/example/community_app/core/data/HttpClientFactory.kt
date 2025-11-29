@@ -51,7 +51,7 @@ object HttpClientFactory {
             println(message)
           }
         }
-        level = LogLevel.ALL
+        level = LogLevel.INFO
       }
 
       defaultRequest {

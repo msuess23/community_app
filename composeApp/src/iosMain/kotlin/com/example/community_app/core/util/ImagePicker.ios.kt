@@ -3,9 +3,11 @@ package com.example.community_app.core.util
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.usePinned
+import platform.Foundation.NSTemporaryDirectory
+import platform.Foundation.NSURL
+import platform.Foundation.NSUUID
+import platform.Foundation.writeToFile
+import platform.Foundation.writeToURL
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
 import platform.UIKit.UIImagePickerController
@@ -14,23 +16,20 @@ import platform.UIKit.UIImagePickerControllerSourceType
 import platform.UIKit.UINavigationControllerDelegateProtocol
 import platform.UIKit.UIApplication
 import platform.darwin.NSObject
-import platform.posix.memcpy
 
 actual class ImagePickerFactory {
   @Composable
-  actual fun createPicker(): ImagePicker {
-    return remember { ImagePicker() }
-  }
+  actual fun createPicker(): ImagePicker = remember { ImagePicker() }
 }
 
 actual class ImagePicker {
-  private var onImagePicked: ((ByteArray) -> Unit)? = null
-  private val delegate = ImagePickerDelegate { data ->
-    onImagePicked?.invoke(data)
+  private var onImagePicked: ((String) -> Unit)? = null
+  private val delegate = ImagePickerDelegate { path ->
+    onImagePicked?.invoke(path)
   }
 
   @Composable
-  actual fun registerPicker(onImagePicked: (ByteArray) -> Unit) {
+  actual fun registerPicker(onImagePicked: (String) -> Unit) {
     this.onImagePicked = onImagePicked
   }
 
@@ -46,14 +45,16 @@ actual class ImagePicker {
     val picker = UIImagePickerController()
     picker.sourceType = sourceType
     picker.delegate = delegate
-
-    val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
-    rootController?.presentViewController(picker, animated = true, completion = null)
+    UIApplication.sharedApplication.keyWindow?.rootViewController?.presentViewController(
+      viewControllerToPresent = picker,
+      animated = true,
+      completion = null
+    )
   }
 }
 
 class ImagePickerDelegate(
-  private val onImagePicked: (ByteArray) -> Unit
+  private val onImageSaved: (String) -> Unit
 ) : NSObject(), UIImagePickerControllerDelegateProtocol, UINavigationControllerDelegateProtocol {
 
   @OptIn(ExperimentalForeignApi::class)
@@ -62,27 +63,20 @@ class ImagePickerDelegate(
     didFinishPickingMediaWithInfo: Map<Any?, *>
   ) {
     val image = didFinishPickingMediaWithInfo["UIImagePickerControllerOriginalImage"] as? UIImage
-    image?.let {
-      val jpegData = UIImageJPEGRepresentation(it, 0.8)
+
+    image?.let { uiImage ->
+      val jpegData = UIImageJPEGRepresentation(uiImage, 0.8)
       jpegData?.let { data ->
-        if (data.length > 0u) {
-          data.bytes?.let { ptr ->
-            val bytes = toByteArray(ptr, data.length.toInt())
-            onImagePicked(bytes)
-          }
-        }
+        val fileName = "temp_${NSUUID().UUIDString}.jpg"
+        val tempDir = NSTemporaryDirectory()
+        val fullPath = tempDir + fileName
+        val url = NSURL.fileURLWithPath(fullPath)
+
+        data.writeToURL(url, true)
+        onImageSaved(fullPath)
       }
     }
     picker.dismissViewControllerAnimated(true, completion = null)
-  }
-
-  @OptIn(ExperimentalForeignApi::class)
-  private fun toByteArray(ptr: CPointer<*>, length: Int): ByteArray {
-    return ByteArray(length).apply {
-      usePinned { pinned ->
-        memcpy(pinned.addressOf(0), ptr, length.toULong())
-      }
-    }
   }
 
   override fun imagePickerControllerDidCancel(picker: UIImagePickerController) {

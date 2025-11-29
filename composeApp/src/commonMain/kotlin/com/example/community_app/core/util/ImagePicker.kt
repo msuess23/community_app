@@ -9,7 +9,7 @@ expect class ImagePickerFactory() {
 
 expect class ImagePicker {
   @Composable
-  fun registerPicker(onImagePicked: (ByteArray) -> Unit)
+  fun registerPicker(onImagePicked: (String) -> Unit)
 
   fun pickImage()
   fun takePhoto()

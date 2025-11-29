@@ -10,53 +10,49 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import java.io.File
+import java.util.UUID
 
 actual class ImagePickerFactory {
   @Composable
-  actual fun createPicker(): ImagePicker {
-    return remember { ImagePicker() }
-  }
+  actual fun createPicker(): ImagePicker = remember { ImagePicker() }
 }
 
 actual class ImagePicker {
   private var galleryLauncher: ActivityResultLauncher<String>? = null
   private var cameraLauncher: ActivityResultLauncher<Uri>? = null
-
-  private var currentOnImagePicked: ((ByteArray) -> Unit)? = null
+  private var currentOnImagePicked: ((String) -> Unit)? = null
   private var context: Context? = null
-
-  private var currentPhotoUri: Uri? = null
+  private var currentPhotoPath: String? = null
 
   @Composable
-  actual fun registerPicker(onImagePicked: (ByteArray) -> Unit) {
+  actual fun registerPicker(onImagePicked: (String) -> Unit) {
     this.currentOnImagePicked = onImagePicked
     this.context = LocalContext.current
 
     galleryLauncher = rememberLauncherForActivityResult(
       contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-      uri?.let {
-        val bytes = context?.contentResolver?.openInputStream(it)?.use { stream ->
-          stream.readBytes()
-        }
-        bytes?.let { b -> onImagePicked(b) }
-      }
+      uri?.let { processUri(it) }
     }
 
     cameraLauncher = rememberLauncherForActivityResult(
       contract = ActivityResultContracts.TakePicture()
     ) { success ->
-      if (success && currentPhotoUri != null) {
-        try {
-          val bytes = context?.contentResolver?.openInputStream(currentPhotoUri!!)?.use { stream ->
-            stream.readBytes()
-          }
-          bytes?.let { b -> onImagePicked(b) }
-        } catch (e: Exception) {
-          e.printStackTrace()
-        }
+      if (success && currentPhotoPath != null) {
+        currentOnImagePicked?.invoke(currentPhotoPath!!)
       }
     }
+  }
+
+  private fun processUri(uri: Uri) {
+    val ctx = context ?: return
+    val tempFile = File(ctx.cacheDir, "picked_${UUID.randomUUID()}.jpg")
+    ctx.contentResolver.openInputStream(uri)?.use { input ->
+      tempFile.outputStream().use { output ->
+        input.copyTo(output)
+      }
+    }
+    currentOnImagePicked?.invoke(tempFile.absolutePath)
   }
 
   actual fun pickImage() {
@@ -65,13 +61,11 @@ actual class ImagePicker {
 
   actual fun takePhoto() {
     val ctx = context ?: return
-
-    val file = File.createTempFile("img_", ".jpg", ctx.cacheDir)
+    val file = File(ctx.cacheDir, "cam_${UUID.randomUUID()}.jpg")
+    currentPhotoPath = file.absolutePath
 
     val authority = "${ctx.packageName}.provider"
     val uri = FileProvider.getUriForFile(ctx, authority, file)
-
-    currentPhotoUri = uri
     cameraLauncher?.launch(uri)
   }
 }
