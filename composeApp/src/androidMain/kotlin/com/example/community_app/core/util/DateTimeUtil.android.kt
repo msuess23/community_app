@@ -6,6 +6,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -76,4 +77,31 @@ private fun formatInstant(
     .withLocale(locale)
     .withZone(ZoneId.systemDefault())
     .format(instant)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+actual fun getStartOfDay(millis: Long): Long {
+  val zone = ZoneId.systemDefault()
+  return Instant.ofEpochMilli(millis)
+    .atZone(zone)
+    .toLocalDate()
+    .atStartOfDay(zone)
+    .toInstant()
+    .toEpochMilli()
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+actual fun addDays(millis: Long, days: Int): Long {
+  return Instant.ofEpochMilli(millis)
+    .plus(days.toLong(), ChronoUnit.DAYS)
+    .toEpochMilli()
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+actual fun parseIsoToMillis(isoString: String): Long {
+  return try {
+    Instant.parse(isoString).toEpochMilli()
+  } catch (e: Exception) {
+    0L
+  }
 }

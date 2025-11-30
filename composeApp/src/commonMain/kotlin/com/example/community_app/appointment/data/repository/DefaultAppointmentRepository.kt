@@ -20,4 +20,11 @@ class DefaultAppointmentRepository(
       dtos.map { Slot(it.id, it.startsAt, it.endsAt) }
     }
   }
+
+  override suspend fun bookSlot(
+    officeId: Int,
+    slotId: Int
+  ): Result<Unit, DataError.Remote> {
+    return remoteDataSource.bookSlot(officeId, slotId).map { }
+  }
 }

@@ -37,6 +37,7 @@ import com.example.community_app.office.data.network.RemoteOfficeDataSource
 import com.example.community_app.office.data.repository.DefaultOfficeRepository
 import com.example.community_app.office.domain.OfficeRepository
 import com.example.community_app.office.domain.usecase.FilterOfficesUseCase
+import com.example.community_app.office.presentation.office_detail.OfficeDetailViewModel
 import com.example.community_app.office.presentation.office_master.OfficeMasterViewModel
 import com.example.community_app.settings.data.DefaultSettingsRepository
 import com.example.community_app.settings.domain.SettingsRepository
@@ -153,4 +154,5 @@ val sharedModule = module {
   viewModelOf(::TicketDetailViewModel)
   viewModelOf(::TicketEditViewModel)
   viewModelOf(::OfficeMasterViewModel)
+  viewModelOf(::OfficeDetailViewModel)
 }

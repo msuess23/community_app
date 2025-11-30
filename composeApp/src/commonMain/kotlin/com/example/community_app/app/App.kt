@@ -30,6 +30,7 @@ import com.example.community_app.core.util.localeManager
 import com.example.community_app.di.createKoinConfiguration
 import com.example.community_app.info.presentation.info_detail.InfoDetailScreenRoot
 import com.example.community_app.info.presentation.info_master.InfoMasterScreenRoot
+import com.example.community_app.office.presentation.office_detail.OfficeDetailScreenRoot
 import com.example.community_app.office.presentation.office_master.OfficeMasterScreenRoot
 import com.example.community_app.settings.domain.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsScreenRoot
@@ -218,6 +219,13 @@ fun App() {
                       navController.navigate(Route.OfficeDetail(office.id))
                     },
                     onOpenDrawer = { scope.launch { drawerState.open() } }
+                  )
+                }
+
+                composable<Route.OfficeDetail> {
+                  OfficeDetailScreenRoot(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToLogin = { navController.navigate(Route.AuthGraph) }
                   )
                 }
               }
