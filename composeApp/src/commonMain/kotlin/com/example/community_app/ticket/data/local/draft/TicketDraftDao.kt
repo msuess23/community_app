@@ -31,14 +31,16 @@ interface TicketDraftDao {
     draft: TicketDraftEntity,
     images: List<String>
   ): Long {
-    val id = upsertDraftBase(draft)
-    deleteImagesForDraft(id)
+    val resultId = upsertDraftBase(draft)
+    val finalId = if (resultId == -1L) draft.id else resultId
+
+    deleteImagesForDraft(finalId)
     if (images.isNotEmpty()) {
       insertImages(images.map {
-        TicketDraftImageEntity(draftId = id, localUri = it)
+        TicketDraftImageEntity(draftId = finalId, localUri = it)
       })
     }
-    return id
+    return finalId
   }
 
   @Query("DELETE FROM ticket_drafts WHERE id = :id")

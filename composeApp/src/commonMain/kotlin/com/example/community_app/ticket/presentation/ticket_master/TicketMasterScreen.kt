@@ -49,6 +49,7 @@ import com.example.community_app.core.presentation.components.search.SearchBar
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatIsoDate
+import com.example.community_app.ticket.domain.TicketListItem
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.draft_created_on
 import community_app.composeapp.generated.resources.filters_label
@@ -252,7 +253,7 @@ private fun TicketMasterScreen(
                 ) {
                   items(currentList) { item ->
                     val (title, subtitle, date, image, isDraft) = when(item) {
-                      is TicketUiItem.Remote -> {
+                      is TicketListItem.Remote -> {
                         val cat = item.ticket.category.toUiText().asString()
                         val status = item.ticket.currentStatus?.toUiText()?.asString()
                         val sub = if(status != null) "$cat, $status" else cat
@@ -264,7 +265,7 @@ private fun TicketMasterScreen(
                           isDraft = false
                         )
                       }
-                      is TicketUiItem.Local -> {
+                      is TicketListItem.Local -> {
                         val cat = item.draft.category?.toUiText()?.asString() ?: "-"
                         TicketItemData(
                           title = item.draft.title,
@@ -285,8 +286,8 @@ private fun TicketMasterScreen(
                       isDraft = isDraft,
                       onClick = {
                         when (item) {
-                          is TicketUiItem.Remote -> onAction(TicketMasterAction.OnTicketClick(item.ticket))
-                          is TicketUiItem.Local -> onAction(TicketMasterAction.OnDraftClick(item.draft))
+                          is TicketListItem.Remote -> onAction(TicketMasterAction.OnTicketClick(item.ticket))
+                          is TicketListItem.Local -> onAction(TicketMasterAction.OnDraftClick(item.draft))
                         }
                       },
                       modifier = Modifier

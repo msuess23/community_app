@@ -7,17 +7,18 @@ import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
 import com.example.community_app.auth.domain.AuthRepository
 import com.example.community_app.auth.domain.getUserIdOrNull
-import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.domain.Result
-import com.example.community_app.media.domain.MediaRepository
+import com.example.community_app.dto.TicketStatusDto
+import com.example.community_app.ticket.domain.Ticket
+import com.example.community_app.ticket.domain.TicketDraft
 import com.example.community_app.ticket.domain.TicketRepository
-import com.example.community_app.util.BASE_URL
-import com.example.community_app.util.MediaTargetType
+import com.example.community_app.ticket.domain.usecase.detail.SyncTicketImagesUseCase
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,113 +26,111 @@ import kotlinx.coroutines.launch
 class TicketDetailViewModel(
   savedStateHandle: SavedStateHandle,
   private val ticketRepository: TicketRepository,
-  private val mediaRepository: MediaRepository,
   private val authRepository: AuthRepository,
-  private val fileStorage: FileStorage
+  private val syncTicketImages: SyncTicketImagesUseCase
 ) : ViewModel() {
-
   private val args = savedStateHandle.toRoute<Route.TicketDetail>()
 
-  private val _state = MutableStateFlow(TicketDetailState())
-  val state = _state
-    .onStart {
-      loadData()
+  private val _showStatusHistory = MutableStateFlow(false)
+  private val _isLoading = MutableStateFlow(false)
+
+  private val ticketDataFlow = flow {
+    if (args.isDraft) {
+      val draft = ticketRepository.getDraft(args.id)
+      emit(TicketDetailData.Draft(draft))
+    } else {
+      ticketRepository.getTicket(args.id.toInt()).collect { ticket ->
+        emit(TicketDetailData.Remote(ticket))
+      }
     }
-    .stateIn(
-      viewModelScope,
-      SharingStarted.WhileSubscribed(5000L),
-      TicketDetailState()
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  private val additionalDataFlow = ticketDataFlow.mapLatest { data ->
+    when (data) {
+      is TicketDetailData.Draft -> {
+        AdditionalData(
+          images = data.draft?.images ?: emptyList(),
+          history = emptyList(),
+          isOwner = true
+        )
+      }
+      is TicketDetailData.Remote -> {
+        val ticket = data.ticket ?: return@mapLatest AdditionalData()
+        val userId = authRepository.getUserIdOrNull()
+        val isOwner = userId != null && userId == ticket.creatorUserId
+
+        val imagesResult = syncTicketImages(ticket.id, isOwner)
+        val historyResult = ticketRepository.getStatusHistory(ticket.id)
+
+        val images = if (imagesResult is Result.Success) imagesResult.data else emptyList()
+        val history = if (historyResult is Result.Success) historyResult.data else emptyList()
+
+        AdditionalData(images, history, isOwner)
+      }
+    }
+  }
+
+  val state = combine(
+    ticketDataFlow,
+    additionalDataFlow,
+    _showStatusHistory,
+    _isLoading
+  ) { data, additional, showHistory, loading ->
+    val (ticket, draft) = when (data) {
+      is TicketDetailData.Remote -> data.ticket to null
+      is TicketDetailData.Draft -> null to data.draft
+    }
+
+    val fallbackImage = ticket?.imageUrl
+    val finalImages = additional.images.ifEmpty { listOfNotNull(fallbackImage) }
+
+    TicketDetailState(
+      isLoading = loading,
+      ticket = ticket,
+      draft = draft,
+      isDraft = args.isDraft,
+      isOwner = additional.isOwner,
+      imageUrls = finalImages,
+      showStatusHistory = showHistory,
+      statusHistory = additional.history
     )
+  }.stateIn(
+    viewModelScope,
+    SharingStarted.WhileSubscribed(5000L),
+    TicketDetailState(isLoading = true)
+  )
+
+  init {
+    if (!args.isDraft) {
+      refreshTicket()
+    }
+  }
 
   fun onAction(action: TicketDetailAction) {
     when(action) {
-      TicketDetailAction.OnShowStatusHistory -> fetchStatusHistory()
-      TicketDetailAction.OnDismissStatusHistory -> _state.update { it.copy(showStatusHistory = false) }
+      TicketDetailAction.OnShowStatusHistory -> _showStatusHistory.value = true
+      TicketDetailAction.OnDismissStatusHistory -> _showStatusHistory.value = false
       else -> Unit
     }
   }
 
-  private fun loadData() {
-    if (args.isDraft) {
-      loadDraft(args.id)
-    } else {
-      loadTicket(args.id.toInt())
-    }
-  }
-
-  private fun loadDraft(id: Long) {
+  private fun refreshTicket() {
     viewModelScope.launch {
-      val draft = ticketRepository.getDraft(id)
-      _state.update { it.copy(
-        draft = draft,
-        isDraft = true,
-        isOwner = true,
-        imageUrls = draft?.images ?: emptyList()
-      )}
+      _isLoading.update { true }
+      ticketRepository.refreshTicket(args.id.toInt())
+      _isLoading.update { false }
     }
   }
 
-  private fun loadTicket(id: Int) {
-    ticketRepository.getTicket(id)
-      .onEach { ticket ->
-        if (ticket != null) {
-          val userId = authRepository.getUserIdOrNull()
-          val isOwner = userId != null && userId == ticket.creatorUserId
-
-          _state.update { it.copy(
-            ticket = ticket,
-            isDraft = false,
-            isOwner = isOwner
-          ) }
-        }
-      }
-      .launchIn(viewModelScope)
-
-    viewModelScope.launch {
-      ticketRepository.refreshTicket(id)
-      fetchImages(id)
-    }
+  sealed interface TicketDetailData {
+    data class Remote(val ticket: Ticket?) : TicketDetailData
+    data class Draft(val draft: TicketDraft?) : TicketDetailData
   }
 
-  private fun fetchImages(ticketId: Int) {
-    viewModelScope.launch {
-      val result = mediaRepository.getMediaList(
-        targetType = MediaTargetType.TICKET,
-        targetId = ticketId
-      )
-
-      if (result is Result.Success) {
-        val imagePaths = result.data.map { mediaDto ->
-          val fileName = "ticket_${ticketId}_${mediaDto.id}.jpg"
-          if (fileStorage.exists(fileName)) {
-            fileStorage.getFullPath(fileName)
-          } else if (_state.value.isOwner) {
-            val dlResult = mediaRepository.downloadMedia(
-              url = mediaDto.url,
-              saveToFileName = fileName
-            )
-
-            if (dlResult is Result.Success) {
-              fileStorage.getFullPath(fileName)
-            } else {
-              "$BASE_URL${mediaDto.url}"
-            }
-          } else {
-            "$BASE_URL${mediaDto.url}"
-          }
-        }
-        _state.update { it.copy(imageUrls = imagePaths) }
-      }
-    }
-  }
-
-  private fun fetchStatusHistory() {
-    val id = _state.value.ticket?.id ?: return
-    viewModelScope.launch {
-      val result = ticketRepository.getStatusHistory(id)
-      if (result is Result.Success) {
-        _state.update { it.copy(statusHistory = result.data, showStatusHistory = true) }
-      }
-    }
-  }
+  data class AdditionalData(
+    val images: List<String> = emptyList(),
+    val history: List<TicketStatusDto> = emptyList(),
+    val isOwner: Boolean = false
+  )
 }

@@ -2,329 +2,235 @@ package com.example.community_app.ticket.presentation.ticket_master
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.community_app.auth.domain.AuthRepository
-import com.example.community_app.auth.domain.AuthState
 import com.example.community_app.core.domain.location.Location
-import com.example.community_app.core.domain.location.LocationService
 import com.example.community_app.core.domain.onError
 import com.example.community_app.core.domain.onSuccess
-import com.example.community_app.core.domain.permission.AppPermissionService
+import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
+import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
+import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.core.presentation.helpers.toUiText
-import com.example.community_app.core.util.GeoUtil
+import com.example.community_app.ticket.domain.TicketListItem
 import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.ticket.domain.usecase.master.FilterTicketsUseCase
+import com.example.community_app.ticket.domain.usecase.master.ObserveCommunityTicketsUseCase
+import com.example.community_app.ticket.domain.usecase.master.ObserveMyTicketsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class TicketMasterViewModel(
   private val ticketRepository: TicketRepository,
-  private val authRepository: AuthRepository,
-  private val locationService: LocationService,
-  private val permissionService: AppPermissionService
+  private val filterTickets: FilterTicketsUseCase,
+  observeCommunityTickets: ObserveCommunityTicketsUseCase,
+  observeMyTickets: ObserveMyTicketsUseCase,
+  private val isUserLoggedIn: IsUserLoggedInUseCase,
+  private val fetchUserLocation: FetchUserLocationUseCase
 ): ViewModel() {
-  private val _state = MutableStateFlow(TicketMasterState())
+  private val _searchQuery = MutableStateFlow("")
+  private val _filterState = MutableStateFlow(TicketFilterState())
+  private val _userLocation = MutableStateFlow<Location?>(null)
+  private val _locationPermissionGranted = MutableStateFlow(false)
+  private val _selectedTabIndex = MutableStateFlow(0)
+  private val _uiControlState = MutableStateFlow(UiControlState())
 
-  val state = _state
-    .onStart {
-      observeAuth()
-      checkLocationPermissionAndFetch()
-    }
-    .stateIn(
-      viewModelScope,
-      SharingStarted.WhileSubscribed(5000L),
-      _state.value
+  private val communityTicketsRaw = observeCommunityTickets()
+    .map { list -> list.map { TicketListItem.Remote(it) } }
+
+  private val userTicketsRaw = observeMyTickets()
+
+  private val filterInputs = combine(
+    _searchQuery,
+    _filterState,
+    _userLocation,
+    _selectedTabIndex
+  ) { query, filter, loc, tabIndex ->
+    FilterInputs(query, filter, loc, tabIndex)
+  }
+
+  val state = combine(
+    communityTicketsRaw,
+    userTicketsRaw,
+    filterInputs,
+    isUserLoggedIn(),
+    _uiControlState
+  ) { communityRaw, userRaw, inputs, loggedIn, uiControl ->
+    val filteredCommunity = filterTickets(
+      items = communityRaw,
+      query = inputs.query,
+      filter = inputs.filter,
+      userLocation = inputs.location,
+      isUserList = false
     )
 
+    val filteredUser = filterTickets(
+      items = userRaw,
+      query = inputs.query,
+      filter = inputs.filter,
+      userLocation = inputs.location,
+      isUserList = true
+    )
+
+    TicketMasterState(
+      searchQuery = inputs.query,
+      selectedTabIndex = inputs.tabIndex,
+      filter = inputs.filter,
+      communityTickets = communityRaw.map { it.ticket },
+      userTicketsAndDrafts = userRaw,
+      communitySearchResults = filteredCommunity,
+      userSearchResults = filteredUser,
+      isFilterSheetVisible = uiControl.isFilterSheetVisible,
+      isLoading = uiControl.isLoading,
+      errorMessage = uiControl.errorMessage,
+      userLocation = inputs.location,
+      locationPermissionGranted = _locationPermissionGranted.value,
+      isUserLoggedIn = loggedIn
+    )
+  }.stateIn(
+    viewModelScope,
+    SharingStarted.WhileSubscribed(5000L),
+    TicketMasterState()
+  )
+
+  init {
+    updateLocationAndData(forceRefresh = false)
+  }
+
   fun onAction(action: TicketMasterAction) {
-    when(action) {
+    when (action) {
       is TicketMasterAction.OnSearchQueryChange -> {
-        _state.update { it.copy(searchQuery = action.query) }
-        applyFilters()
+        _searchQuery.value = action.query
       }
-
       is TicketMasterAction.OnTabChange -> {
-        _state.update { it.copy(selectedTabIndex = action.index) }
-      }
-
-      is TicketMasterAction.OnRefresh -> {
-        checkLocationPermissionAndFetch(forceRefresh = true)
-      }
-
-      is TicketMasterAction.OnToggleFilterSheet -> {
-        _state.update { it.copy(isFilterSheetVisible = !it.isFilterSheetVisible) }
+        _selectedTabIndex.value = action.index
       }
 
       is TicketMasterAction.OnSortChange -> {
-        _state.update { it.copy(
-          filter = it.filter.copy(sortBy = action.option)
-        ) }
-        applyFilters()
+        updateFilter { it.copy(sortBy = action.option) }
       }
-
       is TicketMasterAction.OnCategorySelect -> {
-        _state.update { currentState ->
-          val currentCategories = currentState.filter.selectedCategories
-          val newCategories = if (currentCategories.contains(action.category)) {
-            currentCategories - action.category
-          } else {
-            currentCategories + action.category
+        updateFilter { current ->
+          val newCats = if (action.category in current.selectedCategories) {
+            current.selectedCategories - action.category
           }
-          currentState.copy(
-            filter = currentState.filter.copy(
-              selectedCategories = newCategories
-            )
-          )
+          else {
+            current.selectedCategories + action.category
+          }
+          current.copy(selectedCategories = newCats)
         }
-        applyFilters()
-      }
-
-      is TicketMasterAction.OnClearCategories -> {
-        _state.update { it.copy(
-          filter = it.filter.copy(
-            selectedCategories = emptySet()
-          )
-        ) }
-        applyFilters()
       }
 
       is TicketMasterAction.OnStatusSelect -> {
-        _state.update { currentState ->
-          val currentStats = currentState.filter.selectedStatuses
-          val newStats = if (currentStats.contains(action.status)) {
-            currentStats - action.status
-          } else {
-            currentStats + action.status
+        updateFilter { current ->
+          val newStats = if (action.status in current.selectedStatuses) {
+            current.selectedStatuses - action.status
           }
-          currentState.copy(
-            filter = currentState.filter.copy(selectedStatuses = newStats)
-          )
+          else {
+            current.selectedStatuses + action.status
+          }
+          current.copy(selectedStatuses = newStats)
         }
-        applyFilters()
-      }
-
-      is TicketMasterAction.OnClearStatuses -> {
-        _state.update { it.copy(filter = it.filter.copy(selectedStatuses = emptySet())) }
-        applyFilters()
       }
 
       is TicketMasterAction.OnDistanceChange -> {
-        _state.update { it.copy(filter = it.filter.copy(distanceRadiusKm = action.distance)) }
-        applyFilters()
+        updateFilter { it.copy(distanceRadiusKm = action.distance) }
       }
-
       is TicketMasterAction.OnToggleShowDrafts -> {
-        _state.update { it.copy(filter = it.filter.copy(showDrafts = action.show)) }
-        applyFilters()
+        updateFilter { it.copy(showDrafts = action.show) }
+      }
+      TicketMasterAction.OnClearCategories -> {
+        updateFilter { it.copy(selectedCategories = emptySet()) }
+      }
+      TicketMasterAction.OnClearStatuses -> {
+        updateFilter { it.copy(selectedStatuses = emptySet()) }
+      }
+      is TicketMasterAction.OnToggleSection -> {
+        updateFilter { current ->
+          val newSections = if (action.section in current.expandedSections) {
+            current.expandedSections - action.section
+          }
+          else {
+            current.expandedSections + action.section
+          }
+          current.copy(expandedSections = newSections)
+        }
       }
 
-      is TicketMasterAction.OnToggleSection -> {
-        _state.update { currentState ->
-          val sections = currentState.filter.expandedSections
-          val newSections = if (sections.contains(action.section)) {
-            sections - action.section
-          } else {
-            sections + action.section
-          }
-          currentState.copy(filter = currentState.filter.copy(expandedSections = newSections))
+      TicketMasterAction.OnToggleFilterSheet -> {
+        _uiControlState.update {
+          it.copy(isFilterSheetVisible = !it.isFilterSheetVisible)
         }
+      }
+
+      TicketMasterAction.OnRefresh -> {
+        updateLocationAndData(forceRefresh = true)
       }
 
       else -> Unit
     }
   }
 
-  private fun observeAuth() {
-    authRepository.authState.onEach { authState ->
-      if (authState is AuthState.Authenticated) {
-        _state.update { it.copy(isUserLoggedIn = true) }
-        observeTickets(authState.user.id)
-      } else {
-        _state.update { it.copy(isUserLoggedIn = false) }
-        observeTickets(null)
-      }
-    }.launchIn(viewModelScope)
+  private fun updateFilter(update: (TicketFilterState) -> TicketFilterState) {
+    _filterState.update(update)
   }
 
-  private fun observeTickets(userId: Int? = null) {
-    // Community tickets
-    val communityFlow = if (userId != null) {
-      ticketRepository.getCommunityTickets(userId)
-    } else {
-      ticketRepository.getTickets()
-    }
-
-    communityFlow.onEach { tickets ->
-      _state.update { it.copy(communityTickets = tickets) }
-      applyFilters()
-    }.launchIn(viewModelScope)
-
-    // User tickets and drafts
-    if (userId != null) {
-      combine(
-        ticketRepository.getUserTickets(userId),
-        ticketRepository.getDrafts()
-      ) { tickets, drafts ->
-        val combined = mutableListOf<TicketUiItem>()
-        combined.addAll(drafts.map { TicketUiItem.Local(it) })
-        combined.addAll(tickets.map { TicketUiItem.Remote(it) })
-        combined.toList()
-      }
-        .onEach { items ->
-          _state.update { it.copy(userTicketsAndDrafts = items) }
-          applyFilters()
-        }.launchIn(viewModelScope)
-    } else {
-      _state.update { it.copy(userTicketsAndDrafts = emptyList()) }
-      applyFilters()
-    }
-  }
-
-  private fun checkLocationPermissionAndFetch(forceRefresh: Boolean = false) {
+  private fun updateLocationAndData(forceRefresh: Boolean) {
     viewModelScope.launch {
-      val hasPermission = permissionService.requestLocationPermission()
-      _state.update { it.copy(locationPermissionGranted = hasPermission) }
-
-      if (hasPermission) {
-        val location = locationService.getCurrentLocation()
-        if (location != null) {
-          _state.update { it.copy(userLocation = location) }
-          applyFilters()
-        }
+      val locResult = fetchUserLocation()
+      _locationPermissionGranted.value = locResult.permissionGranted
+      if (locResult.location != null) {
+        _userLocation.value = locResult.location
       }
 
       if (forceRefresh) {
         refreshData()
       } else {
-        performSmartSync()
+        smartSync()
       }
-    }
-  }
-
-  private fun applyFilters() {
-    val currentState = _state.value
-
-    val communitySource = currentState.communityTickets.map { TicketUiItem.Remote(it) }
-    val filteredCommunity = filterList(communitySource, isUserList = false)
-
-    val userSource = currentState.userTicketsAndDrafts
-    val filteredUser = filterList(userSource, isUserList = true)
-
-    _state.update { it.copy(
-      communitySearchResults = filteredCommunity,
-      userSearchResults = filteredUser
-    ) }
-  }
-
-  private fun filterList(
-    source: List<TicketUiItem>,
-    isUserList: Boolean
-  ): List<TicketUiItem> {
-    val query = _state.value.searchQuery
-    val filter = _state.value.filter
-    val userLocation = _state.value.userLocation
-
-    var result = source
-
-    if (query.isNotBlank()) {
-      result = result.filter { item ->
-        val (title, description) = when(item) {
-          is TicketUiItem.Remote -> item.ticket.title to item.ticket.description
-          is TicketUiItem.Local -> item.draft.title to item.draft.description
-        }
-        title.contains(query, ignoreCase = true) ||
-            (description?.contains(query, ignoreCase = true) == true)
-      }
-    }
-
-    if (filter.selectedCategories.isNotEmpty()) {
-      result = result.filter { item ->
-        val category = when(item) {
-          is TicketUiItem.Remote -> item.ticket.category
-          is TicketUiItem.Local -> item.draft.category
-        }
-        category != null && category in filter.selectedCategories
-      }
-    }
-
-    if (filter.selectedStatuses.isNotEmpty()) {
-      result = result.filter { item ->
-        if (item is TicketUiItem.Remote) {
-          val status = item.ticket.currentStatus
-          status != null && status in filter.selectedStatuses
-        } else {
-          true
-        }
-      }
-    }
-
-    if (!isUserList && userLocation != null) {
-      result = result.filter { item ->
-        val address = when(item) {
-          is TicketUiItem.Remote -> item.ticket.address
-          is TicketUiItem.Local -> item.draft.address
-        }
-        if (address != null) {
-          val itemLoc = Location(address.latitude, address.longitude)
-          val dist = GeoUtil.calculateDistanceKm(userLocation, itemLoc)
-          dist <= filter.distanceRadiusKm
-        } else true
-      }
-    }
-
-    if (isUserList && !filter.showDrafts) {
-      result = result.filter { it !is TicketUiItem.Local }
-    }
-
-    return when(filter.sortBy) {
-      TicketSortOption.DATE_DESC -> result.sortedByDescending {
-        when(it) {
-          is TicketUiItem.Remote -> it.ticket.createdAt
-          is TicketUiItem.Local -> it.draft.lastModified
-        }
-      }
-      TicketSortOption.DATE_ASC -> result.sortedBy {
-        when(it) {
-          is TicketUiItem.Remote -> it.ticket.createdAt
-          is TicketUiItem.Local -> it.draft.lastModified
-        }
-      }
-      TicketSortOption.ALPHABETICAL -> result.sortedBy {
-        when(it) {
-          is TicketUiItem.Remote -> it.ticket.title
-          is TicketUiItem.Local -> it.draft.title
-        }
-      }
-    }
-  }
-
-  private fun performSmartSync() {
-    viewModelScope.launch {
-      if (_state.value.communityTickets.isEmpty()) {
-        _state.update { it.copy(isLoading = true) }
-      }
-      ticketRepository.syncTickets()
-      _state.update { it.copy(isLoading = false) }
     }
   }
 
   private fun refreshData() {
     viewModelScope.launch {
-      _state.update { it.copy(isLoading = true) }
+      _uiControlState.update { it.copy(
+        isLoading = true,
+        errorMessage = null)
+      }
+
       ticketRepository.refreshTickets()
         .onSuccess {
-          _state.update { it.copy(isLoading = false) }
+          _uiControlState.update { it.copy(isLoading = false) }
         }
         .onError { error ->
-          _state.update {
-            it.copy(isLoading = false, errorMessage = error.toUiText())
+          _uiControlState.update { it.copy(
+            isLoading = false,
+            errorMessage = error.toUiText())
           }
         }
     }
   }
+
+  private fun smartSync() {
+    viewModelScope.launch {
+      _uiControlState.update { it.copy(isLoading = true) }
+      ticketRepository.syncTickets()
+      _uiControlState.update { it.copy(isLoading = false) }
+    }
+  }
+
+  private data class UiControlState(
+    val isLoading: Boolean = false,
+    val errorMessage: UiText? = null,
+    val isFilterSheetVisible: Boolean = false
+  )
+
+  private data class FilterInputs(
+    val query: String,
+    val filter: TicketFilterState,
+    val location: Location?,
+    val tabIndex: Int
+  )
 }

@@ -13,6 +13,7 @@ import com.example.community_app.core.data.local.AppDatabase
 import com.example.community_app.core.data.permission.MokoPermissionService
 import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
+import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
 import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
 import com.example.community_app.info.data.network.RemoteInfoDataSource
 import com.example.community_app.info.data.repository.DefaultInfoRepository
@@ -31,6 +32,14 @@ import com.example.community_app.ticket.data.network.KtorRemoteTicketDataSource
 import com.example.community_app.ticket.data.network.RemoteTicketDataSource
 import com.example.community_app.ticket.data.repository.DefaultTicketRepository
 import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.ticket.domain.usecase.detail.SyncTicketImagesUseCase
+import com.example.community_app.ticket.domain.usecase.edit.AddLocalImageUseCase
+import com.example.community_app.ticket.domain.usecase.edit.DeleteTicketDataUseCase
+import com.example.community_app.ticket.domain.usecase.edit.GetTicketEditDetailsUseCase
+import com.example.community_app.ticket.domain.usecase.edit.UpdateTicketUseCase
+import com.example.community_app.ticket.domain.usecase.master.FilterTicketsUseCase
+import com.example.community_app.ticket.domain.usecase.master.ObserveCommunityTicketsUseCase
+import com.example.community_app.ticket.domain.usecase.master.ObserveMyTicketsUseCase
 import com.example.community_app.ticket.presentation.ticket_detail.TicketDetailViewModel
 import com.example.community_app.ticket.presentation.ticket_edit.TicketEditViewModel
 import com.example.community_app.ticket.presentation.ticket_master.TicketMasterViewModel
@@ -94,8 +103,17 @@ val sharedModule = module {
   singleOf(::DefaultMediaRepository).bind<MediaRepository>()
 
   // --- USE CASES ---
+  factoryOf(::IsUserLoggedInUseCase)
   factoryOf(::FetchUserLocationUseCase)
   factoryOf(::FilterInfosUseCase)
+  factoryOf(::FilterTicketsUseCase)
+  factoryOf(::ObserveCommunityTicketsUseCase)
+  factoryOf(::ObserveMyTicketsUseCase)
+  factoryOf(::SyncTicketImagesUseCase)
+  factoryOf(::AddLocalImageUseCase)
+  factoryOf(::DeleteTicketDataUseCase)
+  factoryOf(::GetTicketEditDetailsUseCase)
+  factoryOf(::UpdateTicketUseCase)
 
   // --- VIEW MODELS ---
   viewModelOf(::LoginViewModel)
