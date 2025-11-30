@@ -1,5 +1,10 @@
 package com.example.community_app.di
 
+import com.example.community_app.appointment.data.network.KtorRemoteAppointmentDataSource
+import com.example.community_app.appointment.data.network.RemoteAppointmentDataSource
+import com.example.community_app.appointment.data.repository.DefaultAppointmentRepository
+import com.example.community_app.appointment.domain.AppointmentRepository
+import com.example.community_app.appointment.domain.usecase.GetFreeSlotsUseCase
 import com.example.community_app.auth.data.network.KtorRemoteAuthDataSource
 import com.example.community_app.auth.data.network.RemoteAuthDataSource
 import com.example.community_app.auth.data.repository.DefaultAuthRepository
@@ -14,6 +19,7 @@ import com.example.community_app.core.data.permission.MokoPermissionService
 import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
+import com.example.community_app.info.data.local.InfoDao
 import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
 import com.example.community_app.info.data.network.RemoteInfoDataSource
 import com.example.community_app.info.data.repository.DefaultInfoRepository
@@ -25,9 +31,18 @@ import com.example.community_app.media.data.network.KtorRemoteMediaDataSource
 import com.example.community_app.media.data.network.RemoteMediaDataSource
 import com.example.community_app.media.data.repository.DefaultMediaRepository
 import com.example.community_app.media.domain.MediaRepository
+import com.example.community_app.office.data.local.OfficeDao
+import com.example.community_app.office.data.network.KtorRemoteOfficeDataSource
+import com.example.community_app.office.data.network.RemoteOfficeDataSource
+import com.example.community_app.office.data.repository.DefaultOfficeRepository
+import com.example.community_app.office.domain.OfficeRepository
+import com.example.community_app.office.domain.usecase.FilterOfficesUseCase
+import com.example.community_app.office.presentation.office_master.OfficeMasterViewModel
 import com.example.community_app.settings.data.DefaultSettingsRepository
 import com.example.community_app.settings.domain.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsViewModel
+import com.example.community_app.ticket.data.local.draft.TicketDraftDao
+import com.example.community_app.ticket.data.local.ticket.TicketDao
 import com.example.community_app.ticket.data.network.KtorRemoteTicketDataSource
 import com.example.community_app.ticket.data.network.RemoteTicketDataSource
 import com.example.community_app.ticket.data.repository.DefaultTicketRepository
@@ -89,18 +104,27 @@ val sharedModule = module {
   single<RemoteMediaDataSource> {
     KtorRemoteMediaDataSource(httpClient = get(named("authClient")))
   }
+  single<RemoteOfficeDataSource> {
+    KtorRemoteOfficeDataSource(httpClient = get(named("publicClient")))
+  }
+  single<RemoteAppointmentDataSource> {
+    KtorRemoteAppointmentDataSource(httpClient = get(named("authClient")))
+  }
 
 
   // --- REPOSITORIES ---
-  single { get<AppDatabase>().infoDao() }
-  single { get<AppDatabase>().ticketDao() }
-  single { get<AppDatabase>().ticketDraftDao() }
+  single<InfoDao> { get<AppDatabase>().infoDao() }
+  single<TicketDao> { get<AppDatabase>().ticketDao() }
+  single<TicketDraftDao> { get<AppDatabase>().ticketDraftDao() }
+  single<OfficeDao> { get<AppDatabase>().officeDao() }
 
   singleOf(::DefaultAuthRepository).bind<AuthRepository>()
   singleOf(::DefaultSettingsRepository).bind<SettingsRepository>()
   singleOf(::DefaultInfoRepository).bind<InfoRepository>()
   singleOf(::DefaultTicketRepository).bind<TicketRepository>()
   singleOf(::DefaultMediaRepository).bind<MediaRepository>()
+  singleOf(::DefaultOfficeRepository).bind<OfficeRepository>()
+  singleOf(::DefaultAppointmentRepository).bind<AppointmentRepository>()
 
   // --- USE CASES ---
   factoryOf(::IsUserLoggedInUseCase)
@@ -114,6 +138,8 @@ val sharedModule = module {
   factoryOf(::DeleteTicketDataUseCase)
   factoryOf(::GetTicketEditDetailsUseCase)
   factoryOf(::UpdateTicketUseCase)
+  factoryOf(::FilterOfficesUseCase)
+  factoryOf(::GetFreeSlotsUseCase)
 
   // --- VIEW MODELS ---
   viewModelOf(::LoginViewModel)
@@ -126,4 +152,5 @@ val sharedModule = module {
   viewModelOf(::TicketMasterViewModel)
   viewModelOf(::TicketDetailViewModel)
   viewModelOf(::TicketEditViewModel)
+  viewModelOf(::OfficeMasterViewModel)
 }
