@@ -16,11 +16,14 @@ suspend inline fun <reified T> safeCall(
   val response = try {
     execute()
   } catch (e: SocketTimeoutException) {
+    e.printStackTrace()
     return Result.Error(DataError.Remote.REQUEST_TIMEOUT)
   } catch (e: UnresolvedAddressException) {
+    e.printStackTrace()
     return Result.Error(DataError.Remote.NO_INTERNET)
   } catch (e: Exception) {
     currentCoroutineContext().ensureActive()
+    e.printStackTrace()
     return Result.Error(DataError.Remote.UNKNOWN)
   }
 
@@ -35,6 +38,7 @@ suspend inline fun <reified T> responseToResult(
       try {
         Result.Success(response.body<T>())
       } catch(e: NoTransformationFoundException) {
+        e.printStackTrace()
         Result.Error(DataError.Remote.SERIALIZATION)
       }
     }

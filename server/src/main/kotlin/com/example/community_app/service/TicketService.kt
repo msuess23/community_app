@@ -31,8 +31,14 @@ class TicketService(
     val from = createdFrom?.let { parseInstant(it) }
     val to = createdTo?.let { parseInstant(it) }
     val bboxArr = bbox?.let { parseBbox(it) }
-    val list = repo.listPublic(officeId, category, from, to, bboxArr)
     val userId = principal?.subject?.toIntOrNull()
+    val list = repo.listPublic(officeId, category, from, to, bboxArr, userId)
+    return list.map { toDto(it, userId) }
+  }
+
+  suspend fun listMine(principal: JWTPrincipal): List<TicketDto> {
+    val userId = principal.requireUserId()
+    val list = repo.listByUser(userId)
     return list.map { toDto(it, userId) }
   }
 

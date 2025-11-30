@@ -5,7 +5,11 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.example.community_app.core.data.local.AppDatabase
+import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.data.local.createDataStore
+import com.example.community_app.core.domain.location.AndroidLocationService
+import com.example.community_app.core.domain.location.LocationService
+import dev.icerock.moko.permissions.PermissionsController
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
 import kotlinx.coroutines.Dispatchers
@@ -33,4 +37,12 @@ actual val platformModule = module {
   single<DataStore<Preferences>> {
     createDataStore(context = androidContext())
   }
+
+  single<LocationService> {
+    AndroidLocationService(androidContext())
+  }
+
+  single { PermissionsController(applicationContext = androidContext()) }
+
+  single { FileStorage(androidContext()) }
 }

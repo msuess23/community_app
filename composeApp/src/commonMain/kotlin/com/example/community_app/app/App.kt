@@ -32,8 +32,11 @@ import com.example.community_app.info.presentation.info_detail.InfoDetailScreenR
 import com.example.community_app.info.presentation.info_master.InfoMasterScreenRoot
 import com.example.community_app.settings.domain.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsScreenRoot
-import com.example.community_app.util.AppLanguage
-import com.example.community_app.util.AppTheme
+import com.example.community_app.ticket.presentation.ticket_detail.TicketDetailScreenRoot
+import com.example.community_app.ticket.presentation.ticket_edit.TicketEditScreenRoot
+import com.example.community_app.ticket.presentation.ticket_master.TicketMasterScreenRoot
+import dev.icerock.moko.permissions.PermissionsController
+import dev.icerock.moko.permissions.compose.BindEffect
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinMultiplatformApplication
@@ -47,6 +50,9 @@ fun App() {
   KoinMultiplatformApplication(
     config = createKoinConfiguration()
   ) {
+    val permissionsController = koinInject<PermissionsController>()
+    BindEffect(permissionsController)
+
     val settingsRepo = koinInject<SettingsRepository>()
     val settingsState by settingsRepo.settings.collectAsState(initial = null)
 
@@ -54,157 +60,186 @@ fun App() {
       settingsState?.language?.let { localeManager.applyLocale(it) }
     }
 
-    val currentTheme = settingsState?.theme ?: AppTheme.SYSTEM
-    val currentLanguage = settingsState?.language ?: AppLanguage.SYSTEM
+    if (settingsState == null) {
+      AppLoadingScreen()
+    } else {
+      val currentTheme = settingsState!!.theme
+      val currentLanguage = settingsState!!.language
 
-    key(currentLanguage) {
-      CommunityTheme(
-        appTheme = currentTheme
-      ) {
-        val navController = rememberNavController()
-        val drawerState = rememberDrawerState(DrawerValue.Closed)
-        val scope = rememberCoroutineScope()
-
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentDestination = navBackStackEntry?.destination
-
-        val showDrawer = TopLevelDestination.entries.any { destination ->
-          currentDestination?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
-        }
-
-        val showBottomBar = TopLevelDestination.entries.any { destination ->
-          destination.showInBottomBar &&
-              currentDestination?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
-        }
-
-        AppScaffold(
-          navController = navController,
-          drawerState= drawerState,
-          showBottomBar = showBottomBar,
-          showDrawer = showDrawer
+      key(currentLanguage) {
+        CommunityTheme(
+          appTheme = currentTheme
         ) {
-          NavHost(
+          val navController = rememberNavController()
+          val drawerState = rememberDrawerState(DrawerValue.Closed)
+          val scope = rememberCoroutineScope()
+
+          val navBackStackEntry by navController.currentBackStackEntryAsState()
+          val currentDestination = navBackStackEntry?.destination
+
+          val showDrawer = TopLevelDestination.entries.any { destination ->
+            currentDestination?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
+          }
+
+          val showBottomBar = TopLevelDestination.entries.any { destination ->
+            destination.showInBottomBar &&
+                currentDestination?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
+          }
+
+          AppScaffold(
             navController = navController,
-            startDestination = Route.InfoGraph
+            drawerState = drawerState,
+            showBottomBar = showBottomBar,
+            showDrawer = showDrawer
           ) {
-            navigation<Route.AuthGraph>(
-              startDestination = Route.Login
+            NavHost(
+              navController = navController,
+              startDestination = Route.InfoGraph
             ) {
-              composable<Route.Login> {
-                LoginScreenRoot(
-                  onLoginSuccess = {
-                    navController.navigate(Route.InfoGraph) {
-                      popUpTo(Route.AuthGraph) { inclusive = true }
+              navigation<Route.AuthGraph>(
+                startDestination = Route.Login
+              ) {
+                composable<Route.Login> {
+                  LoginScreenRoot(
+                    onLoginSuccess = {
+                      navController.navigate(Route.InfoGraph) {
+                        popUpTo(Route.AuthGraph) { inclusive = true }
+                      }
+                    },
+                    onNavigateToRegister = {
+                      navController.navigate(Route.Register)
+                    },
+                    onNavigateToGuest = {
+                      navController.navigate(Route.InfoGraph) {
+                        popUpTo(Route.AuthGraph) { inclusive = true }
+                      }
+                    },
+                    onNavigateToForgotPassword = {
+                      navController.navigate(Route.ForgotPassword)
                     }
-                  },
-                  onNavigateToRegister = {
-                    navController.navigate(Route.Register)
-                  },
-                  onNavigateToGuest = {
-                    navController.navigate(Route.InfoGraph) {
-                      popUpTo(Route.AuthGraph) { inclusive = true }
+                  )
+                }
+
+                composable<Route.Register> {
+                  RegisterScreenRoot(
+                    onRegisterSuccess = {
+                      navController.navigate(Route.InfoGraph) {
+                        popUpTo(Route.AuthGraph) { inclusive = true }
+                      }
+                    },
+                    onNavigateToLogin = {
+                      navController.navigate(Route.Login)
+                    },
+                    onNavigateToGuest = {
+                      navController.navigate(Route.InfoGraph) {
+                        popUpTo(Route.AuthGraph) { inclusive = true }
+                      }
                     }
-                  },
-                  onNavigateToForgotPassword = {
-                    navController.navigate(Route.ForgotPassword)
-                  }
-                )
+                  )
+                }
+
+                composable<Route.ForgotPassword> {
+                  ForgotPasswordScreenRoot(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToReset = { email ->
+                      navController.navigate(Route.ResetPassword(email))
+                    }
+                  )
+                }
+
+                composable<Route.ResetPassword> {
+                  ResetPasswordScreenRoot(
+                    onSuccess = {
+                      navController.navigate(Route.InfoGraph) {
+                        popUpTo(Route.AuthGraph) { inclusive = true }
+                      }
+                    },
+                    onNavigateBack = { navController.popBackStack() }
+                  )
+                }
               }
 
-              composable<Route.Register> {
-                RegisterScreenRoot(
-                  onRegisterSuccess = {
-                    navController.navigate(Route.InfoGraph) {
-                      popUpTo(Route.AuthGraph) { inclusive = true }
+              navigation<Route.InfoGraph>(
+                startDestination = Route.InfoMaster
+              ) {
+                composable<Route.InfoMaster> {
+                  InfoMasterScreenRoot(
+                    onInfoClick = { info ->
+                      navController.navigate(Route.InfoDetail(info.id))
+                    },
+                    onOpenDrawer = {
+                      scope.launch { drawerState.open() }
                     }
-                  },
+                  )
+                }
+                composable<Route.InfoDetail> { info ->
+                  InfoDetailScreenRoot(
+                    onNavigateBack = { navController.popBackStack() }
+                  )
+                }
+              }
+
+              navigation<Route.TicketGraph>(startDestination = Route.TicketMaster) {
+                composable<Route.TicketMaster> {
+                  TicketMasterScreenRoot(
+                    onNavigateToTicketDetail = { id, isDraft ->
+                      navController.navigate(Route.TicketDetail(id, isDraft))
+                    },
+                    onNavigateToTicketEdit = { draftId ->
+                      navController.navigate(Route.TicketEdit(draftId = draftId, ticketId = null))
+                    },
+                    onNavigateToLogin = { navController.navigate(Route.AuthGraph) },
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                  )
+                }
+
+                composable<Route.TicketDetail> {
+                  TicketDetailScreenRoot(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToEdit = { ticketId, draftId ->
+                      navController.navigate(Route.TicketEdit(ticketId = ticketId, draftId = draftId))
+                    }
+                  )
+                }
+
+                composable<Route.TicketEdit> {
+                  TicketEditScreenRoot(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToMaster = { navController.popBackStack(Route.TicketMaster, inclusive = false) }
+                  )
+                }
+              }
+
+              navigation<Route.OfficeGraph>(startDestination = Route.OfficeMaster) {
+                composable<Route.OfficeMaster> {
+                  DummyScreen("Office Master", onOpenDrawer = { scope.launch { drawerState.open() } })
+                }
+              }
+
+              navigation<Route.AppointmentGraph>(startDestination = Route.AppointmentMaster) {
+                composable<Route.AppointmentMaster> {
+                  AuthGuard(
+                    onLoginClick = { navController.navigate(Route.AuthGraph) }
+                  ) { user ->
+                    DummyScreen(
+                      title = "Appointment Master (Angemeldet als ${user.displayName})",
+                      onOpenDrawer = { scope.launch { drawerState.open() } }
+                    )
+                  }
+                }
+              }
+
+              composable<Route.Settings> {
+                SettingsScreenRoot(
+                  onOpenDrawer = { scope.launch { drawerState.open() } },
                   onNavigateToLogin = {
-                    navController.navigate(Route.Login)
+                    navController.navigate(Route.AuthGraph)
                   },
-                  onNavigateToGuest = {
-                    navController.navigate(Route.InfoGraph) {
-                      popUpTo(Route.AuthGraph) { inclusive = true }
-                    }
-                  }
-                )
-              }
-
-              composable<Route.ForgotPassword> {
-                ForgotPasswordScreenRoot(
-                  onNavigateBack = { navController.popBackStack() },
                   onNavigateToReset = { email ->
                     navController.navigate(Route.ResetPassword(email))
                   }
                 )
               }
-
-              composable<Route.ResetPassword> {
-                ResetPasswordScreenRoot(
-                  onSuccess = {
-                    navController.navigate(Route.InfoGraph) {
-                      popUpTo(Route.AuthGraph) { inclusive = true }
-                    }
-                  },
-                  onNavigateBack = { navController.popBackStack() }
-                )
-              }
-            }
-
-            navigation<Route.InfoGraph>(
-              startDestination = Route.InfoMaster
-            ) {
-              composable<Route.InfoMaster> {
-                InfoMasterScreenRoot(
-                  onInfoClick = { info ->
-                    navController.navigate(Route.InfoDetail(info.id))
-                  },
-                  onOpenDrawer = {
-                    scope.launch { drawerState.open() }
-                  }
-                )
-              }
-              composable<Route.InfoDetail> { info ->
-                InfoDetailScreenRoot(
-                  onNavigateBack = { navController.popBackStack() }
-                )
-              }
-            }
-
-            navigation<Route.TicketGraph>(startDestination = Route.TicketMaster) {
-              composable<Route.TicketMaster> {
-                AuthGuard(
-                  onLoginClick = { navController.navigate(Route.AuthGraph) }
-                ) { user ->
-                  DummyScreen(
-                    title = "Ticket Master (Angemeldet als ${user.displayName})",
-                    onOpenDrawer = { scope.launch { drawerState.open() } }
-                  )
-                }
-              }
-            }
-
-            navigation<Route.OfficeGraph>(startDestination = Route.OfficeMaster) {
-              composable<Route.OfficeMaster> {
-                DummyScreen("Office Master", onOpenDrawer = { scope.launch { drawerState.open() } })
-              }
-            }
-
-            navigation<Route.AppointmentGraph>(startDestination = Route.AppointmentMaster) {
-              composable<Route.AppointmentMaster> {
-                DummyScreen("Appointments Master", onOpenDrawer = { scope.launch { drawerState.open() } })
-              }
-            }
-
-            composable<Route.Settings> {
-              SettingsScreenRoot(
-                onOpenDrawer = { scope.launch { drawerState.open() } },
-                onNavigateToLogin = {
-                  navController.navigate(Route.AuthGraph)
-                },
-                onNavigateToReset = { email ->
-                  navController.navigate(Route.ResetPassword(email))
-                }
-              )
             }
           }
         }

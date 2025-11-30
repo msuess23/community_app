@@ -33,9 +33,11 @@ interface TicketRepository {
     category: TicketCategory?,
     createdFrom: Instant?,
     createdTo: Instant?,
-    bbox: DoubleArray?
+    bbox: DoubleArray?,
+    excludeUserId: Int?
   ): List<TicketRecord>
 
+  suspend fun listByUser(userId: Int): List<TicketRecord>
   suspend fun findById(id: Int): TicketRecord?
   suspend fun create(data: TicketCreateData): TicketRecord
   suspend fun update(id: Int, patch: TicketUpdateData): TicketRecord?
@@ -72,10 +74,15 @@ object DefaultTicketRepository : TicketRepository {
   private val mediaRepo = DefaultMediaRepository
 
   override suspend fun listPublic(
-    officeId: Int?, category: TicketCategory?, createdFrom: Instant?, createdTo: Instant?, bbox: DoubleArray?
+    officeId: Int?, category: TicketCategory?, createdFrom: Instant?, createdTo: Instant?, bbox: DoubleArray?, excludeUserId: Int?
   ): List<TicketRecord> = newSuspendedTransaction(Dispatchers.IO) {
     val base: Query = (Tickets leftJoin Addresses).selectAll()
     base.andWhere { Tickets.visibility eq TicketVisibility.PUBLIC }
+
+    if (excludeUserId != null) {
+      base.andWhere { Tickets.creator neq excludeUserId }
+    }
+
     if (officeId != null) base.andWhere { Tickets.office eq officeId }
     if (category != null) base.andWhere { Tickets.category eq category }
     if (createdFrom != null) base.andWhere { Tickets.createdAt greaterEq createdFrom }
@@ -86,6 +93,19 @@ object DefaultTicketRepository : TicketRepository {
     if (records.isEmpty()) return@newSuspendedTransaction emptyList()
 
     // Bulk-Fetch Cover Image URLs
+    val ticketIds = records.map { it[Tickets.id].value }
+    val mediaMap = fetchCoverMediaMap(MediaTargetType.TICKET, ticketIds)
+
+    records.map { it.toRecord(mediaMap[it[Tickets.id].value]) }
+  }
+
+  override suspend fun listByUser(userId: Int): List<TicketRecord> = newSuspendedTransaction(Dispatchers.IO) {
+    val base = (Tickets leftJoin Addresses).selectAll()
+    base.andWhere { Tickets.creator eq userId }
+
+    val records = base.orderBy(Tickets.createdAt to SortOrder.DESC).toList()
+    if (records.isEmpty()) return@newSuspendedTransaction emptyList()
+
     val ticketIds = records.map { it[Tickets.id].value }
     val mediaMap = fetchCoverMediaMap(MediaTargetType.TICKET, ticketIds)
 

@@ -1,10 +1,10 @@
 package com.example.community_app.info.data.mappers
 
+import com.example.community_app.core.domain.model.Address
 import com.example.community_app.dto.InfoDto
 import com.example.community_app.info.data.local.InfoAddressEntity
 import com.example.community_app.info.data.local.InfoEntity
 import com.example.community_app.info.domain.Info
-import com.example.community_app.info.domain.InfoAddress
 import com.example.community_app.util.BASE_URL
 import com.example.community_app.util.InfoCategory
 import com.example.community_app.util.InfoStatus
@@ -47,7 +47,14 @@ fun InfoEntity.toInfo(): Info {
     },
     officeId = officeId,
     address = address?.let {
-      InfoAddress(street = it.street, city = it.city)
+      Address(
+        street = it.street,
+        houseNumber = it.houseNumber,
+        zipCode = it.zipCode,
+        city = it.city,
+        longitude = it.longitude,
+        latitude = it.latitude
+      )
     },
     createdAt = createdAt,
     startsAt = startsAt,

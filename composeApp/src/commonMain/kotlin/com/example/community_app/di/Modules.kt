@@ -10,10 +10,15 @@ import com.example.community_app.auth.presentation.register.RegisterViewModel
 import com.example.community_app.auth.presentation.reset_password.ResetPasswordViewModel
 import com.example.community_app.core.data.HttpClientFactory
 import com.example.community_app.core.data.local.AppDatabase
+import com.example.community_app.core.data.permission.MokoPermissionService
+import com.example.community_app.core.domain.permission.AppPermissionService
+import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
+import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
 import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
 import com.example.community_app.info.data.network.RemoteInfoDataSource
 import com.example.community_app.info.data.repository.DefaultInfoRepository
 import com.example.community_app.info.domain.InfoRepository
+import com.example.community_app.info.domain.usecase.FilterInfosUseCase
 import com.example.community_app.info.presentation.info_detail.InfoDetailViewModel
 import com.example.community_app.info.presentation.info_master.InfoMasterViewModel
 import com.example.community_app.media.data.network.KtorRemoteMediaDataSource
@@ -23,7 +28,23 @@ import com.example.community_app.media.domain.MediaRepository
 import com.example.community_app.settings.data.DefaultSettingsRepository
 import com.example.community_app.settings.domain.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsViewModel
+import com.example.community_app.ticket.data.network.KtorRemoteTicketDataSource
+import com.example.community_app.ticket.data.network.RemoteTicketDataSource
+import com.example.community_app.ticket.data.repository.DefaultTicketRepository
+import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.ticket.domain.usecase.detail.SyncTicketImagesUseCase
+import com.example.community_app.ticket.domain.usecase.edit.AddLocalImageUseCase
+import com.example.community_app.ticket.domain.usecase.edit.DeleteTicketDataUseCase
+import com.example.community_app.ticket.domain.usecase.edit.GetTicketEditDetailsUseCase
+import com.example.community_app.ticket.domain.usecase.edit.UpdateTicketUseCase
+import com.example.community_app.ticket.domain.usecase.master.FilterTicketsUseCase
+import com.example.community_app.ticket.domain.usecase.master.ObserveCommunityTicketsUseCase
+import com.example.community_app.ticket.domain.usecase.master.ObserveMyTicketsUseCase
+import com.example.community_app.ticket.presentation.ticket_detail.TicketDetailViewModel
+import com.example.community_app.ticket.presentation.ticket_edit.TicketEditViewModel
+import com.example.community_app.ticket.presentation.ticket_master.TicketMasterViewModel
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
@@ -52,6 +73,8 @@ val sharedModule = module {
     )
   }
 
+  single<AppPermissionService> { MokoPermissionService(get()) }
+
 
   // --- DATA SOURCES ---
   single<RemoteAuthDataSource> {
@@ -60,6 +83,9 @@ val sharedModule = module {
   single<RemoteInfoDataSource> {
     KtorRemoteInfoDataSource(httpClient = get(named("publicClient")))
   }
+  single<RemoteTicketDataSource> {
+    KtorRemoteTicketDataSource(httpClient = get(named("authClient")))
+  }
   single<RemoteMediaDataSource> {
     KtorRemoteMediaDataSource(httpClient = get(named("authClient")))
   }
@@ -67,12 +93,27 @@ val sharedModule = module {
 
   // --- REPOSITORIES ---
   single { get<AppDatabase>().infoDao() }
+  single { get<AppDatabase>().ticketDao() }
+  single { get<AppDatabase>().ticketDraftDao() }
 
   singleOf(::DefaultAuthRepository).bind<AuthRepository>()
   singleOf(::DefaultSettingsRepository).bind<SettingsRepository>()
   singleOf(::DefaultInfoRepository).bind<InfoRepository>()
+  singleOf(::DefaultTicketRepository).bind<TicketRepository>()
   singleOf(::DefaultMediaRepository).bind<MediaRepository>()
 
+  // --- USE CASES ---
+  factoryOf(::IsUserLoggedInUseCase)
+  factoryOf(::FetchUserLocationUseCase)
+  factoryOf(::FilterInfosUseCase)
+  factoryOf(::FilterTicketsUseCase)
+  factoryOf(::ObserveCommunityTicketsUseCase)
+  factoryOf(::ObserveMyTicketsUseCase)
+  factoryOf(::SyncTicketImagesUseCase)
+  factoryOf(::AddLocalImageUseCase)
+  factoryOf(::DeleteTicketDataUseCase)
+  factoryOf(::GetTicketEditDetailsUseCase)
+  factoryOf(::UpdateTicketUseCase)
 
   // --- VIEW MODELS ---
   viewModelOf(::LoginViewModel)
@@ -82,4 +123,7 @@ val sharedModule = module {
   viewModelOf(::SettingsViewModel)
   viewModelOf(::InfoMasterViewModel)
   viewModelOf(::InfoDetailViewModel)
+  viewModelOf(::TicketMasterViewModel)
+  viewModelOf(::TicketDetailViewModel)
+  viewModelOf(::TicketEditViewModel)
 }

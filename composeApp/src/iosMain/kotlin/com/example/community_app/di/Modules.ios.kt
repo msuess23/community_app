@@ -5,7 +5,11 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.example.community_app.core.data.local.AppDatabase
+import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.data.local.createDataStore
+import com.example.community_app.core.domain.location.IosLocationService
+import com.example.community_app.core.domain.location.LocationService
+import dev.icerock.moko.permissions.ios.PermissionsController
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.darwin.Darwin
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -32,9 +36,13 @@ actual val platformModule = module {
       .build()
   }
 
-  single<DataStore<Preferences>> {
-    createDataStore()
-  }
+  single<DataStore<Preferences>> { createDataStore() }
+
+  single<LocationService> { IosLocationService() }
+
+  single { PermissionsController() }
+
+  single { FileStorage() }
 }
 
 @OptIn(ExperimentalForeignApi::class)

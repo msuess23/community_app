@@ -8,15 +8,45 @@
     <string name="welcome_back">Welcome back!</string>
     <string name="next">Next</string>
     <string name="save">Save</string>
+    <string name="edit">Edit</string>
+    <string name="create">Create</string>
+    <string name="discard">Discard</string>
+    <string name="delete">Delete</string>
+    <string name="upload">Upload</string>
+    <string name="camera">Camera</string>
+    <string name="gallery">Gallery</string>
 
     <!-- Info -->
     <string name="info_singular">Information</string>
     <string name="info_plural">Information</string>
-    <string name="info_not_found">The data for this information could not be found.</string>
 
     <!-- Ticket -->
     <string name="ticket_singular">Concern</string>
     <string name="ticket_plural">Concerns</string>
+    <!-- Visibility (Enum) -->
+    <string name="ticket_visibility_label">Visibility</string>
+    <string name="ticket_visibility_info_text">The responsible office can always see your ticket.</string>
+    <string name="ticket_visibility_public">for all</string>
+    <string name="ticket_visibility_private">only for myself</string>
+    <!-- Ownership -->
+    <string name="ticket_ownership_community">Community concerns</string>
+    <string name="ticket_ownership_user">My concerns</string>
+    <!-- Vote -->
+    <string name="ticket_votes_label">Votes</string>
+    <!-- Drafts -->
+    <string name="draft_label">Draft</string>
+    <string name="draft_label_long">Draft - not uploaded yet</string>
+    <string name="draft_show_filter">Show drafts</string>
+    <string name="draft_created_on">Draft from </string>
+    <string name="draft_delete_dialog_text">Are you sure you want to delete this draft?</string>
+    <!-- Create / Edit -->
+    <string name="ticket_create_label">New concern</string>
+    <string name="ticket_edit_label">Edit ticket</string>
+    <string name="draft_edit_label">Edit draft</string>
+    <string name="use_current_location">Use current location</string>
+    <string name="images_label">Images</string>
+    <string name="ticket_delete_dialog_text">Are you sure you want to delete this ticket?</string>
+    <string name="ticket_upload_dialog_text">Are you sure you want to upload this ticket?</string>
 
     <!-- Office -->
     <string name="office_singular">Office</string>
@@ -42,22 +72,32 @@
     <!-- Category -->
     <string name="category_singular">Category</string>
     <string name="category_plural">Categories</string>
-    <!-- Category (Enum) -->
+    <string name="category_other">Other</string>
+    <string name="category_all">All</string>
+    <!-- Info Category (Enum) -->
     <string name="category_event">Event</string>
     <string name="category_construction">Construction</string>
     <string name="category_maintenance">Maintenance</string>
     <string name="category_announcement">Announcement</string>
-    <string name="category_other">Other</string>
-    <string name="category_all">All</string>
+    <!-- Ticket Category (Enum) -->
+    <string name="category_infrastructure">Infrastructure</string>
+    <string name="category_cleaning">Cleaning</string>
+    <string name="category_safety">Safety</string>
+    <string name="category_noise">Noise</string>
 
     <!-- Status -->
     <string name="label_status">Status</string>
     <string name="label_status_history">Status history</string>
-    <!-- Status (Enum) -->
+    <!-- Info Status (Enum) -->
     <string name="status_scheduled">Scheduled</string>
     <string name="status_active">Active</string>
     <string name="status_done">Done</string>
     <string name="status_cancelled">Cancelled</string>
+    <!-- Ticket Status (Enum) -->
+    <string name="status_open">Open</string>
+    <string name="status_in_progress">In progress</string>
+    <string name="status_resolved">Resolved</string>
+    <string name="status_rejected">Rejected</string>
 
     <!-- Settings -->
     <string name="settings_label">Settings</string>
@@ -75,6 +115,9 @@
     <string name="settings_lang_dialog_title">Change language</string>
     <string name="settings_lang_dialog_text">The app will be restarted in order to apply the changes.</string>
     <string name="settings_lang_dialog_confirm">Change &amp; Restart</string>
+    <!-- Radius -->
+    <string name="settings_radius_label">Search radius</string>
+    <string name="settings_radius_helper">Filters based on your current location (requires GPS).</string>
 
     <!-- Authentication -->
     <string name="auth_logout_label">Log out</string>
@@ -100,7 +143,7 @@
     <string name="auth_reset_password_dialog_text">Your password has been successfully changed.</string>
     <!-- Guard -->
     <string name="auth_guard_title">This area requires an account.</string>
-    <string name="auth_guard_text">Please login in or register a new account.</string>
+    <string name="auth_guard_text">Please log in or register a new account.</string>
     <!-- Input -->
     <string name="auth_name_label">Name (optional)</string>
     <string name="auth_email_label">Email</string>
@@ -115,6 +158,7 @@
     <string name="auth_validation_password_not_matching">Passwords are not matching.</string>
 
     <!-- Errors -->
+    <string name="error_data_not_found">The data could not be found.</string>
     <string name="error_disk_full">Oops, it seems like your disk is full.</string>
     <string name="error_unknown">Oops, something went wrong.</string>
     <string name="error_request_timeout">The request timed out.</string>
