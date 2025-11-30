@@ -1,6 +1,7 @@
 package com.example.community_app.info.presentation.info_master
 
 import com.example.community_app.core.domain.location.Location
+import com.example.community_app.core.presentation.components.search.FilterSection
 import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.info.domain.Info
 import com.example.community_app.util.InfoCategory
@@ -22,13 +23,9 @@ data class InfoFilterState(
   val selectedStatuses: Set<InfoStatus> = emptySet(),
   val distanceRadiusKm: Float = 50f,
   val sortBy: InfoSortOption = InfoSortOption.DATE_DESC,
-  val expandedSections: Set<InfoFilterSection> = setOf(InfoFilterSection.CATEGORY)
+  val expandedSections: Set<FilterSection> = setOf(FilterSection.CATEGORY)
 )
 
 enum class InfoSortOption {
   DATE_DESC, DATE_ASC, ALPHABETICAL
-}
-
-enum class InfoFilterSection {
-  CATEGORY, STATUS, DISTANCE
 }
