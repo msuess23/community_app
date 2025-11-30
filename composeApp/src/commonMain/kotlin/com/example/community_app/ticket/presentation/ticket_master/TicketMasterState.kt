@@ -1,6 +1,7 @@
 package com.example.community_app.ticket.presentation.ticket_master
 
 import com.example.community_app.core.domain.location.Location
+import com.example.community_app.core.presentation.components.search.FilterSection
 import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.ticket.domain.Ticket
 import com.example.community_app.ticket.domain.TicketListItem
@@ -29,13 +30,9 @@ data class TicketFilterState(
   val distanceRadiusKm: Float = 50f,
   val sortBy: TicketSortOption = TicketSortOption.DATE_DESC,
   val showDrafts: Boolean = true,
-  val expandedSections: Set<TicketFilterSection> = setOf(TicketFilterSection.CATEGORY)
+  val expandedSections: Set<FilterSection> = setOf(FilterSection.CATEGORY)
 )
 
 enum class TicketSortOption {
   DATE_DESC, DATE_ASC, ALPHABETICAL
-}
-
-enum class TicketFilterSection {
-  CATEGORY, STATUS, DISTANCE
 }

@@ -35,8 +35,6 @@ import com.example.community_app.settings.presentation.SettingsScreenRoot
 import com.example.community_app.ticket.presentation.ticket_detail.TicketDetailScreenRoot
 import com.example.community_app.ticket.presentation.ticket_edit.TicketEditScreenRoot
 import com.example.community_app.ticket.presentation.ticket_master.TicketMasterScreenRoot
-import com.example.community_app.util.AppLanguage
-import com.example.community_app.util.AppTheme
 import dev.icerock.moko.permissions.PermissionsController
 import dev.icerock.moko.permissions.compose.BindEffect
 import kotlinx.coroutines.launch
@@ -206,7 +204,8 @@ fun App() {
 
                 composable<Route.TicketEdit> {
                   TicketEditScreenRoot(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToMaster = { navController.popBackStack(Route.TicketMaster, inclusive = false) }
                   )
                 }
               }

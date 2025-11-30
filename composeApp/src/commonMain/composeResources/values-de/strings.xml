@@ -40,6 +40,7 @@
     <string name="draft_created_on">Entwurf vom </string>
     <string name="draft_delete_dialog_text">Bist Du sicher, dass Du diesen Entwurf löschen möchtest?</string>
     <!-- Create / Edit -->
+    <string name="ticket_create_label">Neues Anliegen</string>
     <string name="ticket_edit_label">Anliegen bearbeiten</string>
     <string name="draft_edit_label">Entwurf bearbeiten</string>
     <string name="use_current_location">Aktuellen Standort verwenden</string>

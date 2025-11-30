@@ -40,6 +40,7 @@
     <string name="draft_created_on">Draft from </string>
     <string name="draft_delete_dialog_text">Are you sure you want to delete this draft?</string>
     <!-- Create / Edit -->
+    <string name="ticket_create_label">New concern</string>
     <string name="ticket_edit_label">Edit ticket</string>
     <string name="draft_edit_label">Edit draft</string>
     <string name="use_current_location">Use current location</string>

@@ -1,5 +1,6 @@
 package com.example.community_app.ticket.presentation.ticket_master
 
+import com.example.community_app.core.presentation.components.search.FilterSection
 import com.example.community_app.ticket.domain.Ticket
 import com.example.community_app.ticket.domain.TicketDraft
 import com.example.community_app.util.TicketCategory
@@ -21,5 +22,5 @@ sealed interface TicketMasterAction {
   data object OnClearStatuses : TicketMasterAction
   data class OnDistanceChange(val distance: Float) : TicketMasterAction
   data class OnToggleShowDrafts(val show: Boolean) : TicketMasterAction
-  data class OnToggleSection(val section: TicketFilterSection) : TicketMasterAction
+  data class OnToggleSection(val section: FilterSection) : TicketMasterAction
 }

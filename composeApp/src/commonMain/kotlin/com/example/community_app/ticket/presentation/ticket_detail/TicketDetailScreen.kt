@@ -1,32 +1,21 @@
 package com.example.community_app.ticket.presentation.ticket_detail
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.community_app.core.presentation.components.CommunityTopAppBar
-import com.example.community_app.core.presentation.components.TopBarNavigationType
+import com.example.community_app.core.presentation.components.detail.DetailScreenLayout
 import com.example.community_app.core.presentation.components.detail.InfoTicketDetailContent
-import com.example.community_app.core.presentation.components.detail.StatusHistorySheet
 import com.example.community_app.core.presentation.components.detail.StatusHistoryUiItem
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.util.TicketStatus
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.draft_label
 import community_app.composeapp.generated.resources.edit
-import community_app.composeapp.generated.resources.error_data_not_found
 import community_app.composeapp.generated.resources.ticket_singular
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Edit
@@ -68,91 +57,54 @@ private fun TicketDetailScreen(
   state: TicketDetailState,
   onAction: (TicketDetailAction) -> Unit
 ) {
-  Scaffold(
-    topBar = {
-      CommunityTopAppBar(
-        titleContent = {
-          val title = if (state.isDraft) Res.string.draft_label else Res.string.ticket_singular
-          Text(stringResource(title))
-        },
-        navigationType = TopBarNavigationType.Back,
-        onNavigationClick = { onAction(TicketDetailAction.OnNavigateBack) },
-        actions = {
-          if (state.isOwner) {
-            IconButton(onClick = { onAction(TicketDetailAction.OnEditClick) }) {
-              Icon(
-                imageVector = FeatherIcons.Edit,
-                contentDescription = stringResource(Res.string.edit),
-                tint = MaterialTheme.colorScheme.onPrimary
-              )
-            }
-          }
-        }
-      )
-    }
-  ) { padding ->
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(padding)
-        .background(MaterialTheme.colorScheme.surface)
-    ) {
-      if (state.isLoading) {
-        CircularProgressIndicator(
-          modifier = Modifier.align(Alignment.Center),
-          color = MaterialTheme.colorScheme.primary
-        )
-      } else {
-        val title = state.ticket?.title ?: state.draft?.title
+  val titleRes = if (state.isDraft) Res.string.draft_label else Res.string.ticket_singular
 
-        if (title != null) {
-          val category = state.ticket?.category?.toUiText()?.asString()
-            ?: state.draft?.category?.toUiText()?.asString()
-            ?: "-"
+  val displayTitle = state.ticket?.title ?: state.draft?.title
+  val displayCategory = state.ticket?.category?.toUiText()?.asString()
+    ?: state.draft?.category?.toUiText()?.asString() ?: "-"
+  val displayDesc = state.ticket?.description ?: state.draft?.description
+  val displayStatus = state.ticket?.currentStatus?.toUiText()?.asString()
 
-          val description = state.ticket?.description ?: state.draft?.description
+  val historyUiItems = state.statusHistory.map { dto ->
+    StatusHistoryUiItem(
+      statusText = TicketStatus.valueOf(dto.status.toString()).toUiText().asString(),
+      message = dto.message,
+      createdAt = dto.createdAt
+    )
+  }
 
-          val statusText = state.ticket?.currentStatus?.toUiText()?.asString()
-
-          val images = state.imageUrls.ifEmpty { listOfNotNull(state.ticket?.imageUrl) }
-
-          InfoTicketDetailContent(
-            title = title,
-            category = category,
-            description = description,
-            images = images,
-            statusText = statusText,
-            startDate = null,
-            endDate = null,
-            onStatusClick = { onAction(TicketDetailAction.OnShowStatusHistory) },
-            addressContent = { Text("Map Placeholder") }, // TODO: Real map
-            isDraft = state.isDraft,
-            isOwner = state.isOwner
-          )
-        } else {
-          Text(
-            text = stringResource(Res.string.error_data_not_found),
-            modifier = Modifier.align(Alignment.Center)
+  DetailScreenLayout(
+    title = stringResource(titleRes),
+    onNavigateBack = { onAction(TicketDetailAction.OnNavigateBack) },
+    isLoading = state.isLoading,
+    dataAvailable = displayTitle != null,
+    showStatusHistory = state.showStatusHistory,
+    statusHistory = historyUiItems,
+    onDismissStatusHistory = { onAction(TicketDetailAction.OnDismissStatusHistory) },
+    actions = {
+      if (state.isOwner) {
+        IconButton(onClick = { onAction(TicketDetailAction.OnEditClick) }) {
+          Icon(
+            imageVector = FeatherIcons.Edit,
+            contentDescription = stringResource(Res.string.edit),
+            tint = MaterialTheme.colorScheme.onPrimary
           )
         }
       }
     }
-  }
-
-  if (state.showStatusHistory) {
-    val history = state.statusHistory.map { dto ->
-      val statusText = TicketStatus.valueOf(dto.status.toString()).toUiText().asString()
-
-      StatusHistoryUiItem(
-        statusText = statusText,
-        message = dto.message,
-        createdAt = dto.createdAt
-      )
-    }
-
-    StatusHistorySheet(
-      history = history,
-      onDismiss = { onAction(TicketDetailAction.OnDismissStatusHistory) }
+  ) {
+    InfoTicketDetailContent(
+      title = displayTitle ?: "",
+      category = displayCategory,
+      description = displayDesc,
+      images = state.imageUrls,
+      statusText = displayStatus,
+      startDate = null,
+      endDate = null,
+      onStatusClick = { onAction(TicketDetailAction.OnShowStatusHistory) },
+      addressContent = { Text("Map Placeholder") },
+      isDraft = state.isDraft,
+      isOwner = state.isOwner
     )
   }
 }

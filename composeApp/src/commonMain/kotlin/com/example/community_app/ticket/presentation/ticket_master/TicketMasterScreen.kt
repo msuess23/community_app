@@ -1,33 +1,20 @@
 package com.example.community_app.ticket.presentation.ticket_master
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,30 +22,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.auth.presentation.components.AuthGuard
-import com.example.community_app.core.presentation.components.CommunityTopAppBar
 import com.example.community_app.core.presentation.components.ObserveErrorMessage
-import com.example.community_app.core.presentation.components.TopBarNavigationType
 import com.example.community_app.core.presentation.components.list.InfoTicketListItem
 import com.example.community_app.core.presentation.components.list.ScreenMessage
-import com.example.community_app.core.presentation.components.search.SearchBar
+import com.example.community_app.core.presentation.components.master.MasterScreenLayout
 import com.example.community_app.core.presentation.helpers.toUiText
-import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatIsoDate
+import com.example.community_app.core.util.formatMillisDate
 import com.example.community_app.ticket.domain.TicketListItem
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.draft_created_on
-import community_app.composeapp.generated.resources.filters_label
+import community_app.composeapp.generated.resources.create
 import community_app.composeapp.generated.resources.search_no_results
 import community_app.composeapp.generated.resources.ticket_ownership_community
 import community_app.composeapp.generated.resources.ticket_ownership_user
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Plus
-import compose.icons.feathericons.Sliders
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -94,7 +76,6 @@ private fun TicketMasterScreen(
   onAction: (TicketMasterAction) -> Unit,
   onOpenDrawer: () -> Unit
 ) {
-  val keyboardController = LocalSoftwareKeyboardController.current
   val snackbarHostState = remember { SnackbarHostState() }
   val tabs = listOf(Res.string.ticket_ownership_community, Res.string.ticket_ownership_user)
 
@@ -105,7 +86,6 @@ private fun TicketMasterScreen(
   }
 
   val lazyListState = rememberLazyListState()
-  val emptyScrollState = rememberScrollState()
 
   LaunchedEffect(state.selectedTabIndex) {
     lazyListState.animateScrollToItem(0)
@@ -117,41 +97,16 @@ private fun TicketMasterScreen(
     isLoading = state.isLoading
   )
 
-  Scaffold(
-    topBar = {
-      CommunityTopAppBar(
-        titleContent = {
-          SearchBar(
-            searchQuery = state.searchQuery,
-            onSearchQueryChange = {
-              onAction(TicketMasterAction.OnSearchQueryChange(it))
-            },
-            onImeSearch = {
-              keyboardController?.hide()
-            },
-            modifier = Modifier.fillMaxWidth()
-          )
-        },
-        navigationType = TopBarNavigationType.Drawer,
-        onNavigationClick = onOpenDrawer,
-        actions = {
-          IconButton(
-            onClick = { onAction(TicketMasterAction.OnToggleFilterSheet) }
-          ) {
-            val iconTint = if (state.filter.selectedCategories.isNotEmpty())
-              MaterialTheme.colorScheme.tertiaryContainer
-            else
-              MaterialTheme.colorScheme.onPrimary
-
-            Icon(
-              imageVector = FeatherIcons.Sliders,
-              contentDescription = stringResource(Res.string.filters_label),
-              tint = iconTint
-            )
-          }
-        }
-      )
-    },
+  MasterScreenLayout(
+    searchQuery = state.searchQuery,
+    isFilterActive = state.filter.selectedCategories.isNotEmpty() || state.filter.selectedStatuses.isNotEmpty(),
+    isLoading = state.isLoading,
+    isEmpty = currentList.isEmpty(),
+    snackbarHostState = snackbarHostState,
+    onSearchQueryChange = { onAction(TicketMasterAction.OnSearchQueryChange(it)) },
+    onRefresh = { onAction(TicketMasterAction.OnRefresh) },
+    onOpenDrawer = onOpenDrawer,
+    onToggleFilterSheet = { onAction(TicketMasterAction.OnToggleFilterSheet) },
     floatingActionButton = {
       if (state.isUserLoggedIn) {
         FloatingActionButton(
@@ -159,156 +114,115 @@ private fun TicketMasterScreen(
           containerColor = MaterialTheme.colorScheme.primary,
           contentColor = MaterialTheme.colorScheme.onPrimary
         ) {
-          Icon(imageVector = FeatherIcons.Plus, contentDescription = null)
+          Icon(
+            imageVector = FeatherIcons.Plus,
+            contentDescription = stringResource(Res.string.create)
+          )
         }
       }
     },
-    snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-  ) { padding ->
-    Column(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(padding)
-        .background(MaterialTheme.colorScheme.primary)
-        .statusBarsPadding()
-    ) {
-      Surface(
-        modifier = Modifier
-          .weight(1f)
-          .fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(
-          topStart = 32.dp,
-          topEnd = 32.dp
-        )
+    tabsContent = {
+      SecondaryTabRow(
+        selectedTabIndex = state.selectedTabIndex,
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.primary,
+        divider = { HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant) }
       ) {
-        Column(
-          horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-          SecondaryTabRow(
-            selectedTabIndex = state.selectedTabIndex,
-            containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.primary,
-            divider = { HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant) },
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(bottom = Spacing.medium, top = Spacing.extraSmall)
-          ) {
-            tabs.forEachIndexed { index, title ->
-              Tab(
-                selected = state.selectedTabIndex == index,
-                onClick = { onAction(TicketMasterAction.OnTabChange(index)) },
-                text = {
-                  Text(
-                    text = stringResource(title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = if (state.selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.primary
-                  )
-                }
+        tabs.forEachIndexed { index, title ->
+          Tab(
+            selected = state.selectedTabIndex == index,
+            onClick = { onAction(TicketMasterAction.OnTabChange(index)) },
+            text = {
+              Text(
+                text = stringResource(title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = if (state.selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
+                color = MaterialTheme.colorScheme.primary
               )
             }
-          }
-
-          PullToRefreshBox(
-            isRefreshing = state.isLoading,
-            onRefresh = { onAction(TicketMasterAction.OnRefresh) },
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-          ) {
-            when {
-              state.isLoading -> {
-                CircularProgressIndicator(
-                  color = MaterialTheme.colorScheme.primary
-                )
-              }
-
-              state.selectedTabIndex == 1 && !state.isUserLoggedIn -> {
-                AuthGuard(
-                  onLoginClick = { onAction(TicketMasterAction.OnLoginClick) },
-                  content = { }
-                )
-              }
-
-              currentList.isEmpty() && !state.isLoading -> {
-                Box(
-                  modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(emptyScrollState),
-                  contentAlignment = Alignment.Center
-                ) {
-                  ScreenMessage(
-                    text = stringResource(Res.string.search_no_results),
-                    color = MaterialTheme.colorScheme.onSurface
-                  )
-                }
-              }
-
-              else -> {
-                LazyColumn(
-                  modifier = Modifier.fillMaxSize(),
-                  state = lazyListState,
-                  verticalArrangement = Arrangement.spacedBy(12.dp),
-                  horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                  items(currentList) { item ->
-                    val (title, subtitle, date, image, isDraft) = when(item) {
-                      is TicketListItem.Remote -> {
-                        val cat = item.ticket.category.toUiText().asString()
-                        val status = item.ticket.currentStatus?.toUiText()?.asString()
-                        val sub = if(status != null) "$cat, $status" else cat
-                        TicketItemData(
-                          title = item.ticket.title,
-                          subtitle = sub,
-                          date = formatIsoDate(item.ticket.createdAt),
-                          image = item.ticket.imageUrl,
-                          isDraft = false
-                        )
-                      }
-                      is TicketListItem.Local -> {
-                        val cat = item.draft.category?.toUiText()?.asString() ?: "-"
-                        TicketItemData(
-                          title = item.draft.title,
-                          subtitle = cat,
-                          date = stringResource(Res.string.draft_created_on)
-                              + formatIsoDate(item.draft.lastModified),
-                          image = item.draft.images.firstOrNull(),
-                          isDraft = true
-                        )
-                      }
-                    }
-
-                    InfoTicketListItem(
-                      title = title,
-                      subtitle = subtitle,
-                      dateString = date,
-                      imageUrl = image,
-                      isDraft = isDraft,
-                      onClick = {
-                        when (item) {
-                          is TicketListItem.Remote -> onAction(TicketMasterAction.OnTicketClick(item.ticket))
-                          is TicketListItem.Local -> onAction(TicketMasterAction.OnDraftClick(item.draft))
-                        }
-                      },
-                      modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                    )
-                  }
-                }
-              }
-            }
-          }
+          )
         }
       }
-      if (state.isFilterSheetVisible) {
-        TicketFilterSheet(
-          filterState = state.filter,
-          isCommunityTab = state.selectedTabIndex == 0,
-          onAction = onAction
+    },
+    emptyStateContent = {
+      if (state.selectedTabIndex == 1 && !state.isUserLoggedIn) {
+        AuthGuard(
+          onLoginClick = { onAction(TicketMasterAction.OnLoginClick) },
+          content = { }
+        )
+      } else {
+        ScreenMessage(
+          text = stringResource(Res.string.search_no_results),
+          color = MaterialTheme.colorScheme.onSurface
         )
       }
     }
+  ) {
+    LazyColumn(
+      modifier = Modifier.fillMaxSize(),
+      state = lazyListState,
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+      horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+      items(currentList) { item ->
+        val (title, subtitle, date, image, isDraft) = when (item) {
+          is TicketListItem.Remote -> {
+            val cat = item.ticket.category.toUiText().asString()
+            val status = item.ticket.currentStatus?.toUiText()?.asString()
+            val sub = if (status != null) "$cat, $status" else cat
+            TicketItemData(
+              title = item.ticket.title,
+              subtitle = sub,
+              date = formatIsoDate(item.ticket.createdAt),
+              image = item.ticket.imageUrl,
+              isDraft = false
+            )
+          }
+
+          is TicketListItem.Local -> {
+            val cat = item.draft.category?.toUiText()?.asString() ?: "-"
+            val dateStr = try {
+              formatMillisDate(item.draft.lastModified.toLong())
+            } catch (e: Exception) {
+              "-"
+            }
+
+            TicketItemData(
+              title = item.draft.title,
+              subtitle = cat,
+              date = dateStr,
+              image = item.draft.images.firstOrNull(),
+              isDraft = true
+            )
+          }
+        }
+
+        InfoTicketListItem(
+          title = title,
+          subtitle = subtitle,
+          dateString = date,
+          imageUrl = image,
+          isDraft = isDraft,
+          onClick = {
+            when (item) {
+              is TicketListItem.Remote -> onAction(TicketMasterAction.OnTicketClick(item.ticket))
+              is TicketListItem.Local -> onAction(TicketMasterAction.OnDraftClick(item.draft))
+            }
+          },
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+        )
+      }
+    }
+  }
+
+  if (state.isFilterSheetVisible) {
+    TicketFilterSheet(
+      filterState = state.filter,
+      isCommunityTab = state.selectedTabIndex == 0,
+      onAction = onAction
+    )
   }
 }
 

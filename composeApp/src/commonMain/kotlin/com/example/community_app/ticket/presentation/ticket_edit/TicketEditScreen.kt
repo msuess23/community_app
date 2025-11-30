@@ -72,6 +72,7 @@ import community_app.composeapp.generated.resources.next
 import community_app.composeapp.generated.resources.save
 import community_app.composeapp.generated.resources.ticket_singular
 import community_app.composeapp.generated.resources.info_singular
+import community_app.composeapp.generated.resources.ticket_create_label
 import community_app.composeapp.generated.resources.ticket_delete_dialog_text
 import community_app.composeapp.generated.resources.ticket_edit_label
 import community_app.composeapp.generated.resources.ticket_upload_dialog_text
@@ -91,13 +92,14 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun TicketEditScreenRoot(
   viewModel: TicketEditViewModel = koinViewModel(),
-  onNavigateBack: () -> Unit
+  onNavigateBack: () -> Unit,
+  onNavigateToMaster: () -> Unit
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
 
   LaunchedEffect(state.isUploadSuccess, state.isDeleteSuccess) {
     if (state.isUploadSuccess || state.isDeleteSuccess) {
-      onNavigateBack()
+      onNavigateToMaster()
     }
   }
 
@@ -133,14 +135,18 @@ private fun TicketEditScreen(
   Scaffold(
     topBar = {
       CommunityTopAppBar(
-        titleContent = { Text(text =
-          if (state.isDraft) stringResource(Res.string.draft_edit_label)
-          else stringResource(Res.string.ticket_edit_label)
-        ) },
+        titleContent = {
+          val titleRes = when {
+            (!state.isDraft && state.ticketId != null) -> Res.string.ticket_edit_label
+            (state.isDraft && state.draftId != null) -> Res.string.draft_edit_label
+            else -> Res.string.ticket_create_label
+          }
+          Text(text = stringResource(titleRes))
+        },
         navigationType = TopBarNavigationType.Back,
         onNavigationClick = { onAction(TicketEditAction.OnNavigateBack) },
         actions = {
-          if (state.isDraft || state.ticketId != null) {
+          if (state.draftId != null || state.ticketId != null) {
             IconButton(onClick = { onAction(TicketEditAction.OnDeleteClick) }) {
               Icon(
                 imageVector = FeatherIcons.Trash2,
@@ -325,7 +331,7 @@ private fun TicketEditScreen(
       title = Res.string.delete,
       text = if (state.isDraft) Res.string.ticket_delete_dialog_text else Res.string.ticket_delete_dialog_text,
       onDismissRequest = { onAction(TicketEditAction.OnDeleteDismiss) },
-      confirmButtonText = Res.string.auth_logout_label,
+      confirmButtonText = Res.string.delete,
       onConfirm = { onAction(TicketEditAction.OnDeleteConfirm) },
       dismissButtonText = Res.string.cancel,
       onDismiss = { onAction(TicketEditAction.OnDeleteDismiss) }
@@ -337,8 +343,10 @@ private fun TicketEditScreen(
       title = Res.string.upload,
       text = Res.string.ticket_upload_dialog_text,
       onDismissRequest = { onAction(TicketEditAction.OnUploadDismiss) },
-      confirmButtonText = Res.string.next,
-      onConfirm = { onAction(TicketEditAction.OnUploadConfirm) }
+      confirmButtonText = Res.string.upload,
+      onConfirm = { onAction(TicketEditAction.OnUploadConfirm) },
+      dismissButtonText = Res.string.cancel,
+      onDismiss = { onAction(TicketEditAction.OnUploadDismiss) }
     )
   }
 
