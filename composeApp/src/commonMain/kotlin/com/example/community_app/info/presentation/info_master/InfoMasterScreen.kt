@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.core.presentation.components.ObserveErrorMessage
 import com.example.community_app.core.presentation.components.list.InfoTicketListItem
 import com.example.community_app.core.presentation.components.master.MasterScreenLayout
+import com.example.community_app.core.presentation.components.master.SingleTabHeader
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.util.formatIsoDate
 import com.example.community_app.info.domain.Info
@@ -86,34 +87,7 @@ private fun InfoMasterScreen(
     onRefresh = { onAction(InfoMasterAction.OnRefresh) },
     onOpenDrawer = onOpenDrawer,
     onToggleFilterSheet = { onAction(InfoMasterAction.OnToggleFilterSheet) },
-    tabsContent = {
-      SecondaryTabRow(
-        selectedTabIndex = 0,
-        containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.outlineVariant,
-        divider = {
-          HorizontalDivider(
-            modifier = Modifier.height(1.dp),
-            color = MaterialTheme.colorScheme.outlineVariant
-          )
-        },
-        indicator = { }
-      ) {
-        Tab(
-          selected = false,
-          enabled = false,
-          onClick = { },
-          text = {
-            Text(
-              text = stringResource(Res.string.info_plural),
-              style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.primary
-            )
-          }
-        )
-      }
-    }
+    tabsContent = { SingleTabHeader(Res.string.info_plural) }
   ) {
     LazyColumn(
       modifier = Modifier.fillMaxSize(),

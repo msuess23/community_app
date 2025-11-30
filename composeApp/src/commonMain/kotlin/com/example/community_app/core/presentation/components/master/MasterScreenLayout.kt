@@ -125,7 +125,14 @@ fun MasterScreenLayout(
             if (isLoading && isEmpty) {
               CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             } else if (isEmpty) {
-              emptyStateContent()
+              Box(
+                modifier = Modifier
+                  .fillMaxSize()
+                  .verticalScroll(rememberScrollState()),
+                contentAlignment = Alignment.Center
+              ) {
+                emptyStateContent()
+              }
             } else {
               listContent()
             }
@@ -138,11 +145,8 @@ fun MasterScreenLayout(
 
 @Composable
 private fun DefaultEmptyState() {
-  val scrollState = rememberScrollState()
   Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .verticalScroll(scrollState),
+    modifier = Modifier.fillMaxSize(),
     contentAlignment = Alignment.Center
   ) {
     ScreenMessage(
