@@ -4,6 +4,8 @@ import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
+import com.example.community_app.appointment.data.local.AppointmentDao
+import com.example.community_app.appointment.data.local.AppointmentEntity
 import com.example.community_app.info.data.local.InfoDao
 import com.example.community_app.info.data.local.InfoEntity
 import com.example.community_app.office.data.local.OfficeDao
@@ -20,9 +22,10 @@ import com.example.community_app.ticket.data.local.ticket.TicketEntity
     TicketEntity::class,
     TicketDraftEntity::class,
     TicketDraftImageEntity::class,
-    OfficeEntity::class
+    OfficeEntity::class,
+    AppointmentEntity::class
   ],
-  version = 4
+  version = 5
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -30,6 +33,7 @@ abstract class AppDatabase : RoomDatabase() {
   abstract fun ticketDao(): TicketDao
   abstract fun ticketDraftDao(): TicketDraftDao
   abstract fun officeDao(): OfficeDao
+  abstract fun appointmentDao(): AppointmentDao
 }
 
 @Suppress("KotlinNoActualForExpect")
