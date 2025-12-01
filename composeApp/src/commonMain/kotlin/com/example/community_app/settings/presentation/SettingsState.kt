@@ -7,7 +7,8 @@ import com.example.community_app.util.AppTheme
 data class SettingsState(
   val settings: AppSettings = AppSettings(
     theme = AppTheme.SYSTEM,
-    language = AppLanguage.SYSTEM
+    language = AppLanguage.SYSTEM,
+    calendarSyncEnabled = false
   ),
   val showLogoutDialog: Boolean = false,
   val pendingLanguage: AppLanguage? = null,

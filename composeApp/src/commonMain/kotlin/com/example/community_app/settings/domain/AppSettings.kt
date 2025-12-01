@@ -5,5 +5,6 @@ import com.example.community_app.util.AppTheme
 
 data class AppSettings(
   val theme: AppTheme,
-  val language: AppLanguage
+  val language: AppLanguage,
+  val calendarSyncEnabled: Boolean
 )

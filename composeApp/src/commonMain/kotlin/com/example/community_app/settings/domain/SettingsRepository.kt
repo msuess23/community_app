@@ -9,4 +9,5 @@ interface SettingsRepository {
 
   suspend fun setTheme(theme: AppTheme)
   suspend fun setLanguage(lang: AppLanguage)
+  suspend fun setCalendarSyncEnabled(enabled: Boolean)
 }
