@@ -26,7 +26,7 @@ class AppointmentService(
     val pairs = batch.slots.map { parseSlot(it) }
     validateNoOverlaps(pairs)
     val recs = repo.createSlots(officeId, pairs)
-    return recs.filter { it.userId == null }.map { it.toSlotDto() }
+    return recs.map { it.toSlotDto() }
   }
 
   /** Einzelnen Slot löschen (nur freie Slots). */
@@ -89,11 +89,15 @@ class AppointmentService(
     endsAt = endsAt.toString()
   )
 
-  private fun AppointmentRecord.toAppointmentDto() = AppointmentDto(
-    id = id,
-    officeId = officeId,
-    userId = userId!!,
-    startsAt = startsAt.toString(),
-    endsAt = endsAt.toString()
-  )
+  private fun AppointmentRecord.toAppointmentDto(): AppointmentDto {
+    val uid = userId ?: throw IllegalStateException("Appointment record $id has no user, but represents an appointment!")
+
+    return AppointmentDto(
+      id = id,
+      officeId = officeId,
+      userId = uid,
+      startsAt = startsAt.toString(),
+      endsAt = endsAt.toString()
+    )
+  }
 }
