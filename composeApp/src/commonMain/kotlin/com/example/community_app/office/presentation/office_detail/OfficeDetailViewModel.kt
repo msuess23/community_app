@@ -13,9 +13,12 @@ import com.example.community_app.core.domain.Result
 import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.util.addDays
+import com.example.community_app.core.util.formatIsoDate
+import com.example.community_app.core.util.formatMillisDate
 import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.core.util.getStartOfDay
 import com.example.community_app.core.util.parseIsoToMillis
+import com.example.community_app.core.util.toIso8601
 import com.example.community_app.office.domain.OfficeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +26,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.max
 
 class OfficeDetailViewModel(
   savedStateHandle: SavedStateHandle,
@@ -32,6 +36,8 @@ class OfficeDetailViewModel(
   private val isUserLoggedInUseCase: IsUserLoggedInUseCase
 ) : ViewModel() {
   private val officeId = savedStateHandle.toRoute<Route.OfficeDetail>().id
+
+  private val daysInFuture = 90
 
   // State-Inputs
   private val _selectedDate = MutableStateFlow(getStartOfDay(getCurrentTimeMillis()))
@@ -47,6 +53,9 @@ class OfficeDetailViewModel(
   ) { office, selectedDate, allSlots, ui, isLoggedIn ->
     val nextDay = addDays(selectedDate, 1)
 
+    val today = getStartOfDay(getCurrentTimeMillis())
+    val maxDate = addDays(today, daysInFuture)
+
     val filteredSlots = allSlots.filter { slot ->
       val slotStart = parseIsoToMillis(slot.startIso)
       slotStart in selectedDate until nextDay
@@ -56,13 +65,15 @@ class OfficeDetailViewModel(
       isLoading = ui.isLoadingOffice,
       office = office,
       selectedDateMillis = selectedDate,
+      selectableDateRange = today..maxDate,
       visibleSlots = filteredSlots,
       isLoadingSlots = ui.isLoadingSlots,
       selectedSlot = ui.selectedSlot,
       isBooking = ui.isBooking,
       bookingSuccess = ui.bookingSuccess,
       errorMessage = ui.errorMessage,
-      isUserLoggedIn = isLoggedIn
+      isUserLoggedIn = isLoggedIn,
+      showDatePicker = ui.showDatePicker
     )
   }.stateIn(
     viewModelScope,
@@ -77,8 +88,19 @@ class OfficeDetailViewModel(
 
   fun onAction(action: OfficeDetailAction) {
     when(action) {
-      OfficeDetailAction.OnNextDayClick -> changeDate(1)
-      OfficeDetailAction.OnPreviousDayClick -> changeDate(-1)
+      is OfficeDetailAction.OnNextDayClick -> changeDate(1)
+      is OfficeDetailAction.OnPreviousDayClick -> changeDate(-1)
+
+      is OfficeDetailAction.OnCalendarClick -> {
+        _uiState.update { it.copy(showDatePicker = true) }
+      }
+      is OfficeDetailAction.OnDismissDatePicker -> {
+        _uiState.update { it.copy(showDatePicker = false) }
+      }
+      is OfficeDetailAction.OnDateSelected -> {
+        updateDate(action.dateMillis)
+        _uiState.update { it.copy(showDatePicker = false) }
+      }
 
       is OfficeDetailAction.OnSlotClick -> {
         if (!state.value.isUserLoggedIn) {
@@ -99,8 +121,18 @@ class OfficeDetailViewModel(
   }
 
   private fun changeDate(days: Int) {
-    val newDate = addDays(_selectedDate.value, days)
-    _selectedDate.value = newDate
+    val currentSelected = _selectedDate.value
+    val newDate = addDays(currentSelected, days)
+
+    if (newDate in state.value.selectableDateRange) {
+      _selectedDate.value = newDate
+    }
+  }
+
+  private fun updateDate(dateMillis: Long?) {
+    if (dateMillis != null && dateMillis in state.value.selectableDateRange) {
+      _selectedDate.value = dateMillis
+    }
   }
 
   private fun loadOffice() {
@@ -115,7 +147,13 @@ class OfficeDetailViewModel(
     viewModelScope.launch {
       _uiState.update { it.copy(isLoadingSlots = true) }
 
-      val result = getFreeSlotsUseCase(officeId)
+      val nowMillis = getCurrentTimeMillis()
+      val endDateMillis = addDays(nowMillis, daysInFuture)
+
+      val from = toIso8601(nowMillis)
+      val to = toIso8601(endDateMillis)
+
+      val result = getFreeSlotsUseCase(officeId, from, to)
 
       if (result is Result.Success) {
         _allSlots.value = result.data
@@ -150,6 +188,7 @@ class OfficeDetailViewModel(
     val selectedSlot: Slot? = null,
     val isBooking: Boolean = false,
     val bookingSuccess: Boolean = false,
+    val showDatePicker: Boolean = false,
     val errorMessage: UiText? = null
   )
 }

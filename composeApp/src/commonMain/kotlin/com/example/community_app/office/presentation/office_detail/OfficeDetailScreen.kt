@@ -1,5 +1,6 @@
 package com.example.community_app.office.presentation.office_detail
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,9 +10,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -24,10 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.community_app.core.presentation.components.detail.CommunityAddressCard
 import com.example.community_app.core.presentation.components.detail.DetailScreenLayout
+import com.example.community_app.core.presentation.components.detail.MapPlaceholder
 import com.example.community_app.core.presentation.components.dialog.CommunityDialog
 import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.office.domain.Office
+import com.example.community_app.office.presentation.office_detail.component.CommunityDatePicker
 import com.example.community_app.office.presentation.office_detail.component.DateSelector
 import com.example.community_app.office.presentation.office_detail.component.SlotItem
 import compose.icons.FeatherIcons
@@ -39,6 +46,8 @@ import community_app.composeapp.generated.resources.appointment_singular
 import community_app.composeapp.generated.resources.save
 import community_app.composeapp.generated.resources.cancel
 import community_app.composeapp.generated.resources.office_singular
+import compose.icons.feathericons.Clock
+import compose.icons.feathericons.Mail
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -90,8 +99,10 @@ private fun OfficeDetailScreen(
         item {
           DateSelector(
             dateMillis = state.selectedDateMillis,
+            dateRange = state.selectableDateRange,
             onPrev = { onAction(OfficeDetailAction.OnPreviousDayClick) },
-            onNext = { onAction(OfficeDetailAction.OnNextDayClick) }
+            onNext = { onAction(OfficeDetailAction.OnNextDayClick) },
+            onCalendarClick = { onAction(OfficeDetailAction.OnCalendarClick) }
           )
         }
 
@@ -136,53 +147,86 @@ private fun OfficeDetailScreen(
       onDismiss = { onAction(OfficeDetailAction.OnDismissBookingDialog) }
     )
   }
+
+  if (state.showDatePicker) {
+    CommunityDatePicker(
+      initialDateMillis = state.selectedDateMillis,
+      dateRange = state.selectableDateRange,
+      onDateSelected = { millis -> onAction(OfficeDetailAction.OnDateSelected(millis)) },
+      onDismiss = { onAction(OfficeDetailAction.OnDismissDatePicker) }
+    )
+  }
 }
 
 @Composable
 private fun OfficeHeader(office: Office) {
-  Column(modifier = Modifier.padding(Spacing.medium)) {
+  Column(
+    verticalArrangement = Arrangement.spacedBy(Spacing.medium),
+    modifier = Modifier.padding(Spacing.medium)
+  ) {
     if (!office.description.isNullOrBlank()) {
       Text(
         text = office.description,
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurface
       )
-      Spacer(modifier = Modifier.height(Spacing.small))
+    }
+
+    if (!office.services.isNullOrBlank()) {
+      Text(
+        text = office.services,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+      )
+    }
+
+    if (!office.openingHours.isNullOrBlank()) {
+      Row(verticalAlignment = Alignment.Top) {
+        Icon(FeatherIcons.Clock, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 2.dp))
+        Spacer(Modifier.width(16.dp))
+        Column {
+          Text(
+            text = "Öffnungszeiten", // TODO: Localize
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary
+          )
+          Text(
+            text = office.openingHours,
+            style = MaterialTheme.typography.bodyMedium
+          )
+        }
+      }
+    }
+
+    // Contact Box
+    if (!office.phone.isNullOrBlank() || !office.contactEmail.isNullOrBlank()) {
+      Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        modifier = Modifier.fillMaxWidth()
+      ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+          if (!office.phone.isNullOrBlank()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Icon(FeatherIcons.Phone, null, modifier = Modifier.size(16.dp))
+              Spacer(Modifier.width(8.dp))
+              Text(office.phone, style = MaterialTheme.typography.bodyMedium)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+          }
+
+          if (!office.contactEmail.isNullOrBlank()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Icon(FeatherIcons.Mail, null, modifier = Modifier.size(16.dp))
+              Spacer(Modifier.width(8.dp))
+              Text(office.contactEmail, style = MaterialTheme.typography.bodyMedium)
+            }
+          }
+        }
+      }
     }
 
     // Address
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      Icon(
-        imageVector = FeatherIcons.MapPin,
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.secondary,
-        modifier = Modifier.width(16.dp)
-      )
-
-      Spacer(modifier = Modifier.width(8.dp))
-
-      Text(
-        text = "${office.address.street} ${office.address.houseNumber}, ${office.address.city}",
-        style = MaterialTheme.typography.bodySmall
-      )
-    }
-
-    // Phone
-    if (!office.phone.isNullOrBlank()) {
-      Spacer(modifier = Modifier.height(4.dp))
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-          imageVector = FeatherIcons.Phone,
-          contentDescription = null,
-          tint = MaterialTheme.colorScheme.secondary,
-          modifier = Modifier.width(16.dp)
-        )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Text(text = office.phone, style = MaterialTheme.typography.bodySmall)
-      }
-    }
+    CommunityAddressCard(address = office.address)
   }
 }
 

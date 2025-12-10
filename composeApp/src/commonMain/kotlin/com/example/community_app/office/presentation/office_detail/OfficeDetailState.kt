@@ -9,6 +9,7 @@ data class OfficeDetailState(
   val office: Office? = null,
 
   val selectedDateMillis: Long = 0L,
+  val selectableDateRange: LongRange = LongRange.EMPTY,
   val visibleSlots: List<Slot> = emptyList(),
   val isLoadingSlots: Boolean = false,
 
@@ -16,6 +17,7 @@ data class OfficeDetailState(
   val isBooking: Boolean = false,
   val bookingSuccess: Boolean = false,
   val isUserLoggedIn: Boolean = false,
+  val showDatePicker: Boolean = false,
 
   val errorMessage: UiText? = null
 )
