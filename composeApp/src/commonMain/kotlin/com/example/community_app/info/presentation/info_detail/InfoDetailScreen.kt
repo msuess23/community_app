@@ -67,7 +67,7 @@ private fun InfoDetailScreen(
         startDate = info.startsAt,
         endDate = info.endsAt,
         onStatusClick = { onAction(InfoDetailAction.OnShowStatusHistory) },
-        addressContent = { if (info.address != null) Text("MapCard Placeholder") }
+        address = info.address
       )
     }
   }

@@ -102,7 +102,7 @@ private fun TicketDetailScreen(
       startDate = null,
       endDate = null,
       onStatusClick = { onAction(TicketDetailAction.OnShowStatusHistory) },
-      addressContent = { Text("Map Placeholder") },
+      address = state.ticket?.address,
       isDraft = state.isDraft,
       isOwner = state.isOwner
     )
