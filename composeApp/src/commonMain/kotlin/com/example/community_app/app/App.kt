@@ -20,6 +20,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.community_app.app.navigation.AppScaffold
 import com.example.community_app.app.navigation.Route
 import com.example.community_app.app.navigation.TopLevelDestination
+import com.example.community_app.appointment.presentation.detail.AppointmentDetailScreenRoot
+import com.example.community_app.appointment.presentation.master.AppointmentMasterScreenRoot
 import com.example.community_app.auth.presentation.components.AuthGuard
 import com.example.community_app.auth.presentation.forgot_password.ForgotPasswordScreenRoot
 import com.example.community_app.auth.presentation.login.LoginScreenRoot
@@ -232,14 +234,18 @@ fun App() {
 
               navigation<Route.AppointmentGraph>(startDestination = Route.AppointmentMaster) {
                 composable<Route.AppointmentMaster> {
-                  AuthGuard(
-                    onLoginClick = { navController.navigate(Route.AuthGraph) }
-                  ) { user ->
-                    DummyScreen(
-                      title = "Appointment Master (Angemeldet als ${user.displayName})",
-                      onOpenDrawer = { scope.launch { drawerState.open() } }
-                    )
-                  }
+                  AppointmentMasterScreenRoot(
+                    onNavigateToDetail = { appointmentId ->
+                      navController.navigate(Route.AppointmentDetail(appointmentId)) },
+                    onNavigateToLogin = { navController.navigate(Route.AuthGraph) },
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                  )
+                }
+
+                composable<Route.AppointmentDetail> {
+                  AppointmentDetailScreenRoot(
+                    onNavigateBack = { navController.popBackStack() }
+                  )
                 }
               }
 

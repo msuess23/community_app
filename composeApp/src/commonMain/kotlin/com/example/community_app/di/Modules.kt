@@ -1,10 +1,17 @@
 package com.example.community_app.di
 
+import com.example.community_app.appointment.data.local.AppointmentDao
 import com.example.community_app.appointment.data.network.KtorRemoteAppointmentDataSource
 import com.example.community_app.appointment.data.network.RemoteAppointmentDataSource
 import com.example.community_app.appointment.data.repository.DefaultAppointmentRepository
 import com.example.community_app.appointment.domain.AppointmentRepository
+import com.example.community_app.appointment.domain.usecase.BookAppointmentUseCase
+import com.example.community_app.appointment.domain.usecase.CancelAppointmentUseCase
+import com.example.community_app.appointment.domain.usecase.GetAppointmentDetailsUseCase
 import com.example.community_app.appointment.domain.usecase.GetFreeSlotsUseCase
+import com.example.community_app.appointment.domain.usecase.ObserveAppointmentsUseCase
+import com.example.community_app.appointment.presentation.detail.AppointmentDetailViewModel
+import com.example.community_app.appointment.presentation.master.AppointmentMasterViewModel
 import com.example.community_app.auth.data.network.KtorRemoteAuthDataSource
 import com.example.community_app.auth.data.network.RemoteAuthDataSource
 import com.example.community_app.auth.data.repository.DefaultAuthRepository
@@ -118,6 +125,7 @@ val sharedModule = module {
   single<TicketDao> { get<AppDatabase>().ticketDao() }
   single<TicketDraftDao> { get<AppDatabase>().ticketDraftDao() }
   single<OfficeDao> { get<AppDatabase>().officeDao() }
+  single<AppointmentDao> { get<AppDatabase>().appointmentDao() }
 
   singleOf(::DefaultAuthRepository).bind<AuthRepository>()
   singleOf(::DefaultSettingsRepository).bind<SettingsRepository>()
@@ -141,6 +149,10 @@ val sharedModule = module {
   factoryOf(::UpdateTicketUseCase)
   factoryOf(::FilterOfficesUseCase)
   factoryOf(::GetFreeSlotsUseCase)
+  factoryOf(::BookAppointmentUseCase)
+  factoryOf(::ObserveAppointmentsUseCase)
+  factoryOf(::GetAppointmentDetailsUseCase)
+  factoryOf(::CancelAppointmentUseCase)
 
   // --- VIEW MODELS ---
   viewModelOf(::LoginViewModel)
@@ -155,4 +167,6 @@ val sharedModule = module {
   viewModelOf(::TicketEditViewModel)
   viewModelOf(::OfficeMasterViewModel)
   viewModelOf(::OfficeDetailViewModel)
+  viewModelOf(::AppointmentMasterViewModel)
+  viewModelOf(::AppointmentDetailViewModel)
 }
