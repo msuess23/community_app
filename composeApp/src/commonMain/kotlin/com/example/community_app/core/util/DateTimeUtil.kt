@@ -9,3 +9,5 @@ expect fun formatMillisTime(millis: Long): String
 expect fun getStartOfDay(millis: Long): Long
 expect fun addDays(millis: Long, days: Int): Long
 expect fun parseIsoToMillis(isoString: String): Long
+
+expect fun toIso8601(millis: Long): String

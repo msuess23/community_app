@@ -105,3 +105,8 @@ actual fun parseIsoToMillis(isoString: String): Long {
     0L
   }
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+actual fun toIso8601(millis: Long): String {
+  return Instant.ofEpochMilli(millis).toString()
+}

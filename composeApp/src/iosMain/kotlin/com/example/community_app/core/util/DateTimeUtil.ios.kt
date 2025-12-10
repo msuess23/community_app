@@ -100,3 +100,9 @@ actual fun parseIsoToMillis(isoString: String): Long {
   val date = formatter.dateFromString(isoString)
   return (date?.timeIntervalSince1970?.times(1000))?.toLong() ?: 0L
 }
+
+actual fun toIso8601(millis: Long): String {
+  val date = NSDate.dateWithTimeIntervalSince1970(millis / 1000.0)
+  val formatter = NSISO8601DateFormatter()
+  return formatter.stringFromDate(date)
+}
