@@ -9,6 +9,8 @@ import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.data.local.createDataStore
 import com.example.community_app.core.domain.location.IosLocationService
 import com.example.community_app.core.domain.location.LocationService
+import com.example.community_app.core.domain.permission.CalendarPermissionService
+import com.example.community_app.core.domain.permission.IosCalendarPermissionService
 import dev.icerock.moko.permissions.ios.PermissionsController
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.darwin.Darwin
@@ -37,6 +39,10 @@ actual val platformModule = module {
   }
 
   single<DataStore<Preferences>> { createDataStore() }
+
+  single<CalendarPermissionService> {
+    IosCalendarPermissionService()
+  }
 
   single<LocationService> { IosLocationService() }
 

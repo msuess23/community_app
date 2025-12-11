@@ -12,6 +12,11 @@ sealed interface SettingsAction {
   data object OnLanguageConfirm : SettingsAction
   data object OnLanguageDismiss : SettingsAction
 
+  // Calendar Sync
+  data class OnToggleCalendarSync(val enabled: Boolean) : SettingsAction
+  data object OnResume : SettingsAction
+  data object OnOpenSettings : SettingsAction
+
   // Log in/out
   data object OnLoginClick : SettingsAction
   data object OnLogoutClick : SettingsAction

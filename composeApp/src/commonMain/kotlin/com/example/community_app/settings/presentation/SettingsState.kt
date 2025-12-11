@@ -14,5 +14,6 @@ data class SettingsState(
   val pendingLanguage: AppLanguage? = null,
   val isLoading: Boolean = false,
   val showPasswordResetDialog: Boolean = false,
-  val currentUserEmail: String? = null
+  val currentUserEmail: String? = null,
+  val showCalendarPermissionRationale: Boolean = false
 )

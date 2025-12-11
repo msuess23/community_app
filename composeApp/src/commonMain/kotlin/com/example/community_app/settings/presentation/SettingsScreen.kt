@@ -20,15 +20,26 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.auth.presentation.components.AuthGuard
 import com.example.community_app.auth.presentation.reset_password.ResetPasswordAction
@@ -41,6 +52,7 @@ import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.util.AppLanguage
 import com.example.community_app.util.AppTheme
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.appointment_plural
 import community_app.composeapp.generated.resources.auth_forgot_password_dialog_text
 import community_app.composeapp.generated.resources.auth_forgot_password_dialog_title
 import community_app.composeapp.generated.resources.auth_login_label
@@ -62,6 +74,7 @@ import community_app.composeapp.generated.resources.settings_theme_label
 import community_app.composeapp.generated.resources.settings_theme_light
 import community_app.composeapp.generated.resources.settings_theme_system
 import compose.icons.FeatherIcons
+import compose.icons.feathericons.Calendar
 import compose.icons.feathericons.Check
 import compose.icons.feathericons.Globe
 import compose.icons.feathericons.LogIn
@@ -79,6 +92,19 @@ fun SettingsScreenRoot(
   onNavigateToReset: (String) -> Unit
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
+
+  val lifecycleOwner = LocalLifecycleOwner.current
+  DisposableEffect(lifecycleOwner) {
+    val observer = LifecycleEventObserver { _, event ->
+      if (event == Lifecycle.Event.ON_RESUME) {
+        viewModel.onAction(SettingsAction.OnResume)
+      }
+    }
+    lifecycleOwner.lifecycle.addObserver(observer)
+    onDispose {
+      lifecycleOwner.lifecycle.removeObserver(observer)
+    }
+  }
 
   SettingsScreen(
     state = state,
@@ -102,6 +128,22 @@ private fun SettingsScreen(
   onAction: (SettingsAction) -> Unit,
   onOpenDrawer: () -> Unit
 ) {
+  val snackbarHostState = remember { SnackbarHostState() }
+
+  LaunchedEffect(state.showCalendarPermissionRationale) {
+    if (state.showCalendarPermissionRationale) {
+      val result = snackbarHostState.showSnackbar(
+        message = "Kalenderzugriff erforderlich", // TODO: Localize
+        actionLabel = "Einstellungen", // TODO: Localize
+        duration = SnackbarDuration.Long
+      )
+      if (result == SnackbarResult.ActionPerformed) {
+        onAction(SettingsAction.OnOpenSettings)
+      }
+    }
+  }
+
+
   Scaffold(
     topBar = {
       CommunityTopAppBar(
@@ -110,6 +152,7 @@ private fun SettingsScreen(
         onNavigationClick = onOpenDrawer
       )
     },
+    snackbarHost = { SnackbarHost((snackbarHostState)) },
     containerColor = MaterialTheme.colorScheme.background
   ) { padding ->
     Column(
@@ -175,6 +218,32 @@ private fun SettingsScreen(
       }
 
       HorizontalDivider()
+
+      // --- Calendar Sync ---
+      if (state.currentUserEmail != null) {
+        SettingsSection(
+          title = Res.string.appointment_plural,
+          icon = FeatherIcons.Calendar
+        ) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Text(
+              text = "Mit Kalender synchronisieren", // TODO: Localize
+              style = MaterialTheme.typography.bodyLarge
+            )
+            Switch(
+              checked = state.settings.calendarSyncEnabled,
+              onCheckedChange = { isChecked ->
+                onAction(SettingsAction.OnToggleCalendarSync(isChecked))
+              }
+            )
+          }
+        }
+        HorizontalDivider()
+      }
 
       // --- Logout ---
       AuthGuard(

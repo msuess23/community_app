@@ -9,6 +9,8 @@ import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.data.local.createDataStore
 import com.example.community_app.core.domain.location.AndroidLocationService
 import com.example.community_app.core.domain.location.LocationService
+import com.example.community_app.core.domain.permission.AndroidCalendarPermissionService
+import com.example.community_app.core.domain.permission.CalendarPermissionService
 import dev.icerock.moko.permissions.PermissionsController
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
@@ -40,6 +42,10 @@ actual val platformModule = module {
 
   single<LocationService> {
     AndroidLocationService(androidContext())
+  }
+
+  single<CalendarPermissionService> {
+    AndroidCalendarPermissionService(androidContext())
   }
 
   single { PermissionsController(applicationContext = androidContext()) }
