@@ -4,13 +4,14 @@ import com.example.community_app.appointment.data.local.AppointmentEntity
 import com.example.community_app.appointment.domain.Appointment
 import com.example.community_app.dto.AppointmentDto
 
-fun AppointmentDto.toEntity(): AppointmentEntity {
+fun AppointmentDto.toEntity(calendarEventId: String? = null): AppointmentEntity {
   return AppointmentEntity(
     id = id,
     officeId = officeId,
     userId = userId,
     startsAt = startsAt,
-    endsAt = endsAt
+    endsAt = endsAt,
+    calendarEventId = calendarEventId
   )
 }
 
@@ -20,6 +21,7 @@ fun AppointmentEntity.toAppointment(): Appointment {
     officeId = officeId,
     userId = userId,
     startsAt = startsAt,
-    endsAt = endsAt
+    endsAt = endsAt,
+    calendarEventId = calendarEventId
   )
 }

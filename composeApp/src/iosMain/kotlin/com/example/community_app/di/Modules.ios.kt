@@ -7,6 +7,8 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.example.community_app.core.data.local.AppDatabase
 import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.data.local.createDataStore
+import com.example.community_app.core.domain.calendar.CalendarManager
+import com.example.community_app.core.domain.calendar.IosCalendarManager
 import com.example.community_app.core.domain.location.IosLocationService
 import com.example.community_app.core.domain.location.LocationService
 import com.example.community_app.core.domain.permission.CalendarPermissionService
@@ -42,6 +44,10 @@ actual val platformModule = module {
 
   single<CalendarPermissionService> {
     IosCalendarPermissionService()
+  }
+
+  single<CalendarManager> {
+    IosCalendarManager()
   }
 
   single<LocationService> { IosLocationService() }

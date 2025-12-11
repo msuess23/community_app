@@ -14,5 +14,6 @@ sealed interface OfficeDetailAction {
   data class OnSlotClick(val slot: Slot) : OfficeDetailAction
   data object OnDismissBookingDialog : OfficeDetailAction
   data object OnConfirmBooking : OfficeDetailAction
+  data class OnToggleCalendarExport(val enabled: Boolean) : OfficeDetailAction
   data object OnLoginRedirect : OfficeDetailAction
 }

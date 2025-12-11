@@ -7,9 +7,12 @@ import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
 import com.example.community_app.appointment.domain.AppointmentRepository
 import com.example.community_app.appointment.domain.Slot
+import com.example.community_app.appointment.domain.usecase.BookAppointmentUseCase
 import com.example.community_app.appointment.domain.usecase.GetFreeSlotsUseCase
 import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
 import com.example.community_app.core.domain.Result
+import com.example.community_app.core.domain.permission.CalendarPermissionService
+import com.example.community_app.core.domain.permission.PermissionStatus
 import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.util.addDays
@@ -20,9 +23,11 @@ import com.example.community_app.core.util.getStartOfDay
 import com.example.community_app.core.util.parseIsoToMillis
 import com.example.community_app.core.util.toIso8601
 import com.example.community_app.office.domain.OfficeRepository
+import com.example.community_app.settings.domain.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,8 +37,11 @@ class OfficeDetailViewModel(
   savedStateHandle: SavedStateHandle,
   private val officeRepository: OfficeRepository,
   private val appointmentRepository: AppointmentRepository,
+  private val settingsRepository: SettingsRepository,
+  private val calendarPermissionService: CalendarPermissionService,
   private val getFreeSlotsUseCase: GetFreeSlotsUseCase,
-  private val isUserLoggedInUseCase: IsUserLoggedInUseCase
+  private val isUserLoggedInUseCase: IsUserLoggedInUseCase,
+  private val bookAppointmentUseCase: BookAppointmentUseCase
 ) : ViewModel() {
   private val officeId = savedStateHandle.toRoute<Route.OfficeDetail>().id
 
@@ -73,7 +81,9 @@ class OfficeDetailViewModel(
       bookingSuccess = ui.bookingSuccess,
       errorMessage = ui.errorMessage,
       isUserLoggedIn = isLoggedIn,
-      showDatePicker = ui.showDatePicker
+      showDatePicker = ui.showDatePicker,
+      hasCalendarPermission = ui.hasCalendarPermission,
+      shouldAddToCalendar = ui.shouldAddToCalendar
     )
   }.stateIn(
     viewModelScope,
@@ -84,6 +94,7 @@ class OfficeDetailViewModel(
   init {
     loadOffice()
     loadAllSlots()
+    checkCalendarSettings()
   }
 
   fun onAction(action: OfficeDetailAction) {
@@ -110,6 +121,10 @@ class OfficeDetailViewModel(
         } else {
           _uiState.update { it.copy(selectedSlot = action.slot) }
         }
+      }
+
+      is OfficeDetailAction.OnToggleCalendarExport -> {
+        _uiState.update { it.copy(shouldAddToCalendar = !_uiState.value.shouldAddToCalendar) }
       }
 
       OfficeDetailAction.OnDismissBookingDialog -> _uiState.update { it.copy(selectedSlot = null) }
@@ -165,9 +180,11 @@ class OfficeDetailViewModel(
 
   private fun performBooking() {
     val slot = _uiState.value.selectedSlot ?: return
+    val addToCalendar = _uiState.value.shouldAddToCalendar
+
     viewModelScope.launch {
       _uiState.update { it.copy(isBooking = true) }
-      val result = appointmentRepository.bookSlot(officeId, slot.id)
+      val result = bookAppointmentUseCase(officeId, slot.id, addToCalendar)
 
       if (result is Result.Success) {
         _allSlots.update { currentList ->
@@ -182,6 +199,20 @@ class OfficeDetailViewModel(
     }
   }
 
+  private fun checkCalendarSettings() {
+    viewModelScope.launch {
+      val settings = settingsRepository.settings.first()
+      val permission = calendarPermissionService.checkPermission()
+
+      val hasPermission = permission == PermissionStatus.GRANTED
+
+      _uiState.update { it.copy(
+        hasCalendarPermission = hasPermission,
+        shouldAddToCalendar = hasPermission && settings.calendarSyncEnabled
+      ) }
+    }
+  }
+
   private data class UiState(
     val isLoadingOffice: Boolean = false,
     val isLoadingSlots: Boolean = false,
@@ -189,6 +220,8 @@ class OfficeDetailViewModel(
     val isBooking: Boolean = false,
     val bookingSuccess: Boolean = false,
     val showDatePicker: Boolean = false,
+    val hasCalendarPermission: Boolean = false,
+    val shouldAddToCalendar: Boolean = false,
     val errorMessage: UiText? = null
   )
 }

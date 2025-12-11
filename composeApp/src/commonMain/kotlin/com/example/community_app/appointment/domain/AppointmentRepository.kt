@@ -8,6 +8,8 @@ interface AppointmentRepository {
   suspend fun getFreeSlots(officeId: Int, from: String?, to: String?): Result<List<Slot>, DataError.Remote>
   suspend fun bookSlot(officeId: Int, slotId: Int): Result<Appointment, DataError.Remote>
 
+  suspend fun updateCalendarEventId(appointmentId: Int, eventId: String?)
+
   fun getAppointments(): Flow<List<Appointment>>
   fun getAppointment(id: Int): Flow<Appointment?>
   suspend fun refreshAppointments(): Result<Unit, DataError.Remote>

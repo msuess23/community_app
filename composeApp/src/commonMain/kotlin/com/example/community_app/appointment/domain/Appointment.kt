@@ -5,5 +5,6 @@ data class Appointment(
   val officeId: Int,
   val userId: Int,
   val startsAt: String,
-  val endsAt: String
+  val endsAt: String,
+  val calendarEventId: String? = null
 )

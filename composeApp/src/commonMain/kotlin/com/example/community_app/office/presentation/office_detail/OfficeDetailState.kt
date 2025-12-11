@@ -13,6 +13,9 @@ data class OfficeDetailState(
   val visibleSlots: List<Slot> = emptyList(),
   val isLoadingSlots: Boolean = false,
 
+  val shouldAddToCalendar: Boolean = false,
+  val hasCalendarPermission: Boolean = false,
+
   val selectedSlot: Slot? = null,
   val isBooking: Boolean = false,
   val bookingSuccess: Boolean = false,

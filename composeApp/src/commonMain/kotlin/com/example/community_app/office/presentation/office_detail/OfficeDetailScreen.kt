@@ -1,5 +1,6 @@
 package com.example.community_app.office.presentation.office_detail
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,13 +15,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -137,14 +141,50 @@ private fun OfficeDetailScreen(
 
   // Booking Dialog
   if (state.selectedSlot != null) {
-    CommunityDialog(
-      title = Res.string.appointment_singular,
-      text = Res.string.appointment_singular, // TODO
+//    CommunityDialog(
+//      title = Res.string.appointment_singular,
+//      text = Res.string.appointment_singular, // TODO
+//      onDismissRequest = { onAction(OfficeDetailAction.OnDismissBookingDialog) },
+//      confirmButtonText = Res.string.save, // TODO
+//      onConfirm = { onAction(OfficeDetailAction.OnConfirmBooking) },
+//      dismissButtonText = Res.string.cancel,
+//      onDismiss = { onAction(OfficeDetailAction.OnDismissBookingDialog) }
+//    )
+
+    AlertDialog(
       onDismissRequest = { onAction(OfficeDetailAction.OnDismissBookingDialog) },
-      confirmButtonText = Res.string.save, // TODO
-      onConfirm = { onAction(OfficeDetailAction.OnConfirmBooking) },
-      dismissButtonText = Res.string.cancel,
-      onDismiss = { onAction(OfficeDetailAction.OnDismissBookingDialog) }
+      title = { Text(stringResource(Res.string.appointment_singular)) },
+      text = {
+        Column {
+          Text("Möchtest Du diesen Termin verbindlich buchen?")
+
+          if (state.hasCalendarPermission) {
+            Spacer(Modifier.height(16.dp))
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              modifier = Modifier.clickable {
+                onAction(OfficeDetailAction.OnToggleCalendarExport(!state.shouldAddToCalendar))
+              }
+            ) {
+              Checkbox(
+                checked = state.shouldAddToCalendar,
+                onCheckedChange = { onAction(OfficeDetailAction.OnToggleCalendarExport(it)) }
+              )
+              Text("In Kalender exportieren")
+            }
+          }
+        }
+      },
+      confirmButton = {
+        TextButton(onClick = { onAction(OfficeDetailAction.OnConfirmBooking) }) {
+          Text(stringResource(Res.string.save))
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { onAction(OfficeDetailAction.OnDismissBookingDialog) }) {
+          Text(stringResource(Res.string.cancel))
+        }
+      }
     )
   }
 
