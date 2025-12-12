@@ -19,5 +19,6 @@ data class Ticket(
   val statusMessage: String?,
   val votesCount: Int,
   val userVoted: Boolean?,
-  val imageUrl: String?
+  val imageUrl: String?,
+  val isFavorite: Boolean = false
 )

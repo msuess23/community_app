@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,6 +38,7 @@ import community_app.composeapp.generated.resources.draft_label
 import community_app.composeapp.generated.resources.image_placeholder
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ChevronRight
+import compose.icons.feathericons.Star
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -47,6 +49,7 @@ fun InfoTicketListItem(
   dateString: String,
   imageUrl: String?,
   isDraft: Boolean = false,
+  isFavorite: Boolean = false,
   onClick: () -> Unit,
   modifier: Modifier = Modifier
 ) {
@@ -129,6 +132,15 @@ fun InfoTicketListItem(
               modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
             )
           }
+        }
+
+        if (isFavorite) {
+          Icon(
+            imageVector = FeatherIcons.Star,
+            contentDescription = null,
+            tint = Color(0xFFFFD700),
+            modifier = Modifier.size(16.dp)
+          )
         }
 
         Text(

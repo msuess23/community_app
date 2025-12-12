@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
@@ -23,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.community_app.core.domain.model.Address
@@ -33,6 +35,7 @@ import community_app.composeapp.generated.resources.label_status
 import community_app.composeapp.generated.resources.label_status_history
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Activity
+import compose.icons.feathericons.Star
 import compose.icons.feathericons.User
 import org.jetbrains.compose.resources.stringResource
 
@@ -48,7 +51,9 @@ fun InfoTicketDetailContent(
   endDate: String?,
   address: Address?,
   isDraft: Boolean = false,
-  isOwner: Boolean = false
+  isOwner: Boolean = false,
+  isFavorite: Boolean = false,
+  onToggleFavorite: () -> Unit
 ) {
   Column(
     modifier = Modifier
@@ -133,6 +138,18 @@ fun InfoTicketDetailContent(
           style = MaterialTheme.typography.bodyLarge,
           color = MaterialTheme.colorScheme.onSurface
         )
+      }
+
+      if (!isDraft && !isOwner) {
+        IconButton(onClick = onToggleFavorite) {
+          val tint = if (isFavorite) Color(0xFFFFD700) else MaterialTheme.colorScheme.onPrimary
+
+          Icon(
+            imageVector = FeatherIcons.Star,
+            contentDescription = null,
+            tint = tint
+          )
+        }
       }
 
       if (address != null) {

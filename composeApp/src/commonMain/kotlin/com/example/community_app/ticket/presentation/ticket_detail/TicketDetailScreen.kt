@@ -104,7 +104,9 @@ private fun TicketDetailScreen(
       onStatusClick = { onAction(TicketDetailAction.OnShowStatusHistory) },
       address = state.ticket?.address,
       isDraft = state.isDraft,
-      isOwner = state.isOwner
+      isOwner = state.isOwner,
+      isFavorite = state.ticket?.isFavorite ?: false,
+      onToggleFavorite = { onAction(TicketDetailAction.OnToggleFavorite) }
     )
   }
 }

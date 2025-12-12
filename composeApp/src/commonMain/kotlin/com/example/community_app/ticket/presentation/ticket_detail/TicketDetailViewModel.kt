@@ -7,7 +7,9 @@ import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
 import com.example.community_app.auth.domain.AuthRepository
 import com.example.community_app.auth.domain.getUserIdOrNull
+import com.example.community_app.core.data.local.favorite.FavoriteType
 import com.example.community_app.core.domain.Result
+import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
 import com.example.community_app.dto.TicketStatusDto
 import com.example.community_app.ticket.domain.Ticket
 import com.example.community_app.ticket.domain.TicketDraft
@@ -27,7 +29,8 @@ class TicketDetailViewModel(
   savedStateHandle: SavedStateHandle,
   private val ticketRepository: TicketRepository,
   private val authRepository: AuthRepository,
-  private val syncTicketImages: SyncTicketImagesUseCase
+  private val syncTicketImages: SyncTicketImagesUseCase,
+  private val toggleFavoriteUseCase: ToggleFavoriteUseCase
 ) : ViewModel() {
   private val args = savedStateHandle.toRoute<Route.TicketDetail>()
 
@@ -111,6 +114,7 @@ class TicketDetailViewModel(
     when(action) {
       TicketDetailAction.OnShowStatusHistory -> _showStatusHistory.value = true
       TicketDetailAction.OnDismissStatusHistory -> _showStatusHistory.value = false
+      TicketDetailAction.OnToggleFavorite -> toggleFavorite()
       else -> Unit
     }
   }
@@ -120,6 +124,19 @@ class TicketDetailViewModel(
       _isLoading.update { true }
       ticketRepository.refreshTicket(args.id.toInt())
       _isLoading.update { false }
+    }
+  }
+
+  private fun toggleFavorite() {
+    val currentTicket = state.value.ticket ?: return
+    if (state.value.isDraft || state.value.isOwner) return
+
+    viewModelScope.launch {
+      toggleFavoriteUseCase(
+        itemId = currentTicket.id,
+        type = FavoriteType.TICKET,
+        isFavorite = !currentTicket.isFavorite
+      )
     }
   }
 

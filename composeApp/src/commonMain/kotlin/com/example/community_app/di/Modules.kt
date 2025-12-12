@@ -26,6 +26,8 @@ import com.example.community_app.core.data.permission.MokoPermissionService
 import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
+import com.example.community_app.core.data.local.favorite.FavoriteDao
+import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
 import com.example.community_app.info.data.local.InfoDao
 import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
 import com.example.community_app.info.data.network.RemoteInfoDataSource
@@ -55,6 +57,7 @@ import com.example.community_app.ticket.data.network.KtorRemoteTicketDataSource
 import com.example.community_app.ticket.data.network.RemoteTicketDataSource
 import com.example.community_app.ticket.data.repository.DefaultTicketRepository
 import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.ticket.domain.usecase.VoteTicketUseCase
 import com.example.community_app.ticket.domain.usecase.detail.SyncTicketImagesUseCase
 import com.example.community_app.ticket.domain.usecase.edit.AddLocalImageUseCase
 import com.example.community_app.ticket.domain.usecase.edit.DeleteTicketDataUseCase
@@ -126,6 +129,7 @@ val sharedModule = module {
   single<TicketDraftDao> { get<AppDatabase>().ticketDraftDao() }
   single<OfficeDao> { get<AppDatabase>().officeDao() }
   single<AppointmentDao> { get<AppDatabase>().appointmentDao() }
+  single<FavoriteDao> { get<AppDatabase>().favoriteDao() }
 
   singleOf(::DefaultAuthRepository).bind<AuthRepository>()
   singleOf(::DefaultSettingsRepository).bind<SettingsRepository>()
@@ -147,6 +151,8 @@ val sharedModule = module {
   factoryOf(::DeleteTicketDataUseCase)
   factoryOf(::GetTicketEditDetailsUseCase)
   factoryOf(::UpdateTicketUseCase)
+  factoryOf(::VoteTicketUseCase)
+  factoryOf(::ToggleFavoriteUseCase)
   factoryOf(::FilterOfficesUseCase)
   factoryOf(::GetFreeSlotsUseCase)
   factoryOf(::BookAppointmentUseCase)

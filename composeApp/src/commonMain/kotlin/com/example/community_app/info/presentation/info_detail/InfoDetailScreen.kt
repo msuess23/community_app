@@ -67,7 +67,9 @@ private fun InfoDetailScreen(
         startDate = info.startsAt,
         endDate = info.endsAt,
         onStatusClick = { onAction(InfoDetailAction.OnShowStatusHistory) },
-        address = info.address
+        address = info.address,
+        isFavorite = info.isFavorite,
+        onToggleFavorite = { onAction(InfoDetailAction.OnToggleFavorite) }
       )
     }
   }

@@ -6,6 +6,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import com.example.community_app.auth.domain.AuthRepository
 import com.example.community_app.core.data.local.FileStorage
+import com.example.community_app.core.data.local.favorite.FavoriteDao
+import com.example.community_app.core.data.local.favorite.FavoriteEntity
+import com.example.community_app.core.data.local.favorite.FavoriteType
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.location.LocationService
@@ -26,7 +29,11 @@ import com.example.community_app.util.SERVER_FETCH_INTERVAL_MS
 import com.example.community_app.util.SERVER_FETCH_RADIUS_KM
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
@@ -35,6 +42,7 @@ class DefaultTicketRepository(
   private val mediaRepository: MediaRepository,
   private val ticketDao: TicketDao,
   private val ticketDraftDao: TicketDraftDao,
+  private val favoriteDao: FavoriteDao,
   private val dataStore: DataStore<Preferences>,
   private val locationService: LocationService,
   private val authRepository: AuthRepository,
@@ -43,20 +51,32 @@ class DefaultTicketRepository(
   private val keyLastSync = longPreferencesKey("ticket_last_sync_timestamp")
 
   override fun getTickets(): Flow<List<Ticket>> {
-    return ticketDao.getTickets().map { entities ->
-      entities.map { it.toTicket() }
+    return combine(
+      ticketDao.getTickets(),
+      favoriteDao.getFavoriteIds(FavoriteType.TICKET)
+    ) { entities, favoriteIds ->
+      val favSet = favoriteIds.toSet()
+      entities.map { it.toTicket().copy(isFavorite = it.id in favSet) }
     }
   }
 
   override fun getTicket(id: Int): Flow<Ticket?> {
-    return ticketDao.getTicketById(id).map { entity ->
-      entity?.toTicket()
+    return combine(
+      ticketDao.getTicketById(id),
+      favoriteDao.getFavoriteIds(FavoriteType.TICKET)
+    ) { entity, favIds ->
+      val isFav = id in favIds
+      entity?.toTicket()?.copy(isFavorite = isFav)
     }
   }
 
   override fun getCommunityTickets(userId: Int): Flow<List<Ticket>> {
-    return ticketDao.getCommunityTickets(userId).map { list ->
-      list.map { it.toTicket() }
+    return combine(
+      ticketDao.getCommunityTickets(userId),
+      favoriteDao.getFavoriteIds(FavoriteType.TICKET)
+    ) { entities, favoriteIds ->
+      val favSet = favoriteIds.toSet()
+      entities.map { it.toTicket().copy(isFavorite = it.id in favSet) }
     }
   }
 
@@ -78,7 +98,7 @@ class DefaultTicketRepository(
     return refreshTickets()
   }
 
-  override suspend fun refreshTickets(): Result<Unit, DataError.Remote> {
+  override suspend fun refreshTickets(): Result<Unit, DataError.Remote> = coroutineScope {
     val currentLocation = locationService.getCurrentLocation()
 
     val bboxString = if (currentLocation != null) {
@@ -86,10 +106,9 @@ class DefaultTicketRepository(
       GeoUtil.toBBoxString(bbox)
     } else null
 
-    val communityResult = remoteTicketDataSource.getTickets(bboxString)
-
     val allTickets = mutableListOf<TicketDto>()
 
+    val communityResult = remoteTicketDataSource.getTickets(bboxString)
     if (communityResult is Result.Success) {
       allTickets.addAll(communityResult.data)
     }
@@ -103,15 +122,27 @@ class DefaultTicketRepository(
     }
 
     if (communityResult is Result.Error && token == null) {
-      return Result.Error(communityResult.error)
+      return@coroutineScope Result.Error(communityResult.error)
     }
+
+    val loadedIds = allTickets.map { it.id }.toSet()
+    val favoriteIds = favoriteDao.getFavoriteIds(FavoriteType.TICKET).first()
+    val missingFavs = favoriteIds.filter { it !in loadedIds }
+
+    val favDeferreds = missingFavs.map { id ->
+      async { remoteTicketDataSource.getTicket(id) }
+    }
+    val favResults = favDeferreds.awaitAll()
+
+    val additionalTickets = favResults.mapNotNull { if (it is Result.Success) it.data else null }
+    allTickets.addAll(additionalTickets)
 
     val distinctTickets = allTickets.distinctBy { it.id }
 
     ticketDao.replaceAll(distinctTickets.map { it.toEntity() })
     dataStore.edit { it[keyLastSync] = getCurrentTimeMillis() }
 
-    return Result.Success(Unit)
+    Result.Success(Unit)
   }
 
   override suspend fun refreshTicket(id: Int): Result<Unit, DataError.Remote> {
@@ -218,7 +249,12 @@ class DefaultTicketRepository(
     return when(val result = remoteTicketDataSource.updateTicket(id, request)) {
       is Result.Success -> {
         ticketDao.upsertTickets(listOf(result.data.toEntity()))
-        Result.Success(result.data.toEntity().toTicket())
+
+        val updatedTicket = ticketDao.getTicketById(id).first()?.toTicket()
+          ?: result.data.toEntity().toTicket()
+
+        val isFav = favoriteDao.isFavorite(id, FavoriteType.TICKET)
+        Result.Success(updatedTicket.copy(isFavorite = isFav))
       }
       is Result.Error -> Result.Error(result.error)
     }
@@ -227,6 +263,7 @@ class DefaultTicketRepository(
   override suspend fun deleteTicket(id: Int): Result<Unit, DataError.Remote> {
     return when(val result = remoteTicketDataSource.deleteTicket(id)) {
       is Result.Success -> {
+        toggleFavorite(id, false)
         refreshTickets()
         Result.Success(Unit)
       }
@@ -251,6 +288,15 @@ class DefaultTicketRepository(
         Result.Success(Unit)
       }
       is Result.Error -> Result.Error(result.error)
+    }
+  }
+
+  override suspend fun toggleFavorite(ticketId: Int, isFavorite: Boolean) {
+    val entity = FavoriteEntity(itemId = ticketId, type = FavoriteType.TICKET)
+    if (isFavorite) {
+      favoriteDao.addFavorite(entity)
+    } else {
+      favoriteDao.removeFavorite(entity)
     }
   }
 }
