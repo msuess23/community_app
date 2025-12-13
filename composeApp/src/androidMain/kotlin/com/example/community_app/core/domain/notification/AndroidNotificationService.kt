@@ -13,7 +13,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.example.community_app.MainActivity
-import community_app.composeapp.generated.resources.Res
+import com.example.community_app.R
 import java.util.concurrent.TimeUnit
 
 class AndroidNotificationService(
@@ -84,8 +84,8 @@ class AndroidNotificationService(
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val importance = NotificationManager.IMPORTANCE_DEFAULT
 
-      val name = context.getString(Res.string.notification_channel_name)
-      val descriptionText = context.getString(Res.string.notification_channel_description)
+      val name = context.getString(R.string.notification_channel_name)
+      val descriptionText = context.getString(R.string.notification_channel_description)
 
       val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
         description = descriptionText

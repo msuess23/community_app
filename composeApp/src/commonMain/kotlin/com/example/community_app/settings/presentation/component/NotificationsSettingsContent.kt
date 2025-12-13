@@ -78,6 +78,13 @@ fun NotificationSettingsContent(
           enabled = state.settings.notificationsEnabled,
           onCheckedChange = { onAction(SettingsAction.OnToggleNotifyAppointments(it)) }
         )
+
+        if (state.settings.notifyAppointments && state.settings.notificationsEnabled) {
+          ReminderOffsetSelector(
+            currentMinutes = state.settings.appointmentReminderOffsetMinutes,
+            onSelect = { onAction(SettingsAction.OnChangeAppointmentReminderOffset(it)) }
+          )
+        }
       }
     }
   }

@@ -20,6 +20,10 @@ fun ReminderOffsetSelector(
   currentMinutes: Int,
   onSelect: (Int) -> Unit
 ) {
+  val selectedOption = ReminderOptions.find { it.first == currentMinutes }
+    ?: ReminderOptions.firstOrNull { it.first == 180 }
+    ?: ReminderOptions.first()
+
   Row(
     modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.small),
     horizontalArrangement = Arrangement.SpaceBetween,
@@ -33,9 +37,9 @@ fun ReminderOffsetSelector(
     )
     CommunityDropdownMenu(
       items = ReminderOptions,
-      selectedItem = selectedSort,
-      onItemSelected = ,
-      itemLabel = { sortLabel(it) },
+      selectedItem = selectedOption,
+      onItemSelected = { (minutes, _) -> onSelect(minutes)},
+      itemLabel = { (_, label) -> label },
       modifier = Modifier.weight(0.55f)
     )
   }
