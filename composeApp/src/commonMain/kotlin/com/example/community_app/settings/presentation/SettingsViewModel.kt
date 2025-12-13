@@ -2,10 +2,12 @@ package com.example.community_app.settings.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.community_app.appointment.domain.usecase.ScheduleAppointmentRemindersUseCase
 import com.example.community_app.auth.domain.AuthRepository
 import com.example.community_app.auth.domain.AuthState
 import com.example.community_app.core.domain.onError
 import com.example.community_app.core.domain.onSuccess
+import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.core.domain.permission.CalendarPermissionService
 import com.example.community_app.core.domain.permission.PermissionStatus
 import com.example.community_app.core.util.restartApp
@@ -23,7 +25,9 @@ import kotlinx.coroutines.launch
 class SettingsViewModel(
   private val settingsRepository: SettingsRepository,
   private val authRepository: AuthRepository,
-  private val calendarPermissionService: CalendarPermissionService
+  private val permissionService: AppPermissionService,
+  private val calendarPermissionService: CalendarPermissionService,
+  private val scheduleReminders: ScheduleAppointmentRemindersUseCase
 ) : ViewModel() {
   private val _state = MutableStateFlow(SettingsState())
 
@@ -42,6 +46,10 @@ class SettingsViewModel(
 
   fun onAction(action: SettingsAction) {
     when (action) {
+      is SettingsAction.OnTabChange -> {
+        _state.update { it.copy(selectedTabIndex = action.index) }
+      }
+
       // Theme
       is SettingsAction.OnThemeChange -> {
         viewModelScope.launch {
@@ -101,6 +109,34 @@ class SettingsViewModel(
       is SettingsAction.OnChangePasswordConfirm -> {
         _state.update { it.copy(showPasswordResetDialog = false) }
       }
+
+      // Notifications
+      is SettingsAction.OnToggleNotifications -> {
+        viewModelScope.launch {
+          if (action.enabled) {
+            val granted = permissionService.requestNotificationPermission()
+            settingsRepository.setNotificationsEnabled(granted)
+          } else {
+            settingsRepository.setNotificationsEnabled(false)
+          }
+        }
+      }
+      is SettingsAction.OnToggleNotifyTickets -> {
+        viewModelScope.launch { settingsRepository.setNotifyTickets(action.enabled) }
+      }
+      is SettingsAction.OnToggleNotifyInfos -> {
+        viewModelScope.launch { settingsRepository.setNotifyInfos(action.enabled) }
+      }
+      is SettingsAction.OnToggleNotifyAppointments -> {
+        viewModelScope.launch { settingsRepository.setNotifyAppointments(action.enabled) }
+      }
+      is SettingsAction.OnChangeAppointmentReminderOffset -> {
+        viewModelScope.launch {
+          settingsRepository.setAppointmentReminderOffset(action.minutes)
+          scheduleReminders()
+        }
+      }
+
       else -> Unit
     }
   }

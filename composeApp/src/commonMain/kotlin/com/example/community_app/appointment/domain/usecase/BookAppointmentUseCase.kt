@@ -13,7 +13,8 @@ import kotlinx.coroutines.flow.first
 class BookAppointmentUseCase(
   private val appointmentRepository: AppointmentRepository,
   private val officeRepository: OfficeRepository,
-  private val calendarManager: CalendarManager
+  private val calendarManager: CalendarManager,
+  private val scheduleAppointmentReminders: ScheduleAppointmentRemindersUseCase
 ) {
   suspend operator fun invoke(
     officeId: Int,
@@ -50,7 +51,10 @@ class BookAppointmentUseCase(
     }
 
     return when(result) {
-      is Result.Success -> Result.Success(Unit)
+      is Result.Success -> {
+        scheduleAppointmentReminders()
+        Result.Success(Unit)
+      }
       is Result.Error -> Result.Error(result.error)
     }
   }

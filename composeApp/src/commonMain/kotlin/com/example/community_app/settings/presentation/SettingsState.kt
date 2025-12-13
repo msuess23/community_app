@@ -8,12 +8,18 @@ data class SettingsState(
   val settings: AppSettings = AppSettings(
     theme = AppTheme.SYSTEM,
     language = AppLanguage.SYSTEM,
-    calendarSyncEnabled = false
+    calendarSyncEnabled = false,
+    notificationsEnabled = false,
+    notifyInfos = true,
+    notifyTickets = true,
+    notifyAppointments = true,
+    appointmentReminderOffsetMinutes = 180
   ),
+  val selectedTabIndex: Int = 0,
   val showLogoutDialog: Boolean = false,
   val pendingLanguage: AppLanguage? = null,
   val isLoading: Boolean = false,
   val showPasswordResetDialog: Boolean = false,
   val currentUserEmail: String? = null,
-  val showCalendarPermissionRationale: Boolean = false
+  val showCalendarPermissionRationale: Boolean = false,
 )

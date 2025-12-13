@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <string name="notification_channel_name">Updates &amp; Termine</string>
+    <string name="notification_channel_description">Benachrichtigungen über Statusänderungen bei Tickets und Infos sowie Terminerinnerungen.</string>
+</resources>

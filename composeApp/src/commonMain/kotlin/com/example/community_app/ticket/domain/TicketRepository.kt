@@ -19,6 +19,7 @@ interface TicketRepository {
   suspend fun refreshTickets(): Result<Unit, DataError.Remote>
   suspend fun refreshTicket(id: Int): Result<Unit, DataError.Remote>
   suspend fun getStatusHistory(id: Int): Result<List<TicketStatusDto>, DataError.Remote>
+  suspend fun getCurrentStatus(id: Int): Result<TicketStatusDto?, DataError.Remote>
 
   fun getDrafts(): Flow<List<TicketDraft>>
   suspend fun getDraft(id: Long): TicketDraft?

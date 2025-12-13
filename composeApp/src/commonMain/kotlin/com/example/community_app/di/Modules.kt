@@ -10,6 +10,7 @@ import com.example.community_app.appointment.domain.usecase.CancelAppointmentUse
 import com.example.community_app.appointment.domain.usecase.GetAppointmentDetailsUseCase
 import com.example.community_app.appointment.domain.usecase.GetFreeSlotsUseCase
 import com.example.community_app.appointment.domain.usecase.ObserveAppointmentsUseCase
+import com.example.community_app.appointment.domain.usecase.ScheduleAppointmentRemindersUseCase
 import com.example.community_app.appointment.presentation.detail.AppointmentDetailViewModel
 import com.example.community_app.appointment.presentation.master.AppointmentMasterViewModel
 import com.example.community_app.auth.data.network.KtorRemoteAuthDataSource
@@ -27,6 +28,7 @@ import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
 import com.example.community_app.core.data.local.favorite.FavoriteDao
+import com.example.community_app.core.domain.usecase.CheckStatusUpdatesUseCase
 import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
 import com.example.community_app.info.data.local.InfoDao
 import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
@@ -159,6 +161,8 @@ val sharedModule = module {
   factoryOf(::ObserveAppointmentsUseCase)
   factoryOf(::GetAppointmentDetailsUseCase)
   factoryOf(::CancelAppointmentUseCase)
+  factoryOf(::CheckStatusUpdatesUseCase)
+  factoryOf(::ScheduleAppointmentRemindersUseCase)
 
   // --- VIEW MODELS ---
   viewModelOf(::LoginViewModel)

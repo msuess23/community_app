@@ -11,6 +11,8 @@ import com.example.community_app.core.domain.calendar.AndroidCalendarManager
 import com.example.community_app.core.domain.calendar.CalendarManager
 import com.example.community_app.core.domain.location.AndroidLocationService
 import com.example.community_app.core.domain.location.LocationService
+import com.example.community_app.core.domain.notification.AndroidNotificationService
+import com.example.community_app.core.domain.notification.NotificationService
 import com.example.community_app.core.domain.permission.AndroidCalendarPermissionService
 import com.example.community_app.core.domain.permission.CalendarPermissionService
 import dev.icerock.moko.permissions.PermissionsController
@@ -57,4 +59,8 @@ actual val platformModule = module {
   single { PermissionsController(applicationContext = androidContext()) }
 
   single { FileStorage(androidContext()) }
+
+  single<NotificationService> {
+    AndroidNotificationService(androidContext())
+  }
 }

@@ -139,6 +139,10 @@ class DefaultInfoRepository(
     return remoteInfoDataSource.getStatusHistory(id)
   }
 
+  override suspend fun getCurrentStatus(id: Int): Result<InfoStatusDto?, DataError.Remote> {
+    return remoteInfoDataSource.getCurrentStatus(id)
+  }
+
   override suspend fun toggleFavorite(infoId: Int, isFavorite: Boolean) {
     val entity = FavoriteEntity(itemId = infoId, type = FavoriteType.INFO)
     if (isFavorite) {

@@ -11,6 +11,8 @@ import com.example.community_app.core.domain.calendar.CalendarManager
 import com.example.community_app.core.domain.calendar.IosCalendarManager
 import com.example.community_app.core.domain.location.IosLocationService
 import com.example.community_app.core.domain.location.LocationService
+import com.example.community_app.core.domain.notification.IosNotificationService
+import com.example.community_app.core.domain.notification.NotificationService
 import com.example.community_app.core.domain.permission.CalendarPermissionService
 import com.example.community_app.core.domain.permission.IosCalendarPermissionService
 import dev.icerock.moko.permissions.ios.PermissionsController
@@ -55,6 +57,10 @@ actual val platformModule = module {
   single { PermissionsController() }
 
   single { FileStorage() }
+
+  single<NotificationService> {
+    IosNotificationService()
+  }
 }
 
 @OptIn(ExperimentalForeignApi::class)

@@ -8,7 +8,8 @@ import kotlinx.coroutines.flow.first
 
 class CancelAppointmentUseCase(
   private val repository: AppointmentRepository,
-  private val calendarManager: CalendarManager
+  private val calendarManager: CalendarManager,
+  private val scheduleAppointmentReminders: ScheduleAppointmentRemindersUseCase
 ) {
   suspend operator fun invoke(id: Int): Result<Unit, DataError.Remote> {
     val appointment = repository.getAppointment(id).first()
@@ -16,8 +17,10 @@ class CancelAppointmentUseCase(
 
     val result = repository.cancelAppointment(id)
 
-    if (result is Result.Success && eventId != null) {
-      calendarManager.removeEvent(eventId)
+    if (result is Result.Success) {
+      if (eventId != null) calendarManager.removeEvent(eventId)
+
+      scheduleAppointmentReminders.cancelForId(id)
     }
 
     return result

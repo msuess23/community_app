@@ -3,6 +3,7 @@ package com.example.community_app.appointment.presentation.master
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.community_app.appointment.domain.usecase.ObserveAppointmentsUseCase
+import com.example.community_app.appointment.domain.usecase.ScheduleAppointmentRemindersUseCase
 import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,7 +14,8 @@ import kotlinx.coroutines.launch
 
 class AppointmentMasterViewModel(
   private val observeAppointments: ObserveAppointmentsUseCase,
-  isUserLoggedInUseCase: IsUserLoggedInUseCase
+  private val isUserLoggedIn: IsUserLoggedInUseCase,
+  private val scheduleAppointmentReminders: ScheduleAppointmentRemindersUseCase
 ) : ViewModel() {
 
   private val _isRefreshing = MutableStateFlow(false)
@@ -21,10 +23,10 @@ class AppointmentMasterViewModel(
   val state = combine(
     observeAppointments(),
     _isRefreshing,
-    isUserLoggedInUseCase()
+    isUserLoggedIn()
   ) { appointments, refreshing, loggedIn ->
     AppointmentMasterState(
-      appointments = appointments.sortedBy { it.startsAt }, // Sortierung client-seitig sicherstellen
+      appointments = appointments.sortedBy { it.startsAt },
       isLoading = refreshing,
       isUserLoggedIn = loggedIn
     )
@@ -36,6 +38,8 @@ class AppointmentMasterViewModel(
 
   init {
     refresh()
+
+    viewModelScope.launch { scheduleAppointmentReminders() }
   }
 
   fun onAction(action: AppointmentMasterAction) {

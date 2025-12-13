@@ -159,6 +159,10 @@ class DefaultTicketRepository(
     return remoteTicketDataSource.getStatusHistory(id)
   }
 
+  override suspend fun getCurrentStatus(id: Int): Result<TicketStatusDto?, DataError.Remote> {
+    return remoteTicketDataSource.getCurrentStatus(id)
+  }
+
   override fun getDrafts(): Flow<List<TicketDraft>> {
     return ticketDraftDao.getDrafts().map { list ->
       list.map {
