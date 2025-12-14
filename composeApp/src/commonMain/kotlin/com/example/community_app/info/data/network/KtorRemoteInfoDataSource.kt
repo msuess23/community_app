@@ -34,4 +34,10 @@ class KtorRemoteInfoDataSource(
   override suspend fun getStatusHistory(id: Int): Result<List<InfoStatusDto>, DataError.Remote> {
     return safeCall { httpClient.get("$BASE_URL/api/info/$id/status")}
   }
+
+  override suspend fun getCurrentStatus(id: Int): Result<InfoStatusDto?, DataError.Remote> {
+    return safeCall {
+      httpClient.get("$BASE_URL/api/info/$id/status/current")
+    }
+  }
 }

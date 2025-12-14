@@ -32,5 +32,5 @@ data class AppointmentDto(
   val officeId: Int,
   val startsAt: String,
   val endsAt: String,
-  val userId: Int?
+  val userId: Int
 )

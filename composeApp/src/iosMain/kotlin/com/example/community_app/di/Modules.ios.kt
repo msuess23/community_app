@@ -7,8 +7,14 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.example.community_app.core.data.local.AppDatabase
 import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.data.local.createDataStore
+import com.example.community_app.core.domain.calendar.CalendarManager
+import com.example.community_app.core.domain.calendar.IosCalendarManager
 import com.example.community_app.core.domain.location.IosLocationService
 import com.example.community_app.core.domain.location.LocationService
+import com.example.community_app.core.domain.notification.IosNotificationService
+import com.example.community_app.core.domain.notification.NotificationService
+import com.example.community_app.core.domain.permission.CalendarPermissionService
+import com.example.community_app.core.domain.permission.IosCalendarPermissionService
 import dev.icerock.moko.permissions.ios.PermissionsController
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.darwin.Darwin
@@ -38,11 +44,23 @@ actual val platformModule = module {
 
   single<DataStore<Preferences>> { createDataStore() }
 
+  single<CalendarPermissionService> {
+    IosCalendarPermissionService()
+  }
+
+  single<CalendarManager> {
+    IosCalendarManager()
+  }
+
   single<LocationService> { IosLocationService() }
 
   single { PermissionsController() }
 
   single { FileStorage() }
+
+  single<NotificationService> {
+    IosNotificationService()
+  }
 }
 
 @OptIn(ExperimentalForeignApi::class)

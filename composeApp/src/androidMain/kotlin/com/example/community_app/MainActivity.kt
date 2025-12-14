@@ -6,24 +6,60 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.community_app.app.App
+import com.example.community_app.core.domain.notification.StatusUpdateWorker
+import com.example.community_app.core.domain.permission.AndroidCalendarPermissionService
+import com.example.community_app.core.util.ActivityProvider
 import com.example.community_app.core.util.AndroidAppRestarter
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
+  override fun onCreate(savedInstanceState: Bundle?) {
+    enableEdgeToEdge()
+    super.onCreate(savedInstanceState)
 
-        AndroidAppRestarter.setActivity(this)
+    setupBackgroundWorker()
 
-        setContent {
-            App()
-        }
+    AndroidAppRestarter.setActivity(this)
+    ActivityProvider.setActivity(this)
+
+    setContent {
+      App()
     }
+  }
+
+  override fun onRequestPermissionsResult(
+    requestCode: Int,
+    permissions: Array<out String?>,
+    grantResults: IntArray,
+    deviceId: Int
+  ) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
+
+    if (requestCode == 101) {
+      AndroidCalendarPermissionService.onPermissionResult(grantResults)
+    }
+  }
+
+  private fun setupBackgroundWorker() {
+    val workRequest = PeriodicWorkRequestBuilder<StatusUpdateWorker>(
+      repeatInterval = 15,
+      repeatIntervalTimeUnit = TimeUnit.MINUTES
+    ).build()
+
+    WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+      uniqueWorkName = "StatusUpdateWork",
+      existingPeriodicWorkPolicy = ExistingPeriodicWorkPolicy.KEEP,
+      request = workRequest
+    )
+  }
 }
 
 @Preview
 @Composable
 fun AppAndroidPreview() {
-    App()
+  App()
 }

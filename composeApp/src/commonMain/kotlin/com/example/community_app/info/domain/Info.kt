@@ -16,5 +16,6 @@ data class Info(
   val endsAt: String,
   val currentStatus: InfoStatus?,
   val statusMessage: String?,
-  val imageUrl: String?
+  val imageUrl: String?,
+  val isFavorite: Boolean = false
 )

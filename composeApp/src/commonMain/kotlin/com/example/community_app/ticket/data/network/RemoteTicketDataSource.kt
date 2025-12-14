@@ -12,7 +12,9 @@ interface RemoteTicketDataSource {
   suspend fun getTickets(bbox: String? = null): Result<List<TicketDto>, DataError.Remote>
   suspend fun getUserTickets(): Result<List<TicketDto>, DataError.Remote>
   suspend fun getTicket(id: Int): Result<TicketDto, DataError.Remote>
+
   suspend fun getStatusHistory(id: Int): Result<List<TicketStatusDto>, DataError.Remote>
+  suspend fun getCurrentStatus(id: Int): Result<TicketStatusDto?, DataError.Remote>
 
   suspend fun createTicket(request: TicketCreateDto): Result<TicketDto, DataError.Remote>
   suspend fun updateTicket(id: Int, request: TicketUpdateDto): Result<TicketDto, DataError.Remote>

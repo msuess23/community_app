@@ -50,6 +50,8 @@ fun <T_Sort, T_Cat, T_Status> CommunityFilterSheet(
   expandedSections: Set<FilterSection>,
 
   // Configuration
+  showCategory: Boolean = true,
+  showStatus: Boolean = true,
   showDistance: Boolean = true,
 
   // Label Mappers (Mapping Logic in UI Layer)
@@ -133,55 +135,57 @@ fun <T_Sort, T_Cat, T_Status> CommunityFilterSheet(
       }
 
       // Category
-      CollapsibleFilterSection(
-        title = Res.string.category_plural,
-        isExpanded = expandedSections.contains(FilterSection.CATEGORY),
-        onToggle = { onToggleSection(FilterSection.CATEGORY) }
-      ) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.small)) {
-          FilterChip(
-            selected = selectedCategories.isEmpty(),
-            onClick = onClearCategories,
-            label = { Text(stringResource(Res.string.category_all)) }
-          )
-          categories.forEach { cat ->
+      if (showCategory) {
+        CollapsibleFilterSection(
+          title = Res.string.category_plural,
+          isExpanded = expandedSections.contains(FilterSection.CATEGORY),
+          onToggle = { onToggleSection(FilterSection.CATEGORY) }
+        ) {
+          FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.small)) {
             FilterChip(
-              selected = cat in selectedCategories,
-              onClick = { onCategorySelect(cat) },
-              label = { Text(categoryLabel(cat)) }
+              selected = selectedCategories.isEmpty(),
+              onClick = onClearCategories,
+              label = { Text(stringResource(Res.string.category_all)) }
             )
+            categories.forEach { cat ->
+              FilterChip(
+                selected = cat in selectedCategories,
+                onClick = { onCategorySelect(cat) },
+                label = { Text(categoryLabel(cat)) }
+              )
+            }
           }
         }
+        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
       }
 
-      HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
-
       // Status
-      CollapsibleFilterSection(
-        title = Res.string.label_status,
-        isExpanded = expandedSections.contains(FilterSection.STATUS),
-        onToggle = { onToggleSection(FilterSection.STATUS) }
-      ) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.small)) {
-          FilterChip(
-            selected = selectedStatuses.isEmpty(),
-            onClick = onClearStatuses,
-            label = { Text(stringResource(Res.string.category_all)) }
-          )
-          statuses.forEach { stat ->
+      if (showStatus) {
+        CollapsibleFilterSection(
+          title = Res.string.label_status,
+          isExpanded = expandedSections.contains(FilterSection.STATUS),
+          onToggle = { onToggleSection(FilterSection.STATUS) }
+        ) {
+          FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.small)) {
             FilterChip(
-              selected = stat in selectedStatuses,
-              onClick = { onStatusSelect(stat) },
-              label = { Text(statusLabel(stat)) }
+              selected = selectedStatuses.isEmpty(),
+              onClick = onClearStatuses,
+              label = { Text(stringResource(Res.string.category_all)) }
             )
+            statuses.forEach { stat ->
+              FilterChip(
+                selected = stat in selectedStatuses,
+                onClick = { onStatusSelect(stat) },
+                label = { Text(statusLabel(stat)) }
+              )
+            }
           }
         }
+        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
       }
 
       // Distance (optional)
       if (showDistance) {
-        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
-
         CollapsibleFilterSection(
           title = Res.string.settings_radius_label,
           isExpanded = expandedSections.contains(FilterSection.DISTANCE),

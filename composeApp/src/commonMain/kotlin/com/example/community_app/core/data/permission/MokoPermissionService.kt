@@ -19,4 +19,17 @@ class MokoPermissionService(
   override suspend fun isLocationPermissionGranted(): Boolean {
     return controller.isPermissionGranted(Permission.LOCATION)
   }
+
+  override suspend fun requestNotificationPermission(): Boolean {
+    return try {
+      controller.providePermission(Permission.REMOTE_NOTIFICATION)
+      true
+    } catch (e: Exception) {
+      false
+    }
+  }
+
+  override suspend fun isNotificationPermissionGranted(): Boolean {
+    return controller.isPermissionGranted(Permission.REMOTE_NOTIFICATION)
+  }
 }

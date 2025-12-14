@@ -1,9 +1,9 @@
 package com.example.community_app.core.presentation.components.detail
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
@@ -21,15 +22,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.community_app.core.domain.model.Address
 import com.example.community_app.media.presentation.ImageGallery
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.draft_label_long
 import community_app.composeapp.generated.resources.label_status
 import community_app.composeapp.generated.resources.label_status_history
+import community_app.composeapp.generated.resources.ticket_mine_label
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Activity
+import compose.icons.feathericons.Star
 import compose.icons.feathericons.User
 import org.jetbrains.compose.resources.stringResource
 
@@ -43,21 +48,25 @@ fun InfoTicketDetailContent(
   onStatusClick: () -> Unit,
   startDate: String?,
   endDate: String?,
-  addressContent: @Composable (() -> Unit)? = null,
+  address: Address?,
   isDraft: Boolean = false,
-  isOwner: Boolean = false
+  isOwner: Boolean = false,
+  isFavorite: Boolean = false,
+  onToggleFavorite: () -> Unit
 ) {
   Column(
     modifier = Modifier
       .fillMaxSize()
       .verticalScroll(rememberScrollState())
   ) {
-    ImageGallery(
-      imageUrls = images,
-      modifier = Modifier
-        .fillMaxWidth()
-        .aspectRatio(16f / 9f)
-    )
+    if (images.isNotEmpty()) {
+      ImageGallery(
+        imageUrls = images,
+        modifier = Modifier
+          .fillMaxWidth()
+          .aspectRatio(16f / 9f)
+      )
+    }
 
     Column(
       modifier = Modifier.padding(16.dp),
@@ -77,7 +86,7 @@ fun InfoTicketDetailContent(
         } else if (isOwner) {
           SuggestionChip(
             onClick = {},
-            label = { Text("Mein Anliegen") },
+            label = { Text(stringResource(Res.string.ticket_mine_label)) },
             icon = { Icon(FeatherIcons.User, null) },
             modifier = Modifier.padding(bottom = 8.dp)
           )
@@ -132,15 +141,22 @@ fun InfoTicketDetailContent(
         )
       }
 
-      addressContent?.let {
-        Card(
-          modifier = Modifier.fillMaxWidth().height(150.dp),
-          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-          Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            it()
-          }
+      if (!isDraft && !isOwner) {
+        IconButton(onClick = onToggleFavorite) {
+          val tint = if (isFavorite) Color(0xFFFFD700) else MaterialTheme.colorScheme.onPrimary
+
+          Icon(
+            imageVector = FeatherIcons.Star,
+            contentDescription = null,
+            tint = tint
+          )
         }
+      }
+
+      if (address != null) {
+        CommunityAddressCard(address = address)
+        Spacer(modifier = Modifier.height(16.dp))
+        MapPlaceholder()
       }
     }
   }

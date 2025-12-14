@@ -15,6 +15,12 @@
     <string name="upload">Veröffentlichen</string>
     <string name="camera">Kamera</string>
     <string name="gallery">Galerie</string>
+    <string name="point_in_time">Zeitpunkt</string>
+    <string name="distance">Distanz</string>
+    <string name="okay">OK</string>
+    <string name="book">Buchen</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
 
     <!-- Info -->
     <string name="info_singular">Information</string>
@@ -23,6 +29,7 @@
     <!-- Ticket -->
     <string name="ticket_singular">Anliegen</string>
     <string name="ticket_plural">Anliegen</string>
+    <string name="ticket_mine_label">Mein Anliegen</string>
     <!-- Visibility (Enum) -->
     <string name="ticket_visibility_label">Sichtbarkeit</string>
     <string name="ticket_visibility_info_text">Die zuständige Behörde kann dein Anliegen immer sehen.</string>
@@ -45,16 +52,29 @@
     <string name="draft_edit_label">Entwurf bearbeiten</string>
     <string name="use_current_location">Aktuellen Standort verwenden</string>
     <string name="images_label">Bilder</string>
-    <string name="ticket_delete_dialog_text">Bist Du sicher, dass Du dieses Ticket löschen möchtest?</string>
-    <string name="ticket_upload_dialog_text">Bist Du sicher, dass Du dieses Ticket veröffentlichen möchtest?</string>
+    <string name="ticket_delete_dialog_text">Bist Du sicher, dass Du dieses Anliegen löschen möchtest?</string>
+    <string name="ticket_upload_dialog_text">Bist Du sicher, dass Du dieses Anliegen veröffentlichen möchtest?</string>
 
     <!-- Office -->
     <string name="office_singular">Behörde</string>
     <string name="office_plural">Behörden</string>
+    <string name="office_hours">Öffnungszeiten</string>
+    <string name="office_select_date">Datum wählen</string>
+
+    <!-- Slot -->
+    <string name="slot_book_title">Möchtest Du diesen Termin verbindlich buchen?</string>
+    <string name="slot_book_export">In Kalender exportieren</string>
+    <string name="slot_none">An diesem Tag sind freien Termine verfügbar.</string>
 
     <!-- Appointment -->
     <string name="appointment_singular">Termin</string>
     <string name="appointment_plural">Termine</string>
+    <string name="appointment_none">Du hast aktuell keine Termine.</string>
+    <string name="appointment_cancel_title">Stornieren</string>
+    <string name="appointment_cancel_text">Bist Du sicher, dass Du diesen Termin absagen möchtest?</string>
+    <!-- Calendar Appointment -->
+    <string name="appointment_calendar_desc">Termin bei</string>
+    <string name="appointment_calendar_info">Gebucht über</string>
 
     <!-- Search -->
     <string name="search_hint">Suchen...</string>
@@ -101,6 +121,8 @@
 
     <!-- Settings -->
     <string name="settings_label">Einstellungen</string>
+    <string name="settings_general_label">Allgemein</string>
+    <string name="settings_notifications_label">Benachrichtigungen</string>
     <!-- Theme -->
     <string name="settings_theme_label">Erscheinungsbild</string>
     <string name="settings_theme_system">automatisch</string>
@@ -115,6 +137,22 @@
     <string name="settings_lang_dialog_title">Sprache ändern</string>
     <string name="settings_lang_dialog_text">Die App wird neu gestartet, um die Spracheinstellung anzuwenden.</string>
     <string name="settings_lang_dialog_confirm">Ändern &amp; Neustarten</string>
+    <!-- Calendar -->
+    <string name="settings_calendar_desc">Mit Kalender synchronisieren</string>
+    <string name="settings_calendar_permission">Kalenderzugriff erforderlich</string>
+    <!-- Notifications -->
+    <string name="settings_notifications_general_title">Benachrichtigungen</string>
+    <string name="settings_notifications_general_desc">Push-Benachrichtigungen allgemein erlauben</string>
+    <string name="settings_notifications_info_desc">Status-Updates für favorisierte Mitteilungen</string>
+    <string name="settings_notifications_ticket_desc">Status-Updates für Deine eigenen und favorisierte Anliegen</string>
+    <string name="settings_notifications_appointment_desc">Erinnerungen vor anstehenden Terminen</string>
+    <!-- Reminder Options -->
+    <string name="settings_notifications_reminder_label">Zeitpunkt der Terminerinnerungen</string>
+    <string name="settings_notifications_reminder_30m">30 Minuten vorher</string>
+    <string name="settings_notifications_reminder_60m">1 Stunde vorher</string>
+    <string name="settings_notifications_reminder_120m">2 Stunden vorher</string>
+    <string name="settings_notifications_reminder_180m">3 Stunden vorher</string>
+    <string name="settings_notifications_reminder_1d">1 Tag vorher</string>
     <!-- Radius -->
     <string name="settings_radius_label">Suchradius</string>
     <string name="settings_radius_helper">Filtert basierend auf Deinem aktuellen Standort (benötigt GPS).</string>

@@ -7,8 +7,14 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.example.community_app.core.data.local.AppDatabase
 import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.data.local.createDataStore
+import com.example.community_app.core.domain.calendar.AndroidCalendarManager
+import com.example.community_app.core.domain.calendar.CalendarManager
 import com.example.community_app.core.domain.location.AndroidLocationService
 import com.example.community_app.core.domain.location.LocationService
+import com.example.community_app.core.domain.notification.AndroidNotificationService
+import com.example.community_app.core.domain.notification.NotificationService
+import com.example.community_app.core.domain.permission.AndroidCalendarPermissionService
+import com.example.community_app.core.domain.permission.CalendarPermissionService
 import dev.icerock.moko.permissions.PermissionsController
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
@@ -42,7 +48,19 @@ actual val platformModule = module {
     AndroidLocationService(androidContext())
   }
 
+  single<CalendarPermissionService> {
+    AndroidCalendarPermissionService(androidContext())
+  }
+
+  single<CalendarManager> {
+    AndroidCalendarManager(androidContext())
+  }
+
   single { PermissionsController(applicationContext = androidContext()) }
 
   single { FileStorage(androidContext()) }
+
+  single<NotificationService> {
+    AndroidNotificationService(androidContext())
+  }
 }

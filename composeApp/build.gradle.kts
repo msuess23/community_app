@@ -26,6 +26,7 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            export(libs.koin.core)
         }
     }
 
@@ -33,6 +34,7 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.work.runtime.ktx)
 
             implementation(libs.ktor.client.okhttp)
 
@@ -64,7 +66,7 @@ kotlin {
             implementation(libs.androidx.datastore)
             implementation(libs.androidx.datastore.preferences)
 
-            implementation(libs.bundles.koin)
+            api(libs.bundles.koin)
             implementation(libs.bundles.ktor.client)
             implementation(libs.bundles.coil)
         }

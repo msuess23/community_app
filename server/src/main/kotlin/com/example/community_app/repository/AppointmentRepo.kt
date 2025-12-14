@@ -4,6 +4,7 @@ import com.example.community_app.model.AppointmentEntity
 import com.example.community_app.model.Appointments
 import com.example.community_app.model.OfficeEntity
 import com.example.community_app.model.UserEntity
+import com.example.community_app.model.Users
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.Query
@@ -112,7 +113,7 @@ object DefaultAppointmentRepository : AppointmentRepository {
 
   override suspend fun listForUser(userId: Int): List<AppointmentRecord> =
     newSuspendedTransaction(Dispatchers.IO) {
-      AppointmentEntity.find { Appointments.user eq EntityID(userId, com.example.community_app.model.Users) }
+      AppointmentEntity.find { Appointments.user eq EntityID(userId, Users) }
         .orderBy(Appointments.startsAt to SortOrder.ASC)
         .map { it.toRecord() }
     }

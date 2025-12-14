@@ -15,4 +15,7 @@ interface InfoRepository {
   suspend fun refreshInfo(id: Int): Result<Unit, DataError.Remote>
 
   suspend fun getStatusHistory(id: Int): Result<List<InfoStatusDto>, DataError.Remote>
+  suspend fun getCurrentStatus(id: Int): Result<InfoStatusDto?, DataError.Remote>
+
+  suspend fun toggleFavorite(infoId: Int, isFavorite: Boolean)
 }

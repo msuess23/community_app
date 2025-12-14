@@ -20,6 +20,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.community_app.app.navigation.AppScaffold
 import com.example.community_app.app.navigation.Route
 import com.example.community_app.app.navigation.TopLevelDestination
+import com.example.community_app.appointment.presentation.detail.AppointmentDetailScreenRoot
+import com.example.community_app.appointment.presentation.master.AppointmentMasterScreenRoot
 import com.example.community_app.auth.presentation.components.AuthGuard
 import com.example.community_app.auth.presentation.forgot_password.ForgotPasswordScreenRoot
 import com.example.community_app.auth.presentation.login.LoginScreenRoot
@@ -30,6 +32,8 @@ import com.example.community_app.core.util.localeManager
 import com.example.community_app.di.createKoinConfiguration
 import com.example.community_app.info.presentation.info_detail.InfoDetailScreenRoot
 import com.example.community_app.info.presentation.info_master.InfoMasterScreenRoot
+import com.example.community_app.office.presentation.office_detail.OfficeDetailScreenRoot
+import com.example.community_app.office.presentation.office_master.OfficeMasterScreenRoot
 import com.example.community_app.settings.domain.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsScreenRoot
 import com.example.community_app.ticket.presentation.ticket_detail.TicketDetailScreenRoot
@@ -212,20 +216,36 @@ fun App() {
 
               navigation<Route.OfficeGraph>(startDestination = Route.OfficeMaster) {
                 composable<Route.OfficeMaster> {
-                  DummyScreen("Office Master", onOpenDrawer = { scope.launch { drawerState.open() } })
+                  OfficeMasterScreenRoot(
+                    onOfficeClick = { office ->
+                      navController.navigate(Route.OfficeDetail(office.id))
+                    },
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                  )
+                }
+
+                composable<Route.OfficeDetail> {
+                  OfficeDetailScreenRoot(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToLogin = { navController.navigate(Route.AuthGraph) }
+                  )
                 }
               }
 
               navigation<Route.AppointmentGraph>(startDestination = Route.AppointmentMaster) {
                 composable<Route.AppointmentMaster> {
-                  AuthGuard(
-                    onLoginClick = { navController.navigate(Route.AuthGraph) }
-                  ) { user ->
-                    DummyScreen(
-                      title = "Appointment Master (Angemeldet als ${user.displayName})",
-                      onOpenDrawer = { scope.launch { drawerState.open() } }
-                    )
-                  }
+                  AppointmentMasterScreenRoot(
+                    onNavigateToDetail = { appointmentId ->
+                      navController.navigate(Route.AppointmentDetail(appointmentId)) },
+                    onNavigateToLogin = { navController.navigate(Route.AuthGraph) },
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                  )
+                }
+
+                composable<Route.AppointmentDetail> {
+                  AppointmentDetailScreenRoot(
+                    onNavigateBack = { navController.popBackStack() }
+                  )
                 }
               }
 

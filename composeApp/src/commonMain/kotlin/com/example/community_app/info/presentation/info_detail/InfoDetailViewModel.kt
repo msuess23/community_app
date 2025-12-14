@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
+import com.example.community_app.core.data.local.favorite.FavoriteType
 import com.example.community_app.core.domain.Result
+import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
 import com.example.community_app.info.domain.InfoRepository
 import com.example.community_app.media.domain.MediaRepository
 import com.example.community_app.util.BASE_URL
@@ -20,7 +22,8 @@ import kotlinx.coroutines.launch
 class InfoDetailViewModel(
   savedStateHandle: SavedStateHandle,
   private val infoRepository: InfoRepository,
-  private val mediaRepository: MediaRepository
+  private val mediaRepository: MediaRepository,
+  private val toggleFavoriteUseCase: ToggleFavoriteUseCase
 ) : ViewModel() {
   private val infoId = savedStateHandle.toRoute<Route.InfoDetail>().id
 
@@ -78,6 +81,7 @@ class InfoDetailViewModel(
     when (action) {
       InfoDetailAction.OnShowStatusHistory -> _showStatusHistory.value = true
       InfoDetailAction.OnDismissStatusHistory -> _showStatusHistory.value = false
+      InfoDetailAction.OnToggleFavorite -> toggleFavorite()
       else -> Unit
     }
   }
@@ -85,6 +89,18 @@ class InfoDetailViewModel(
   private fun refreshInfoData() {
     viewModelScope.launch {
       infoRepository.refreshInfo(infoId)
+    }
+  }
+
+  private fun toggleFavorite() {
+    val currentInfo = state.value.info ?: return
+
+    viewModelScope.launch {
+      toggleFavoriteUseCase(
+        itemId = currentInfo.id,
+        type = FavoriteType.INFO,
+        isFavorite = !currentInfo.isFavorite
+      )
     }
   }
 }

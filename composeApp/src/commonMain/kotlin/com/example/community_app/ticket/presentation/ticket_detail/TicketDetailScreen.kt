@@ -57,6 +57,7 @@ private fun TicketDetailScreen(
   state: TicketDetailState,
   onAction: (TicketDetailAction) -> Unit
 ) {
+  val category = if (state.isDraft) state.draft?.category?.toUiText().toString() else state.ticket?.category?.toUiText()?.asString()
   val titleRes = if (state.isDraft) Res.string.draft_label else Res.string.ticket_singular
 
   val displayTitle = state.ticket?.title ?: state.draft?.title
@@ -74,7 +75,7 @@ private fun TicketDetailScreen(
   }
 
   DetailScreenLayout(
-    title = stringResource(titleRes),
+    title = category ?: stringResource(titleRes),
     onNavigateBack = { onAction(TicketDetailAction.OnNavigateBack) },
     isLoading = state.isLoading,
     dataAvailable = displayTitle != null,
@@ -102,9 +103,11 @@ private fun TicketDetailScreen(
       startDate = null,
       endDate = null,
       onStatusClick = { onAction(TicketDetailAction.OnShowStatusHistory) },
-      addressContent = { Text("Map Placeholder") },
+      address = state.ticket?.address,
       isDraft = state.isDraft,
-      isOwner = state.isOwner
+      isOwner = state.isOwner,
+      isFavorite = state.ticket?.isFavorite ?: false,
+      onToggleFavorite = { onAction(TicketDetailAction.OnToggleFavorite) }
     )
   }
 }

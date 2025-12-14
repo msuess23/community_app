@@ -4,6 +4,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
+import com.example.community_app.core.data.local.favorite.FavoriteDao
+import com.example.community_app.core.data.local.favorite.FavoriteEntity
+import com.example.community_app.core.data.local.favorite.FavoriteType
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.location.LocationService
@@ -18,13 +21,18 @@ import com.example.community_app.info.domain.Info
 import com.example.community_app.info.domain.InfoRepository
 import com.example.community_app.util.SERVER_FETCH_INTERVAL_MS
 import com.example.community_app.util.SERVER_FETCH_RADIUS_KM
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class DefaultInfoRepository(
   private val remoteInfoDataSource: RemoteInfoDataSource,
   private val infoDao: InfoDao,
+  private val favoriteDao: FavoriteDao,
   private val dataStore: DataStore<Preferences>,
   private val locationService: LocationService
 ): InfoRepository {
@@ -43,18 +51,27 @@ class DefaultInfoRepository(
   }
 
   override fun getInfos(): Flow<List<Info>> {
-    return infoDao.getInfos().map { entities ->
-      entities.map { it.toInfo() }
+    return combine(
+      infoDao.getInfos(),
+      favoriteDao.getFavoriteIds(FavoriteType.INFO)
+    ) { entities, favoriteIds ->
+      val favSet = favoriteIds.toSet()
+      entities.map { entity ->
+        entity.toInfo().copy(isFavorite = entity.id in favSet)
+      }
     }
   }
 
   override fun getInfo(id: Int): Flow<Info?> {
-    return infoDao.getInfoById(id).map { entity ->
-      entity?.toInfo()
+    return combine(
+      infoDao.getInfoById(id),
+      favoriteDao.getFavoriteIds(FavoriteType.INFO)
+    ) { entity, favIds ->
+      entity?.toInfo()?.copy(isFavorite = entity.id in favIds)
     }
   }
 
-  override suspend fun refreshInfos(): Result<Unit, DataError.Remote> {
+  override suspend fun refreshInfos(): Result<Unit, DataError.Remote> = coroutineScope {
     val currentLocation = locationService.getCurrentLocation()
 
     val bboxString = if (currentLocation != null) {
@@ -66,23 +83,37 @@ class DefaultInfoRepository(
       null
     }
 
-    return when (val result = remoteInfoDataSource.getInfos(bboxString)) {
-      is Result.Success -> {
-        try {
-          val entities = result.data.map { it.toEntity() }
-          infoDao.replaceAll(entities)
+    val bboxResult = remoteInfoDataSource.getInfos(bboxString)
+    if (bboxResult is Result.Error) {
+      return@coroutineScope Result.Error(bboxResult.error)
+    }
 
-          dataStore.edit { it[keyLastSync] = getCurrentTimeMillis() }
+    val bboxInfos = (bboxResult as Result.Success).data
 
-          Result.Success(Unit)
-        } catch (e: Exception) {
-          e.printStackTrace()
-          Result.Error(DataError.Remote.UNKNOWN)
-        }
-      }
-      is Result.Error -> {
-        Result.Error(result.error)
-      }
+    val favoriteIds = favoriteDao.getFavoriteIds(FavoriteType.INFO).first()
+    val loadedIds = bboxInfos.map { it.id }.toSet()
+    val missingFavoriteIds = favoriteIds.filter { it !in loadedIds }
+
+    val favoriteDeferreds = missingFavoriteIds.map { id ->
+      async { remoteInfoDataSource.getInfo(id) }
+    }
+    val favoriteResults = favoriteDeferreds.awaitAll()
+
+    val additionalFavorites = favoriteResults
+      .mapNotNull { if (it is Result.Success) it.data else null }
+
+    val allInfos = (bboxInfos + additionalFavorites).distinctBy { it.id }
+
+    try {
+      val entities = allInfos.map { it.toEntity() }
+      infoDao.replaceAll(entities)
+
+      dataStore.edit { it[keyLastSync] = getCurrentTimeMillis() }
+
+      Result.Success(Unit)
+    } catch (e: Exception) {
+      e.printStackTrace()
+      Result.Error(DataError.Remote.UNKNOWN)
     }
   }
 
@@ -106,5 +137,18 @@ class DefaultInfoRepository(
 
   override suspend fun getStatusHistory(id: Int): Result<List<InfoStatusDto>, DataError.Remote> {
     return remoteInfoDataSource.getStatusHistory(id)
+  }
+
+  override suspend fun getCurrentStatus(id: Int): Result<InfoStatusDto?, DataError.Remote> {
+    return remoteInfoDataSource.getCurrentStatus(id)
+  }
+
+  override suspend fun toggleFavorite(infoId: Int, isFavorite: Boolean) {
+    val entity = FavoriteEntity(itemId = infoId, type = FavoriteType.INFO)
+    if (isFavorite) {
+      favoriteDao.addFavorite(entity)
+    } else {
+      favoriteDao.removeFavorite(entity)
+    }
   }
 }

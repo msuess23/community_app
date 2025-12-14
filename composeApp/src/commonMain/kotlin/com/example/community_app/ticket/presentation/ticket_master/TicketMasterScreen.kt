@@ -165,7 +165,7 @@ private fun TicketMasterScreen(
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
       items(currentList) { item ->
-        val (title, subtitle, date, image, isDraft) = when (item) {
+        val (title, subtitle, date, image, isDraft, isFavorite) = when (item) {
           is TicketListItem.Remote -> {
             val cat = item.ticket.category.toUiText().asString()
             val status = item.ticket.currentStatus?.toUiText()?.asString()
@@ -175,7 +175,8 @@ private fun TicketMasterScreen(
               subtitle = sub,
               date = formatIsoDate(item.ticket.createdAt),
               image = item.ticket.imageUrl,
-              isDraft = false
+              isDraft = false,
+              isFavorite = item.ticket.isFavorite
             )
           }
 
@@ -192,7 +193,8 @@ private fun TicketMasterScreen(
               subtitle = cat,
               date = dateStr,
               image = item.draft.images.firstOrNull(),
-              isDraft = true
+              isDraft = true,
+              isFavorite = false
             )
           }
         }
@@ -203,6 +205,7 @@ private fun TicketMasterScreen(
           dateString = date,
           imageUrl = image,
           isDraft = isDraft,
+          isFavorite = isFavorite,
           onClick = {
             when (item) {
               is TicketListItem.Remote -> onAction(TicketMasterAction.OnTicketClick(item.ticket))
@@ -231,5 +234,6 @@ private data class TicketItemData(
   val subtitle: String,
   val date: String,
   val image: String?,
-  val isDraft: Boolean
+  val isDraft: Boolean,
+  val isFavorite: Boolean
 )

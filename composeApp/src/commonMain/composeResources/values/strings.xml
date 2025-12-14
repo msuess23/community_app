@@ -15,6 +15,12 @@
     <string name="upload">Upload</string>
     <string name="camera">Camera</string>
     <string name="gallery">Gallery</string>
+    <string name="point_in_time">Time</string>
+    <string name="distance">Distance</string>
+    <string name="okay">OK</string>
+    <string name="book">Book</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 
     <!-- Info -->
     <string name="info_singular">Information</string>
@@ -23,9 +29,10 @@
     <!-- Ticket -->
     <string name="ticket_singular">Concern</string>
     <string name="ticket_plural">Concerns</string>
+    <string name="ticket_mine_label">My concern</string>
     <!-- Visibility (Enum) -->
     <string name="ticket_visibility_label">Visibility</string>
-    <string name="ticket_visibility_info_text">The responsible office can always see your ticket.</string>
+    <string name="ticket_visibility_info_text">The responsible office can always see your concerns.</string>
     <string name="ticket_visibility_public">for all</string>
     <string name="ticket_visibility_private">only for myself</string>
     <!-- Ownership -->
@@ -41,20 +48,33 @@
     <string name="draft_delete_dialog_text">Are you sure you want to delete this draft?</string>
     <!-- Create / Edit -->
     <string name="ticket_create_label">New concern</string>
-    <string name="ticket_edit_label">Edit ticket</string>
+    <string name="ticket_edit_label">Edit concern</string>
     <string name="draft_edit_label">Edit draft</string>
     <string name="use_current_location">Use current location</string>
     <string name="images_label">Images</string>
-    <string name="ticket_delete_dialog_text">Are you sure you want to delete this ticket?</string>
-    <string name="ticket_upload_dialog_text">Are you sure you want to upload this ticket?</string>
+    <string name="ticket_delete_dialog_text">Are you sure you want to delete this concern?</string>
+    <string name="ticket_upload_dialog_text">Are you sure you want to upload this concern?</string>
 
     <!-- Office -->
     <string name="office_singular">Office</string>
     <string name="office_plural">Offices</string>
+    <string name="office_hours">Opening hours</string>
+    <string name="office_select_date">Select date</string>
+
+    <!-- Slot -->
+    <string name="slot_book_title">Would you like to make a binding reservation for this date?</string>
+    <string name="slot_book_export">Export to calendar</string>
+    <string name="slot_none">No appointments available on this day.</string>
 
     <!-- Appointment -->
     <string name="appointment_singular">Appointment</string>
     <string name="appointment_plural">Appointments</string>
+    <string name="appointment_none">You currently don't have any appointments.</string>
+    <string name="appointment_cancel_title">Cancel</string>
+    <string name="appointment_cancel_text">Are you sure you want to cancel this appointment?</string>
+    <!-- Calendar Appointment -->
+    <string name="appointment_calendar_desc">Appointment at</string>
+    <string name="appointment_calendar_info">Booked via</string>
 
     <!-- Search -->
     <string name="search_hint">Search...</string>
@@ -101,6 +121,8 @@
 
     <!-- Settings -->
     <string name="settings_label">Settings</string>
+    <string name="settings_general_label">General</string>
+    <string name="settings_notifications_label">Notifications</string>
     <!-- Theme -->
     <string name="settings_theme_label">Color theme</string>
     <string name="settings_theme_system">automatic</string>
@@ -115,6 +137,22 @@
     <string name="settings_lang_dialog_title">Change language</string>
     <string name="settings_lang_dialog_text">The app will be restarted in order to apply the changes.</string>
     <string name="settings_lang_dialog_confirm">Change &amp; Restart</string>
+    <!-- Calendar -->
+    <string name="settings_calendar_desc">Synchronize with calendar</string>
+    <string name="settings_calendar_permission">Calendar access required</string>
+    <!-- Notifications -->
+    <string name="settings_notifications_general_title">Notifications</string>
+    <string name="settings_notifications_general_desc">Allow push notifications in general</string>
+    <string name="settings_notifications_info_desc">Status updates for favourite infos</string>
+    <string name="settings_notifications_ticket_desc">Status updates für your own and favourite concerns</string>
+    <string name="settings_notifications_appointment_desc">Reminders before appointments</string>
+    <!-- Reminder Options -->
+    <string name="settings_notifications_reminder_label">Timing of reminders</string>
+    <string name="settings_notifications_reminder_30m">30 minutes before</string>
+    <string name="settings_notifications_reminder_60m">1 hour before</string>
+    <string name="settings_notifications_reminder_120m">2 hours before</string>
+    <string name="settings_notifications_reminder_180m">3 hours before</string>
+    <string name="settings_notifications_reminder_1d">1 day before</string>
     <!-- Radius -->
     <string name="settings_radius_label">Search radius</string>
     <string name="settings_radius_helper">Filters based on your current location (requires GPS).</string>

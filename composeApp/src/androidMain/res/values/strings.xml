@@ -1,3 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <resources>
     <string name="app_name">community_app</string>
+    <string name="notification_channel_name">Updates &amp; Appointments</string>
+    <string name="notification_channel_description">Notifications about status updates and appointment reminders.</string>
 </resources>
