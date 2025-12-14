@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.community_app.core.util.formatIsoDate
 import com.example.community_app.core.util.formatIsoTime
@@ -52,6 +53,8 @@ fun StatusHistorySheet(
       Text(
         text = stringResource(Res.string.label_status_history),
         style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+        fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(bottom = 16.dp)
       )
 

@@ -20,6 +20,7 @@ import com.example.community_app.core.presentation.components.list.ScreenMessage
 import com.example.community_app.core.presentation.components.master.MasterScreenLayout
 import com.example.community_app.core.presentation.components.master.SingleTabHeader
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.appointment_none
 import community_app.composeapp.generated.resources.appointment_plural
 import community_app.composeapp.generated.resources.search_no_results
 import org.jetbrains.compose.resources.stringResource
@@ -74,7 +75,7 @@ private fun AppointmentMasterScreen(
         )
       } else {
         ScreenMessage(
-          text = stringResource(Res.string.search_no_results), // oder "Keine Termine"
+          text = stringResource(Res.string.appointment_none),
           color = MaterialTheme.colorScheme.onSurface
         )
       }

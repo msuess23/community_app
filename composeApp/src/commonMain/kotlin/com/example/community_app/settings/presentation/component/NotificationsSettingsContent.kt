@@ -14,10 +14,20 @@ import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.settings.presentation.SettingsAction
 import com.example.community_app.settings.presentation.SettingsState
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.settings_label
+import community_app.composeapp.generated.resources.appointment_plural
+import community_app.composeapp.generated.resources.category_plural
+import community_app.composeapp.generated.resources.info_plural
+import community_app.composeapp.generated.resources.settings_general_label
+import community_app.composeapp.generated.resources.settings_notifications_appointment_desc
+import community_app.composeapp.generated.resources.settings_notifications_general_desc
+import community_app.composeapp.generated.resources.settings_notifications_general_title
+import community_app.composeapp.generated.resources.settings_notifications_info_desc
+import community_app.composeapp.generated.resources.settings_notifications_ticket_desc
+import community_app.composeapp.generated.resources.ticket_plural
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Bell
 import compose.icons.feathericons.Settings
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun NotificationSettingsContent(
@@ -33,12 +43,12 @@ fun NotificationSettingsContent(
   ) {
     // --- Master Switch ---
     SettingsSection(
-      title = Res.string.settings_label, // Oder "Allgemein"
-      icon = FeatherIcons.Settings // Oder Bell
+      title = Res.string.settings_general_label,
+      icon = FeatherIcons.Settings
     ) {
       SettingsSwitchRow(
-        label = "Benachrichtigungen erlauben", // TODO: Localize
-        subtitle = "Push-Benachrichtigungen generell aktivieren", // TODO: Localize
+        label = stringResource(Res.string.settings_notifications_general_title),
+        subtitle = stringResource(Res.string.settings_notifications_general_desc),
         checked = state.settings.notificationsEnabled,
         onCheckedChange = { onAction(SettingsAction.OnToggleNotifications(it)) }
       )
@@ -46,16 +56,15 @@ fun NotificationSettingsContent(
 
     HorizontalDivider()
 
-    // --- Kategorien (Nur aktiv wenn Master Switch an ist) ---
     SettingsSection(
-      title = Res.string.settings_label, // "Kategorien" (TODO: Localize)
+      title = Res.string.category_plural,
       icon = FeatherIcons.Bell
     ) {
       Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         // Tickets
         SettingsSwitchRow(
-          label = "Tickets", // TODO: Localize
-          subtitle = "Statusänderungen bei Tickets", // TODO: Localize
+          label = stringResource(Res.string.ticket_plural),
+          subtitle = stringResource(Res.string.settings_notifications_ticket_desc),
           checked = state.settings.notifyTickets,
           enabled = state.settings.notificationsEnabled,
           onCheckedChange = { onAction(SettingsAction.OnToggleNotifyTickets(it)) }
@@ -63,8 +72,8 @@ fun NotificationSettingsContent(
 
         // Infos
         SettingsSwitchRow(
-          label = "Informationen", // TODO: Localize
-          subtitle = "Updates zu favorisierten Infos", // TODO: Localize
+          label = stringResource(Res.string.info_plural),
+          subtitle = stringResource(Res.string.settings_notifications_info_desc),
           checked = state.settings.notifyInfos,
           enabled = state.settings.notificationsEnabled,
           onCheckedChange = { onAction(SettingsAction.OnToggleNotifyInfos(it)) }
@@ -72,8 +81,8 @@ fun NotificationSettingsContent(
 
         // Appointments
         SettingsSwitchRow(
-          label = "Termine", // TODO: Localize
-          subtitle = "Erinnerungen vor Terminbeginn", // TODO: Localize
+          label = stringResource(Res.string.appointment_plural),
+          subtitle = stringResource(Res.string.settings_notifications_appointment_desc),
           checked = state.settings.notifyAppointments,
           enabled = state.settings.notificationsEnabled,
           onCheckedChange = { onAction(SettingsAction.OnToggleNotifyAppointments(it)) }

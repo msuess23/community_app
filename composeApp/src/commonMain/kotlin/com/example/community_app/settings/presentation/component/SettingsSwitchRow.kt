@@ -29,7 +29,7 @@ fun SettingsSwitchRow(
     Column(
       modifier = Modifier
         .weight(1f)
-        .padding(end = 16.dp)
+        .padding(end = 24.dp)
     ) {
       Text(
         text = label,

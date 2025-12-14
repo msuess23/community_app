@@ -34,22 +34,23 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.core.presentation.components.detail.CommunityAddressCard
 import com.example.community_app.core.presentation.components.detail.DetailScreenLayout
-import com.example.community_app.core.presentation.components.detail.MapPlaceholder
-import com.example.community_app.core.presentation.components.dialog.CommunityDialog
 import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.office.domain.Office
 import com.example.community_app.office.presentation.office_detail.component.CommunityDatePicker
 import com.example.community_app.office.presentation.office_detail.component.DateSelector
 import com.example.community_app.office.presentation.office_detail.component.SlotItem
 import compose.icons.FeatherIcons
-import compose.icons.feathericons.MapPin
 import compose.icons.feathericons.Phone
 import org.koin.compose.viewmodel.koinViewModel
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.appointment_singular
-import community_app.composeapp.generated.resources.save
+import community_app.composeapp.generated.resources.book
 import community_app.composeapp.generated.resources.cancel
+import community_app.composeapp.generated.resources.office_hours
 import community_app.composeapp.generated.resources.office_singular
+import community_app.composeapp.generated.resources.slot_book_export
+import community_app.composeapp.generated.resources.slot_book_title
+import community_app.composeapp.generated.resources.slot_none
 import compose.icons.feathericons.Clock
 import compose.icons.feathericons.Mail
 import org.jetbrains.compose.resources.stringResource
@@ -120,7 +121,7 @@ private fun OfficeDetailScreen(
         } else if (state.visibleSlots.isEmpty()) {
           item {
             Text(
-              text = "Keine freien Termine an diesem Tag.",
+              text = stringResource(Res.string.slot_none),
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
               textAlign = TextAlign.Center,
@@ -141,22 +142,12 @@ private fun OfficeDetailScreen(
 
   // Booking Dialog
   if (state.selectedSlot != null) {
-//    CommunityDialog(
-//      title = Res.string.appointment_singular,
-//      text = Res.string.appointment_singular, // TODO
-//      onDismissRequest = { onAction(OfficeDetailAction.OnDismissBookingDialog) },
-//      confirmButtonText = Res.string.save, // TODO
-//      onConfirm = { onAction(OfficeDetailAction.OnConfirmBooking) },
-//      dismissButtonText = Res.string.cancel,
-//      onDismiss = { onAction(OfficeDetailAction.OnDismissBookingDialog) }
-//    )
-
     AlertDialog(
       onDismissRequest = { onAction(OfficeDetailAction.OnDismissBookingDialog) },
       title = { Text(stringResource(Res.string.appointment_singular)) },
       text = {
         Column {
-          Text("Möchtest Du diesen Termin verbindlich buchen?")
+          Text(stringResource(Res.string.slot_book_title))
 
           if (state.hasCalendarPermission) {
             Spacer(Modifier.height(16.dp))
@@ -170,14 +161,14 @@ private fun OfficeDetailScreen(
                 checked = state.shouldAddToCalendar,
                 onCheckedChange = { onAction(OfficeDetailAction.OnToggleCalendarExport(it)) }
               )
-              Text("In Kalender exportieren")
+              Text(stringResource(Res.string.slot_book_export))
             }
           }
         }
       },
       confirmButton = {
         TextButton(onClick = { onAction(OfficeDetailAction.OnConfirmBooking) }) {
-          Text(stringResource(Res.string.save))
+          Text(stringResource(Res.string.book))
         }
       },
       dismissButton = {
@@ -222,11 +213,16 @@ private fun OfficeHeader(office: Office) {
 
     if (!office.openingHours.isNullOrBlank()) {
       Row(verticalAlignment = Alignment.Top) {
-        Icon(FeatherIcons.Clock, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 2.dp))
+        Icon(
+          imageVector = FeatherIcons.Clock,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.primary,
+          modifier = Modifier.padding(top = 2.dp)
+        )
         Spacer(Modifier.width(16.dp))
         Column {
           Text(
-            text = "Öffnungszeiten", // TODO: Localize
+            text = stringResource(Res.string.office_hours),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary
           )

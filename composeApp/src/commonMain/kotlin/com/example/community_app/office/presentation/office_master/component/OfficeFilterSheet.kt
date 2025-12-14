@@ -6,6 +6,7 @@ import com.example.community_app.office.presentation.office_master.OfficeFilterS
 import com.example.community_app.office.presentation.office_master.OfficeMasterAction
 import com.example.community_app.office.presentation.office_master.OfficeSortOption
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.distance
 import community_app.composeapp.generated.resources.sorting_alphabetical
 import org.jetbrains.compose.resources.stringResource
 
@@ -24,12 +25,14 @@ fun OfficeFilterSheet(
     selectedStatuses = emptySet(),
     distanceKm = filterState.distanceRadiusKm,
     expandedSections = filterState.expandedSections,
+    showCategory = false,
+    showStatus = false,
 
     // Mappers
     sortLabel = { option ->
       when(option) {
         OfficeSortOption.ALPHABETICAL -> stringResource(Res.string.sorting_alphabetical)
-        OfficeSortOption.DISTANCE -> "Distanz" // TODO: String Resource adden
+        OfficeSortOption.DISTANCE -> stringResource(Res.string.distance)
       }
     },
     categoryLabel = { "" },

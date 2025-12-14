@@ -29,6 +29,7 @@ import community_app.composeapp.generated.resources.appointment_plural
 import community_app.composeapp.generated.resources.auth_login_label
 import community_app.composeapp.generated.resources.auth_logout_label
 import community_app.composeapp.generated.resources.auth_reset_password_label
+import community_app.composeapp.generated.resources.settings_calendar_desc
 import community_app.composeapp.generated.resources.settings_lang_english
 import community_app.composeapp.generated.resources.settings_lang_german
 import community_app.composeapp.generated.resources.settings_lang_label
@@ -43,6 +44,7 @@ import compose.icons.feathericons.Globe
 import compose.icons.feathericons.LogIn
 import compose.icons.feathericons.LogOut
 import compose.icons.feathericons.Moon
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun GeneralSettingsContent(
@@ -110,7 +112,7 @@ fun GeneralSettingsContent(
           verticalAlignment = Alignment.CenterVertically
         ) {
           Text(
-            text = "Mit Kalender synchronisieren", // TODO: Localize
+            text = stringResource(Res.string.settings_calendar_desc),
             style = MaterialTheme.typography.bodyLarge
           )
           Switch(

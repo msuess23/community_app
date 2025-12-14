@@ -1,8 +1,6 @@
 package com.example.community_app.core.presentation.components.detail
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +31,7 @@ import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.draft_label_long
 import community_app.composeapp.generated.resources.label_status
 import community_app.composeapp.generated.resources.label_status_history
+import community_app.composeapp.generated.resources.ticket_mine_label
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Activity
 import compose.icons.feathericons.Star
@@ -60,12 +59,14 @@ fun InfoTicketDetailContent(
       .fillMaxSize()
       .verticalScroll(rememberScrollState())
   ) {
-    ImageGallery(
-      imageUrls = images,
-      modifier = Modifier
-        .fillMaxWidth()
-        .aspectRatio(16f / 9f)
-    )
+    if (images.isNotEmpty()) {
+      ImageGallery(
+        imageUrls = images,
+        modifier = Modifier
+          .fillMaxWidth()
+          .aspectRatio(16f / 9f)
+      )
+    }
 
     Column(
       modifier = Modifier.padding(16.dp),
@@ -85,7 +86,7 @@ fun InfoTicketDetailContent(
         } else if (isOwner) {
           SuggestionChip(
             onClick = {},
-            label = { Text("Mein Anliegen") },
+            label = { Text(stringResource(Res.string.ticket_mine_label)) },
             icon = { Icon(FeatherIcons.User, null) },
             modifier = Modifier.padding(bottom = 8.dp)
           )

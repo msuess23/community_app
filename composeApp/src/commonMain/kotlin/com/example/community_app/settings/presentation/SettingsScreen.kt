@@ -38,10 +38,13 @@ import community_app.composeapp.generated.resources.cancel
 import community_app.composeapp.generated.resources.auth_logout_dialog
 import community_app.composeapp.generated.resources.auth_logout_label
 import community_app.composeapp.generated.resources.auth_otp_label
+import community_app.composeapp.generated.resources.settings_calendar_permission
+import community_app.composeapp.generated.resources.settings_general_label
 import community_app.composeapp.generated.resources.settings_label
 import community_app.composeapp.generated.resources.settings_lang_dialog_confirm
 import community_app.composeapp.generated.resources.settings_lang_dialog_text
 import community_app.composeapp.generated.resources.settings_lang_dialog_title
+import community_app.composeapp.generated.resources.settings_notifications_label
 import community_app.composeapp.generated.resources.ticket_ownership_community
 import community_app.composeapp.generated.resources.ticket_ownership_user
 import compose.icons.FeatherIcons
@@ -95,13 +98,16 @@ private fun SettingsScreen(
 ) {
   val snackbarHostState = remember { SnackbarHostState() }
 
-  val tabs = listOf(Res.string.ticket_ownership_community, Res.string.ticket_ownership_user)
+  val tabs = listOf(Res.string.settings_general_label, Res.string.settings_notifications_label)
+
+  val snackbarMessage = stringResource(Res.string.settings_calendar_permission)
+  val snackbarActionLabel = stringResource(Res.string.settings_label)
 
   LaunchedEffect(state.showCalendarPermissionRationale) {
     if (state.showCalendarPermissionRationale) {
       val result = snackbarHostState.showSnackbar(
-        message = "Kalenderzugriff erforderlich", // TODO: Localize
-        actionLabel = "Einstellungen", // TODO: Localize
+        message = snackbarMessage,
+        actionLabel = snackbarActionLabel,
         duration = SnackbarDuration.Long
       )
       if (result == SnackbarResult.ActionPerformed) {
@@ -126,7 +132,6 @@ private fun SettingsScreen(
       modifier = Modifier
         .fillMaxSize()
         .padding(padding)
-//        .padding(Spacing.screenPadding)
     ) {
       SecondaryTabRow(
         selectedTabIndex = state.selectedTabIndex,

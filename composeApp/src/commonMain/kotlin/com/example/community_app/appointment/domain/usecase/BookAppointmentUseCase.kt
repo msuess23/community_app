@@ -8,7 +8,14 @@ import com.example.community_app.core.domain.model.Address
 import com.example.community_app.core.util.parseIsoToMillis
 import com.example.community_app.office.domain.Office
 import com.example.community_app.office.domain.OfficeRepository
+import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.app_title
+import community_app.composeapp.generated.resources.appointment_calendar_desc
+import community_app.composeapp.generated.resources.appointment_calendar_info
+import community_app.composeapp.generated.resources.appointment_singular
 import kotlinx.coroutines.flow.first
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 
 class BookAppointmentUseCase(
   private val appointmentRepository: AppointmentRepository,
@@ -26,8 +33,13 @@ class BookAppointmentUseCase(
     if (result is Result.Success && addToCalendar) {
       val appointment = result.data
 
+      val titleDefault = getString(Res.string.appointment_singular)
+      val eventDescription = getString(Res.string.appointment_calendar_desc)
+      val eventBookedVia = getString(Res.string.appointment_calendar_info)
+      val appName = getString(Res.string.app_title)
+
       val office = officeRepository.getOffice(officeId).first() ?: Office(
-        id = officeId, name = "Behörde", description = null,
+        id = officeId, name = titleDefault, description = null,
         services = null, openingHours = null, contactEmail = null,
         phone = null, address = Address(latitude = 0.0, longitude = 0.0)
       )
@@ -38,8 +50,8 @@ class BookAppointmentUseCase(
       val addressStr = "${office.address.street ?: ""} ${office.address.houseNumber ?: ""}, ${office.address.zipCode ?: ""} ${office.address.city ?: ""}"
 
       val eventId = calendarManager.addEvent(
-        title = "Termin: ${office.name}",
-        description = "Termin bei ${office.name}.\n${office.services ?: ""}",
+        title = office.name,
+        description = "$eventDescription ${office.name}.\n${office.services ?: ""}\n\n$eventBookedVia $appName",
         location = addressStr,
         startMillis = startMillis,
         endMillis = endMillis

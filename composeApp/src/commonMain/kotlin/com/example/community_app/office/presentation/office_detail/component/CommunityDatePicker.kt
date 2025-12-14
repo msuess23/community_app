@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.cancel
+import community_app.composeapp.generated.resources.office_select_date
+import community_app.composeapp.generated.resources.okay
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -59,7 +61,7 @@ fun CommunityDatePicker(
       TextButton(onClick = {
         onDateSelected(datePickerState.selectedDateMillis)
       }) {
-        Text("OK") // TODO: Localize
+        Text(stringResource(Res.string.okay))
       }
     },
     dismissButton = {
@@ -76,7 +78,7 @@ fun CommunityDatePicker(
       colors = datePickerColors,
       title = {
         Text(
-          text = "Datum wählen", // TODO: Localize
+          text = stringResource(Res.string.office_select_date),
           modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
           style = MaterialTheme.typography.labelLarge
         )

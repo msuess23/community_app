@@ -14,7 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,9 +34,14 @@ import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatIsoDate
 import com.example.community_app.core.util.formatIsoTime
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.appointment_cancel_text
+import community_app.composeapp.generated.resources.appointment_cancel_title
 import community_app.composeapp.generated.resources.appointment_singular
 import community_app.composeapp.generated.resources.cancel
-import community_app.composeapp.generated.resources.delete
+import community_app.composeapp.generated.resources.point_in_time
+import community_app.composeapp.generated.resources.no
+import community_app.composeapp.generated.resources.office_singular
+import community_app.composeapp.generated.resources.yes
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Mail
 import compose.icons.feathericons.Phone
@@ -80,7 +84,11 @@ private fun AppointmentDetailScreen(
     actions = {
       if (!state.isCancelled && !state.isLoading) {
         IconButton(onClick = { onAction(AppointmentDetailAction.OnCancelClick) }) {
-          Icon(FeatherIcons.Trash2, "Cancel", tint = MaterialTheme.colorScheme.error)
+          Icon(
+            imageVector = FeatherIcons.Trash2,
+            contentDescription = stringResource(Res.string.cancel),
+            tint = MaterialTheme.colorScheme.error
+          )
         }
       }
     }
@@ -102,7 +110,7 @@ private fun AppointmentDetailScreen(
       ) {
         Column(Modifier.padding(Spacing.medium)) {
           Text(
-            text = "Zeitpunkt", // TODO: Localize
+            text = stringResource(Res.string.point_in_time),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onPrimaryContainer
           )
@@ -116,10 +124,10 @@ private fun AppointmentDetailScreen(
         }
       }
 
-      // Office Info
+      // Office
       if (office != null) {
         Text(
-          text = "Behörde", // TODO: Localize
+          text = stringResource(Res.string.office_singular),
           style = MaterialTheme.typography.titleMedium,
           color = MaterialTheme.colorScheme.onSurface,
           fontWeight = FontWeight.Bold
@@ -136,7 +144,6 @@ private fun AppointmentDetailScreen(
             )
 
             if (!office.phone.isNullOrBlank() || !office.contactEmail.isNullOrBlank()) {
-              // Mini Kontakt Info
               Column {
                 if (!office.phone.isNullOrBlank()) {
                   Row(verticalAlignment = Alignment.CenterVertically) {
@@ -166,12 +173,12 @@ private fun AppointmentDetailScreen(
 
   if (state.showCancelDialog) {
     CommunityDialog(
-      title = Res.string.delete, // "Löschen" / "Stornieren"
-      text = Res.string.cancel, // TODO: Besserer Text "Möchten Sie den Termin wirklich stornieren?"
+      title = Res.string.appointment_cancel_title,
+      text = Res.string.appointment_cancel_text,
       onDismissRequest = { onAction(AppointmentDetailAction.OnDismissDialog) },
-      confirmButtonText = Res.string.delete,
+      confirmButtonText = Res.string.yes,
       onConfirm = { onAction(AppointmentDetailAction.OnCancelConfirm) },
-      dismissButtonText = Res.string.cancel,
+      dismissButtonText = Res.string.no,
       onDismiss = { onAction(AppointmentDetailAction.OnDismissDialog) }
     )
   }

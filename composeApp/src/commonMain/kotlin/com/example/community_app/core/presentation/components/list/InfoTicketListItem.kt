@@ -6,11 +6,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -53,14 +56,6 @@ fun InfoTicketListItem(
   onClick: () -> Unit,
   modifier: Modifier = Modifier
 ) {
-//  val startDate = formatIsoDate(info.startsAt)
-//  val endDate = formatIsoDate(info.endsAt)
-//  val dateString = if (startDate == endDate) startDate else "$startDate - $endDate"
-//
-//  val categoryText = info.category.toUiText().asString()
-//  val statusText = info.currentStatus?.toUiText()?.asString()
-//  val sublineText = if (statusText != null) "$categoryText, $statusText" else categoryText
-
   Surface(
     shape = RoundedCornerShape(Spacing.medium),
     modifier = modifier
@@ -68,112 +63,124 @@ fun InfoTicketListItem(
       .clickable(onClick = onClick),
     color = MaterialTheme.colorScheme.surfaceContainer
   ) {
-    Row(
-      modifier = Modifier.fillMaxSize(),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      Box(
-        modifier = Modifier
-          .weight(0.3f)
-          .fillMaxHeight(),
-        contentAlignment = Alignment.Center
+    Box(modifier = Modifier.fillMaxSize()) {
+      Row(
+        modifier = Modifier.fillMaxSize(),
+        verticalAlignment = Alignment.CenterVertically
       ) {
-        if (imageUrl != null) {
-          var imageLoadResult by remember {
-            mutableStateOf<Result<Painter>?>(null)
-          }
-          val painter = rememberAsyncImagePainter(
-            model = imageUrl,
-            onSuccess = { imageLoadResult = Result.success(it.painter) },
-            onError = {
-              it.result.throwable.printStackTrace()
-              imageLoadResult = Result.failure(it.result.throwable)
+        Box(
+          modifier = Modifier
+            .weight(0.3f)
+            .fillMaxHeight(),
+          contentAlignment = Alignment.Center
+        ) {
+          if (imageUrl != null) {
+            var imageLoadResult by remember {
+              mutableStateOf<Result<Painter>?>(null)
             }
-          )
-
-          when(val result = imageLoadResult) {
-            null -> CircularProgressIndicator(
-              modifier = Modifier.size(Size.iconMedium),
-              color = MaterialTheme.colorScheme.primary
+            val painter = rememberAsyncImagePainter(
+              model = imageUrl,
+              onSuccess = { imageLoadResult = Result.success(it.painter) },
+              onError = {
+                it.result.throwable.printStackTrace()
+                imageLoadResult = Result.failure(it.result.throwable)
+              }
             )
-            else -> {
-              ThumbnailImage(
-                painter = painter,
-                isSuccess = result.isSuccess,
-                contentDescription = title
+
+            when (val result = imageLoadResult) {
+              null -> CircularProgressIndicator(
+                modifier = Modifier.size(Size.iconMedium),
+                color = MaterialTheme.colorScheme.primary
               )
+
+              else -> {
+                ThumbnailImage(
+                  painter = painter,
+                  isSuccess = result.isSuccess,
+                  contentDescription = title
+                )
+              }
             }
+          } else {
+            ThumbnailImage(
+              painter = null,
+              isSuccess = false
+            )
           }
-        } else {
-          ThumbnailImage(
-            painter = null,
-            isSuccess = false
+        }
+
+        Column(
+          modifier = Modifier
+            .weight(0.7f)
+            .fillMaxHeight()
+            .padding(horizontal = Spacing.medium, vertical = Spacing.small),
+          verticalArrangement = Arrangement.Center,
+        ) {
+          Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.onSurface
+          )
+          if (!subtitle.isNullOrBlank()) {
+            Text(
+              text = subtitle,
+              style = MaterialTheme.typography.bodyMedium,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+              color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+          }
+          Text(
+            text = dateString,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.secondary
           )
         }
+
+        Icon(
+          imageVector = FeatherIcons.ChevronRight,
+          contentDescription = null,
+          modifier = Modifier
+            .padding(end = Spacing.medium)
+            .size(Size.iconLarge),
+          tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
       }
 
-      Column(
-        modifier = Modifier
-          .weight(0.7f)
-          .fillMaxHeight()
-          .padding(horizontal = Spacing.medium, vertical = Spacing.small),
-        verticalArrangement = Arrangement.Center,
-      ) {
-        if (isDraft) {
-          Surface(
-            color = MaterialTheme.colorScheme.tertiaryContainer,
-            shape = RoundedCornerShape(4.dp),
-            modifier = Modifier.padding(end = 8.dp)
-          ) {
-            Text(
-              text = stringResource(Res.string.draft_label),
-              style = MaterialTheme.typography.labelSmall,
-              color = MaterialTheme.colorScheme.onTertiaryContainer,
-              modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-            )
-          }
-        }
-
-        if (isFavorite) {
+      if (isFavorite) {
+        Box(
+          modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(16.dp)
+        ) {
           Icon(
             imageVector = FeatherIcons.Star,
             contentDescription = null,
             tint = Color(0xFFFFD700),
-            modifier = Modifier.size(16.dp)
+            modifier = Modifier
+              .size(16.dp)
           )
         }
-
-        Text(
-          text = title,
-          style = MaterialTheme.typography.titleMedium,
-          maxLines = 2,
-          overflow = TextOverflow.Ellipsis,
-          color = MaterialTheme.colorScheme.onSurface
-        )
-        if (!subtitle.isNullOrBlank()) {
-          Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-        }
-        Text(
-          text = dateString,
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.secondary
-        )
       }
 
-      Icon(
-        imageVector = FeatherIcons.ChevronRight,
-        contentDescription = null,
-        modifier = Modifier
-          .padding(end = Spacing.medium)
-          .size(Size.iconLarge),
-        tint = MaterialTheme.colorScheme.onSurfaceVariant
-      )
+      if (isDraft) {
+        Surface(
+          color = MaterialTheme.colorScheme.tertiaryContainer,
+          shape = RoundedCornerShape(4.dp),
+          modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(8.dp)
+        ) {
+          Text(
+            text = stringResource(Res.string.draft_label),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onTertiaryContainer,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+          )
+        }
+      }
     }
   }
 }
