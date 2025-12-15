@@ -1,6 +1,7 @@
 package com.example.community_app.ticket.presentation.ticket_edit
 
 import com.example.community_app.core.presentation.helpers.UiText
+import com.example.community_app.office.domain.Office
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
 
@@ -22,6 +23,12 @@ data class TicketEditState(
   val officeId: Int? = null,
   val useCurrentLocation: Boolean = true,
 
+  // Office Selection
+  val availableOffices: List<Office> = emptyList(),
+  val officeSearchQuery: String = "",
+  val isOfficeSearchActive: Boolean = false,
+  val selectedOffice: Office? = null,
+
   // Images
   val images: List<TicketImageState> = emptyList(),
   val coverImageUri: String? = null,
@@ -38,7 +45,17 @@ data class TicketEditState(
 
   val isUploadSuccess: Boolean = false,
   val isDeleteSuccess: Boolean = false
-)
+) {
+  val filteredOffices: List<Office>
+    get() = if (officeSearchQuery.isBlank()) {
+      availableOffices
+    } else {
+      availableOffices.filter {
+        it.name.contains(officeSearchQuery, ignoreCase = true)
+            || (it.services?.contains(officeSearchQuery, ignoreCase = true) == true)
+      }
+    }
+}
 
 data class TicketImageState(
   val uri: String,

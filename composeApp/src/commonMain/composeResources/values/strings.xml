@@ -54,6 +54,7 @@
     <string name="images_label">Images</string>
     <string name="ticket_delete_dialog_text">Are you sure you want to delete this concern?</string>
     <string name="ticket_upload_dialog_text">Are you sure you want to upload this concern?</string>
+    <string name="ticket_responsible_office_label">Select responsible office</string>
 
     <!-- Office -->
     <string name="office_singular">Office</string>

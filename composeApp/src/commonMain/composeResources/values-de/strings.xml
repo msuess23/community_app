@@ -54,6 +54,7 @@
     <string name="images_label">Bilder</string>
     <string name="ticket_delete_dialog_text">Bist Du sicher, dass Du dieses Anliegen löschen möchtest?</string>
     <string name="ticket_upload_dialog_text">Bist Du sicher, dass Du dieses Anliegen veröffentlichen möchtest?</string>
+    <string name="ticket_responsible_office_label">Zuständige Behörde auswählen</string>
 
     <!-- Office -->
     <string name="office_singular">Behörde</string>

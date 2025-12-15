@@ -12,7 +12,6 @@ import com.example.community_app.core.data.local.favorite.FavoriteType
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.location.LocationService
-import com.example.community_app.core.domain.onError
 import com.example.community_app.core.util.GeoUtil
 import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.dto.*
@@ -106,23 +105,27 @@ class DefaultTicketRepository(
       GeoUtil.toBBoxString(bbox)
     } else null
 
-    val allTickets = mutableListOf<TicketDto>()
-
-    val communityResult = remoteTicketDataSource.getTickets(bboxString)
-    if (communityResult is Result.Success) {
-      allTickets.addAll(communityResult.data)
-    }
+    val communityDeferred = async { remoteTicketDataSource.getTickets(bboxString) }
 
     val token = authRepository.getAccessToken()
-    if (token != null) {
-      val myResult = remoteTicketDataSource.getUserTickets()
-      if (myResult is Result.Success) {
-        allTickets.addAll(myResult.data)
-      }
+    val userDeferred = if (token != null) {
+      async { remoteTicketDataSource.getUserTickets() }
+    } else null
+
+    val communityResult = communityDeferred.await()
+    val userResult = userDeferred?.await()
+
+    val allTickets = mutableListOf<TicketDto>()
+
+    when (communityResult) {
+      is Result.Error -> return@coroutineScope Result.Error(communityResult.error)
+      is Result.Success -> allTickets.addAll(communityResult.data)
     }
 
-    if (communityResult is Result.Error && token == null) {
-      return@coroutineScope Result.Error(communityResult.error)
+    when (userResult) {
+      is Result.Error -> return@coroutineScope Result.Error(userResult.error)
+      is Result.Success -> allTickets.addAll(userResult.data)
+      else -> {}
     }
 
     val loadedIds = allTickets.map { it.id }.toSet()
@@ -134,8 +137,8 @@ class DefaultTicketRepository(
     }
     val favResults = favDeferreds.awaitAll()
 
-    val additionalTickets = favResults.mapNotNull { if (it is Result.Success) it.data else null }
-    allTickets.addAll(additionalTickets)
+    val fetchedFavorites = favResults.mapNotNull { if (it is Result.Success) it.data else null }
+    allTickets.addAll(fetchedFavorites)
 
     val distinctTickets = allTickets.distinctBy { it.id }
 

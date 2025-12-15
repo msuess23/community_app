@@ -1,5 +1,6 @@
 package com.example.community_app.ticket.presentation.ticket_edit
 
+import com.example.community_app.office.domain.Office
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
 
@@ -11,13 +12,18 @@ sealed interface TicketEditAction {
   data class OnVisibilityChange(val visibility: TicketVisibility) : TicketEditAction
   data class OnUseLocationChange(val use: Boolean) : TicketEditAction
 
+  // Office Search
+  data class OnOfficeQueryChange(val query: String) : TicketEditAction
+  data class OnOfficeSearchActiveChange(val active: Boolean) : TicketEditAction
+  data class OnSelectOffice(val office: Office) : TicketEditAction
+
   // Image Actions
   data object OnAddImageClick : TicketEditAction
   data class OnImageSourceSelected(val source: ImageSource) : TicketEditAction
   data object OnImageSourceDialogDismiss : TicketEditAction
   data class OnRemoveImage(val image: TicketImageState) : TicketEditAction
-  data class OnSetCoverImage(val image: TicketImageState) : TicketEditAction
   data class OnImageClick(val image: TicketImageState) : TicketEditAction
+  data class OnImageLongClick(val image: TicketImageState) : TicketEditAction
 
   // Main Actions
   data object OnSaveDraftClick : TicketEditAction

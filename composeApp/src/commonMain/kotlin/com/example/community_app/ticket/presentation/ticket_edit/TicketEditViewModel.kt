@@ -13,6 +13,7 @@ import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.core.util.getFileNameFromPath
 import com.example.community_app.media.domain.MediaRepository
+import com.example.community_app.office.domain.OfficeRepository
 import com.example.community_app.ticket.domain.EditableImage
 import com.example.community_app.ticket.domain.TicketDraft
 import com.example.community_app.ticket.domain.TicketRepository
@@ -32,6 +33,7 @@ class TicketEditViewModel(
   savedStateHandle: SavedStateHandle,
   private val ticketRepository: TicketRepository,
   private val mediaRepository: MediaRepository,
+  private val officeRepository: OfficeRepository,
   private val fileStorage: FileStorage,
   private val fetchUserLocationUseCase: FetchUserLocationUseCase,
   private val getTicketEditDetailsUseCase: GetTicketEditDetailsUseCase,
@@ -59,11 +61,31 @@ class TicketEditViewModel(
       is TicketEditAction.OnVisibilityChange -> _state.update { it.copy(visibility = action.visibility) }
       is TicketEditAction.OnUseLocationChange -> handleLocationToggle(action.use)
 
+      is TicketEditAction.OnOfficeQueryChange -> {
+        _state.update { it.copy(officeSearchQuery = action.query) }
+      }
+      is TicketEditAction.OnOfficeSearchActiveChange -> {
+        _state.update { it.copy(
+          isOfficeSearchActive = action.active,
+          officeSearchQuery = if (!action.active && it.selectedOffice != null) {
+            it.selectedOffice.name
+          } else it.officeSearchQuery
+        ) }
+      }
+      is TicketEditAction.OnSelectOffice -> {
+        _state.update { it.copy(
+          officeId = action.office.id,
+          selectedOffice = action.office,
+          officeSearchQuery = action.office.name,
+          isOfficeSearchActive = false
+        ) }
+      }
+
       TicketEditAction.OnAddImageClick -> _state.update { it.copy(showImageSourceDialog = true) }
       TicketEditAction.OnImageSourceDialogDismiss -> _state.update { it.copy(showImageSourceDialog = false) }
 
       is TicketEditAction.OnRemoveImage -> removeImage(action.image)
-      is TicketEditAction.OnSetCoverImage -> _state.update { it.copy(coverImageUri = action.image.uri) }
+      is TicketEditAction.OnImageClick -> _state.update { it.copy(coverImageUri = action.image.uri) }
 
       TicketEditAction.OnSaveDraftClick -> saveDraft()
 
@@ -101,10 +123,35 @@ class TicketEditViewModel(
     viewModelScope.launch {
       _state.update { it.copy(isLoading = true) }
 
+      launch {
+        officeRepository.getOffices().collect { offices ->
+          _state.update { currentState ->
+            val updatedState = currentState.copy(availableOffices = offices)
+
+            if (currentState.officeId != null && currentState.selectedOffice == null) {
+              val match = offices.find { it.id == currentState.officeId }
+              if (match != null) {
+                updatedState.copy(selectedOffice = match, officeSearchQuery = match.name)
+              } else updatedState
+            } else updatedState
+          }
+        }
+      }
+      launch {
+        officeRepository.refreshOffices()
+      }
+
       val result = getTicketEditDetailsUseCase(args.ticketId, args.draftId)
 
       if (result is Result.Success) {
         val data = result.data
+
+        if (data.officeId != null) {
+          launch {
+            officeRepository.refreshOffice(data.officeId)
+          }
+        }
+
         _state.update { it ->
           it.copy(
           isLoading = false,
@@ -221,12 +268,14 @@ class TicketEditViewModel(
       val currentState = _state.value
       val imageFileNames = currentState.images.filter { it.isLocal }.map { getFileNameFromPath(it.uri) }
 
+      val finalOfficeId = currentState.officeId ?: 1
+
       val draft = TicketDraft(
         id = currentState.draftId ?: 0L,
         title = currentState.title,
         description = currentState.description,
         category = currentState.category,
-        officeId = 1,
+        officeId = finalOfficeId,
         visibility = currentState.visibility,
         images = imageFileNames,
         address = getAddressOrNull(),

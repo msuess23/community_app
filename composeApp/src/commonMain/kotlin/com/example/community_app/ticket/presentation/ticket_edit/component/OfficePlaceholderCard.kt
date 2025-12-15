@@ -1,4 +1,4 @@
-package com.example.community_app.office.presentation.office_master.component
+package com.example.community_app.ticket.presentation.ticket_edit.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -18,20 +18,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.community_app.core.presentation.theme.Spacing
-import com.example.community_app.office.domain.Office
+import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.ticket_responsible_office_label
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Briefcase
 import compose.icons.feathericons.ChevronRight
-import compose.icons.feathericons.Clock
-import compose.icons.feathericons.MapPin
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun OfficeListItem(
-  office: Office,
+fun OfficePlaceholderCard(
   onClick: () -> Unit,
   modifier: Modifier = Modifier
 ) {
@@ -64,55 +62,13 @@ fun OfficeListItem(
 
       Spacer(modifier = Modifier.width(Spacing.medium))
 
-      Column(modifier = Modifier.weight(1f)) {
-        Text(
-          text = office.name,
-          style = MaterialTheme.typography.titleMedium,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.onSurface,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(
-            imageVector = FeatherIcons.MapPin,
-            contentDescription = null,
-            modifier = Modifier.size(12.dp),
-            tint = MaterialTheme.colorScheme.secondary
-          )
-          Spacer(modifier = Modifier.width(4.dp))
-          Text(
-            text = "${office.address.street} ${office.address.houseNumber}, ${office.address.city}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.secondary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-          )
-        }
-
-        if (!office.openingHours.isNullOrBlank()) {
-          Spacer(modifier = Modifier.height(4.dp))
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-              imageVector = FeatherIcons.Clock,
-              contentDescription = null,
-              modifier = Modifier.size(12.dp),
-              tint = MaterialTheme.colorScheme.tertiary
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-              text = office.openingHours,
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.tertiary,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis
-            )
-          }
-        }
-      }
+      Text(
+        text = stringResource(Res.string.ticket_responsible_office_label),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurface,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+      )
 
       Icon(
         imageVector = FeatherIcons.ChevronRight,

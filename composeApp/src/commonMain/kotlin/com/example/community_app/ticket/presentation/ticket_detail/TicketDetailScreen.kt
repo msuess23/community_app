@@ -57,7 +57,11 @@ private fun TicketDetailScreen(
   state: TicketDetailState,
   onAction: (TicketDetailAction) -> Unit
 ) {
-  val category = if (state.isDraft) state.draft?.category?.toUiText().toString() else state.ticket?.category?.toUiText()?.asString()
+  val category = if (state.isDraft) {
+    state.draft?.category?.toUiText()?.asString()
+  } else {
+    state.ticket?.category?.toUiText()?.asString()
+  }
   val titleRes = if (state.isDraft) Res.string.draft_label else Res.string.ticket_singular
 
   val displayTitle = state.ticket?.title ?: state.draft?.title
