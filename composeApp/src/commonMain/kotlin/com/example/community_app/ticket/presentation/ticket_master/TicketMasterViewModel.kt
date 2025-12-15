@@ -6,7 +6,6 @@ import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.domain.onError
 import com.example.community_app.core.domain.onSuccess
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
-import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
 import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.ticket.domain.TicketListItem
@@ -27,7 +26,6 @@ class TicketMasterViewModel(
   private val filterTickets: FilterTicketsUseCase,
   observeCommunityTickets: ObserveCommunityTicketsUseCase,
   observeMyTickets: ObserveMyTicketsUseCase,
-  private val isUserLoggedIn: IsUserLoggedInUseCase,
   private val fetchUserLocation: FetchUserLocationUseCase
 ): ViewModel() {
   private val _searchQuery = MutableStateFlow("")
@@ -55,9 +53,8 @@ class TicketMasterViewModel(
     communityTicketsRaw,
     userTicketsRaw,
     filterInputs,
-    isUserLoggedIn(),
     _uiControlState
-  ) { communityRaw, userRaw, inputs, loggedIn, uiControl ->
+  ) { communityRaw, userRaw, inputs, uiControl ->
     val filteredCommunity = filterTickets(
       items = communityRaw,
       query = inputs.query,
@@ -86,8 +83,7 @@ class TicketMasterViewModel(
       isLoading = uiControl.isLoading,
       errorMessage = uiControl.errorMessage,
       userLocation = inputs.location,
-      locationPermissionGranted = _locationPermissionGranted.value,
-      isUserLoggedIn = loggedIn
+      locationPermissionGranted = _locationPermissionGranted.value
     )
   }.stateIn(
     viewModelScope,

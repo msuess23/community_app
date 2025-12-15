@@ -20,8 +20,7 @@ data class TicketMasterState(
   val isLoading: Boolean = false,
   val errorMessage: UiText? = null,
   val userLocation: Location? = null,
-  val locationPermissionGranted: Boolean = false,
-  val isUserLoggedIn: Boolean = false
+  val locationPermissionGranted: Boolean = false
 )
 
 data class TicketFilterState(

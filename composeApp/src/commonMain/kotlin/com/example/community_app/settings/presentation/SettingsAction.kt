@@ -20,17 +20,6 @@ sealed interface SettingsAction {
   data object OnResume : SettingsAction
   data object OnOpenSettings : SettingsAction
 
-  // Log in/out
-  data object OnLoginClick : SettingsAction
-  data object OnLogoutClick : SettingsAction
-  data object OnLogoutConfirm : SettingsAction
-  data object OnLogoutCancel : SettingsAction
-
-  // Change password
-  data object OnChangePasswordClick : SettingsAction
-  data object OnChangePasswordDismiss : SettingsAction
-  data object OnChangePasswordConfirm : SettingsAction
-
   // Notifications
   data class OnToggleNotifications(val enabled: Boolean) : SettingsAction
   data class OnToggleNotifyTickets(val enabled: Boolean) : SettingsAction

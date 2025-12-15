@@ -6,11 +6,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
 import com.example.community_app.auth.domain.AuthRepository
-import com.example.community_app.auth.domain.getUserIdOrNull
 import com.example.community_app.core.data.local.favorite.FavoriteType
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
 import com.example.community_app.dto.TicketStatusDto
+import com.example.community_app.profile.domain.UserRepository
+import com.example.community_app.profile.domain.getUserIdOrNull
 import com.example.community_app.ticket.domain.Ticket
 import com.example.community_app.ticket.domain.TicketDraft
 import com.example.community_app.ticket.domain.TicketRepository
@@ -28,7 +29,7 @@ import kotlinx.coroutines.launch
 class TicketDetailViewModel(
   savedStateHandle: SavedStateHandle,
   private val ticketRepository: TicketRepository,
-  private val authRepository: AuthRepository,
+  private val userRepository: UserRepository,
   private val syncTicketImages: SyncTicketImagesUseCase,
   private val toggleFavoriteUseCase: ToggleFavoriteUseCase
 ) : ViewModel() {
@@ -60,7 +61,7 @@ class TicketDetailViewModel(
       }
       is TicketDetailData.Remote -> {
         val ticket = data.ticket ?: return@mapLatest AdditionalData()
-        val userId = authRepository.getUserIdOrNull()
+        val userId = userRepository.getUserIdOrNull()
         val isOwner = userId != null && userId == ticket.creatorUserId
 
         val imagesResult = syncTicketImages(ticket.id, isOwner)

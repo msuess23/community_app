@@ -14,7 +14,6 @@ import kotlinx.coroutines.launch
 
 class AppointmentMasterViewModel(
   private val observeAppointments: ObserveAppointmentsUseCase,
-  private val isUserLoggedIn: IsUserLoggedInUseCase,
   private val scheduleAppointmentReminders: ScheduleAppointmentRemindersUseCase
 ) : ViewModel() {
 
@@ -22,13 +21,11 @@ class AppointmentMasterViewModel(
 
   val state = combine(
     observeAppointments(),
-    _isRefreshing,
-    isUserLoggedIn()
-  ) { appointments, refreshing, loggedIn ->
+    _isRefreshing
+  ) { appointments, refreshing ->
     AppointmentMasterState(
       appointments = appointments.sortedBy { it.startsAt },
-      isLoading = refreshing,
-      isUserLoggedIn = loggedIn
+      isLoading = refreshing
     )
   }.stateIn(
     viewModelScope,

@@ -50,6 +50,12 @@ import com.example.community_app.office.domain.OfficeRepository
 import com.example.community_app.office.domain.usecase.FilterOfficesUseCase
 import com.example.community_app.office.presentation.office_detail.OfficeDetailViewModel
 import com.example.community_app.office.presentation.office_master.OfficeMasterViewModel
+import com.example.community_app.profile.data.local.UserDao
+import com.example.community_app.profile.data.network.KtorRemoteUserDataSource
+import com.example.community_app.profile.data.network.RemoteUserDataSource
+import com.example.community_app.profile.data.repository.DefaultUserRepository
+import com.example.community_app.profile.domain.UserRepository
+import com.example.community_app.profile.presentation.ProfileViewModel
 import com.example.community_app.settings.data.DefaultSettingsRepository
 import com.example.community_app.settings.domain.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsViewModel
@@ -123,6 +129,9 @@ val sharedModule = module {
   single<RemoteAppointmentDataSource> {
     KtorRemoteAppointmentDataSource(httpClient = get(named("authClient")))
   }
+  single<RemoteUserDataSource> {
+    KtorRemoteUserDataSource(httpClient = get(named("authClient")))
+  }
 
 
   // --- REPOSITORIES ---
@@ -132,6 +141,7 @@ val sharedModule = module {
   single<OfficeDao> { get<AppDatabase>().officeDao() }
   single<AppointmentDao> { get<AppDatabase>().appointmentDao() }
   single<FavoriteDao> { get<AppDatabase>().favoriteDao() }
+  single<UserDao> { get<AppDatabase>().userDao() }
 
   singleOf(::DefaultAuthRepository).bind<AuthRepository>()
   singleOf(::DefaultSettingsRepository).bind<SettingsRepository>()
@@ -140,6 +150,7 @@ val sharedModule = module {
   singleOf(::DefaultMediaRepository).bind<MediaRepository>()
   singleOf(::DefaultOfficeRepository).bind<OfficeRepository>()
   singleOf(::DefaultAppointmentRepository).bind<AppointmentRepository>()
+  singleOf(::DefaultUserRepository).bind<UserRepository>()
 
   // --- USE CASES ---
   factoryOf(::IsUserLoggedInUseCase)
@@ -179,4 +190,5 @@ val sharedModule = module {
   viewModelOf(::OfficeDetailViewModel)
   viewModelOf(::AppointmentMasterViewModel)
   viewModelOf(::AppointmentDetailViewModel)
+  viewModelOf(::ProfileViewModel)
 }

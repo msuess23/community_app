@@ -158,6 +158,9 @@
     <string name="settings_radius_label">Search radius</string>
     <string name="settings_radius_helper">Filters based on your current location (requires GPS).</string>
 
+    <!-- Profile -->
+    <string name="profile_label">Profile</string>
+
     <!-- Authentication -->
     <string name="auth_logout_label">Log out</string>
     <string name="auth_logout_dialog">Are you sure you want to log out?</string>

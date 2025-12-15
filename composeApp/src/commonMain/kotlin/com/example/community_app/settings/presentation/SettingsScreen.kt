@@ -32,12 +32,7 @@ import com.example.community_app.core.presentation.components.dialog.CommunityDi
 import com.example.community_app.settings.presentation.component.GeneralSettingsContent
 import com.example.community_app.settings.presentation.component.NotificationSettingsContent
 import community_app.composeapp.generated.resources.Res
-import community_app.composeapp.generated.resources.auth_forgot_password_dialog_text
-import community_app.composeapp.generated.resources.auth_forgot_password_dialog_title
 import community_app.composeapp.generated.resources.cancel
-import community_app.composeapp.generated.resources.auth_logout_dialog
-import community_app.composeapp.generated.resources.auth_logout_label
-import community_app.composeapp.generated.resources.auth_otp_label
 import community_app.composeapp.generated.resources.settings_calendar_permission
 import community_app.composeapp.generated.resources.settings_general_label
 import community_app.composeapp.generated.resources.settings_label
@@ -45,8 +40,6 @@ import community_app.composeapp.generated.resources.settings_lang_dialog_confirm
 import community_app.composeapp.generated.resources.settings_lang_dialog_text
 import community_app.composeapp.generated.resources.settings_lang_dialog_title
 import community_app.composeapp.generated.resources.settings_notifications_label
-import community_app.composeapp.generated.resources.ticket_ownership_community
-import community_app.composeapp.generated.resources.ticket_ownership_user
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Globe
 import org.jetbrains.compose.resources.stringResource
@@ -55,9 +48,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun SettingsScreenRoot(
   viewModel: SettingsViewModel = koinViewModel(),
-  onOpenDrawer: () -> Unit,
-  onNavigateToLogin: () -> Unit,
-  onNavigateToReset: (String) -> Unit
+  onOpenDrawer: () -> Unit
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -76,16 +67,7 @@ fun SettingsScreenRoot(
 
   SettingsScreen(
     state = state,
-    onAction = { action ->
-      when (action) {
-        SettingsAction.OnLoginClick -> onNavigateToLogin()
-        SettingsAction.OnChangePasswordConfirm -> {
-          onNavigateToReset(state.currentUserEmail ?: "")
-          viewModel.onAction(action)
-        }
-        else -> viewModel.onAction(action)
-      }
-    },
+    onAction = { action -> viewModel.onAction(action) },
     onOpenDrawer = onOpenDrawer,
   )
 }
@@ -115,7 +97,6 @@ private fun SettingsScreen(
       }
     }
   }
-
 
   Scaffold(
     topBar = {
@@ -176,30 +157,6 @@ private fun SettingsScreen(
           dismissButtonText = Res.string.cancel,
           onDismiss = { onAction(SettingsAction.OnLanguageDismiss) },
           icon = FeatherIcons.Globe
-        )
-      }
-
-      // --- Logout Dialog ---
-      if (state.showLogoutDialog) {
-        CommunityDialog(
-          title = Res.string.auth_logout_label,
-          text = Res.string.auth_logout_dialog,
-          onDismissRequest = { onAction(SettingsAction.OnLogoutCancel) },
-          confirmButtonText = Res.string.auth_logout_label,
-          onConfirm = { onAction(SettingsAction.OnLogoutConfirm) },
-          dismissButtonText = Res.string.cancel,
-          onDismiss = { onAction(SettingsAction.OnLogoutCancel) }
-        )
-      }
-
-      // --- Reset Password Dialog ---
-      if (state.showPasswordResetDialog) {
-        CommunityDialog(
-          title = Res.string.auth_forgot_password_dialog_title,
-          text = Res.string.auth_forgot_password_dialog_text,
-          onDismissRequest = { },
-          confirmButtonText = Res.string.auth_otp_label,
-          onConfirm = { onAction(SettingsAction.OnChangePasswordConfirm) }
         )
       }
     }

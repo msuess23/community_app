@@ -12,6 +12,8 @@ import com.example.community_app.info.data.local.InfoDao
 import com.example.community_app.info.data.local.InfoEntity
 import com.example.community_app.office.data.local.OfficeDao
 import com.example.community_app.office.data.local.OfficeEntity
+import com.example.community_app.profile.data.local.UserDao
+import com.example.community_app.profile.data.local.UserEntity
 import com.example.community_app.ticket.data.local.draft.TicketDraftDao
 import com.example.community_app.ticket.data.local.draft.TicketDraftEntity
 import com.example.community_app.ticket.data.local.draft.TicketDraftImageEntity
@@ -26,9 +28,10 @@ import com.example.community_app.ticket.data.local.ticket.TicketEntity
     TicketDraftImageEntity::class,
     OfficeEntity::class,
     AppointmentEntity::class,
-    FavoriteEntity::class
+    FavoriteEntity::class,
+    UserEntity::class
   ],
-  version = 7
+  version = 9
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -38,6 +41,7 @@ abstract class AppDatabase : RoomDatabase() {
   abstract fun officeDao(): OfficeDao
   abstract fun appointmentDao(): AppointmentDao
   abstract fun favoriteDao(): FavoriteDao
+  abstract fun userDao(): UserDao
 }
 
 @Suppress("KotlinNoActualForExpect")

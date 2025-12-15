@@ -108,7 +108,9 @@ private fun TicketMasterScreen(
     onOpenDrawer = onOpenDrawer,
     onToggleFilterSheet = { onAction(TicketMasterAction.OnToggleFilterSheet) },
     floatingActionButton = {
-      if (state.isUserLoggedIn) {
+      AuthGuard(
+        fallbackContent = {}
+      ) {
         FloatingActionButton(
           onClick = { onAction(TicketMasterAction.OnCreateTicketClick) },
           containerColor = MaterialTheme.colorScheme.primary,
@@ -145,16 +147,15 @@ private fun TicketMasterScreen(
       }
     },
     emptyStateContent = {
-      if (state.selectedTabIndex == 1 && !state.isUserLoggedIn) {
+      if (state.selectedTabIndex == 1) {
         AuthGuard(
-          onLoginClick = { onAction(TicketMasterAction.OnLoginClick) },
-          content = { }
-        )
-      } else {
-        ScreenMessage(
-          text = stringResource(Res.string.search_no_results),
-          color = MaterialTheme.colorScheme.onSurface
-        )
+          onLoginClick = { onAction(TicketMasterAction.OnLoginClick) }
+        ) {
+          ScreenMessage(
+            text = stringResource(Res.string.search_no_results),
+            color = MaterialTheme.colorScheme.onSurface
+          )
+        }
       }
     }
   ) {

@@ -68,12 +68,9 @@ private fun AppointmentMasterScreen(
     onToggleFilterSheet = {},
     tabsContent = { SingleTabHeader(Res.string.appointment_plural) },
     emptyStateContent = {
-      if (!state.isUserLoggedIn) {
-        AuthGuard(
-          onLoginClick = { onAction(AppointmentMasterAction.OnLoginClick) },
-          content = { }
-        )
-      } else {
+      AuthGuard(
+        onLoginClick = { onAction(AppointmentMasterAction.OnLoginClick) }
+      ) {
         ScreenMessage(
           text = stringResource(Res.string.appointment_none),
           color = MaterialTheme.colorScheme.onSurface

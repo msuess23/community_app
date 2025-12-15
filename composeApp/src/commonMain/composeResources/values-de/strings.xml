@@ -158,6 +158,9 @@
     <string name="settings_radius_label">Suchradius</string>
     <string name="settings_radius_helper">Filtert basierend auf Deinem aktuellen Standort (benötigt GPS).</string>
 
+    <!-- Profile -->
+    <string name="profile_label">Profil</string>
+
     <!-- Authentication -->
     <string name="auth_logout_label">Abmelden</string>
     <string name="auth_logout_dialog">Möchtest Du Dich wirklich abmelden?</string>
