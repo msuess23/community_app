@@ -9,12 +9,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
@@ -32,9 +37,11 @@ import community_app.composeapp.generated.resources.draft_label_long
 import community_app.composeapp.generated.resources.label_status
 import community_app.composeapp.generated.resources.label_status_history
 import community_app.composeapp.generated.resources.ticket_mine_label
+import community_app.composeapp.generated.resources.ticket_votes_label
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Activity
 import compose.icons.feathericons.Star
+import compose.icons.feathericons.ThumbsUp
 import compose.icons.feathericons.User
 import org.jetbrains.compose.resources.stringResource
 
@@ -52,7 +59,11 @@ fun InfoTicketDetailContent(
   isDraft: Boolean = false,
   isOwner: Boolean = false,
   isFavorite: Boolean = false,
-  onToggleFavorite: () -> Unit
+  isInfo: Boolean = false,
+  isVoted: Boolean = false,
+  votesCount: Int = 0,
+  onToggleFavorite: () -> Unit = {},
+  onVote: () -> Unit = {}
 ) {
   Column(
     modifier = Modifier
@@ -73,6 +84,13 @@ fun InfoTicketDetailContent(
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       Column {
+        Text(
+          text = title,
+          style = MaterialTheme.typography.headlineMedium,
+          fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.onSurface
+        )
+
         if (isDraft) {
           SuggestionChip(
             onClick = {},
@@ -91,13 +109,69 @@ fun InfoTicketDetailContent(
             modifier = Modifier.padding(bottom = 8.dp)
           )
         }
+      }
 
+      description?.let { desc ->
         Text(
-          text = title,
-          style = MaterialTheme.typography.headlineMedium,
-          fontWeight = FontWeight.Bold,
+          text = desc,
+          style = MaterialTheme.typography.bodyLarge,
           color = MaterialTheme.colorScheme.onSurface
         )
+      }
+
+      if (!isDraft && !isInfo) {
+        Card(
+          colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+          ),
+          shape = RoundedCornerShape(12.dp),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Row(
+            modifier = Modifier
+              .padding(8.dp)
+              .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+          ) {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+              IconToggleButton(
+                checked = isVoted,
+                onCheckedChange = { onVote() }
+              ) {
+                Icon(
+                  imageVector = FeatherIcons.ThumbsUp,
+                  contentDescription = null,
+                  tint = if (isFavorite) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.size(28.dp)
+                )
+              }
+
+              Text(
+                text = "$votesCount " + stringResource(Res.string.ticket_votes_label),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+              )
+            }
+
+            if (!isOwner) {
+              IconToggleButton(
+                checked = isFavorite,
+                onCheckedChange = { onToggleFavorite() }
+              ) {
+                Icon(
+                  imageVector = FeatherIcons.Star,
+                  contentDescription = null,
+                  tint = if (isFavorite) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.size(28.dp)
+                )
+              }
+            }
+          }
+        }
       }
 
       if (!isDraft && statusText != null) {
@@ -130,26 +204,6 @@ fun InfoTicketDetailContent(
               contentDescription = stringResource(Res.string.label_status_history)
             )
           }
-        }
-      }
-
-      description?.let { desc ->
-        Text(
-          text = desc,
-          style = MaterialTheme.typography.bodyLarge,
-          color = MaterialTheme.colorScheme.onSurface
-        )
-      }
-
-      if (!isDraft && !isOwner) {
-        IconButton(onClick = onToggleFavorite) {
-          val tint = if (isFavorite) Color(0xFFFFD700) else MaterialTheme.colorScheme.onPrimary
-
-          Icon(
-            imageVector = FeatherIcons.Star,
-            contentDescription = null,
-            tint = tint
-          )
         }
       }
 

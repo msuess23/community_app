@@ -1,5 +1,6 @@
 package com.example.community_app.core.presentation.components.detail
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,7 +46,9 @@ fun CommunityAddressCard(
         modifier = Modifier.padding(top = 2.dp)
       )
       Spacer(modifier = Modifier.width(16.dp))
-      Column {
+      Column(
+        verticalArrangement = Arrangement.Center
+      ) {
         Text(
           text = "${address.street ?: ""} ${address.houseNumber ?: ""}".trim(),
           style = MaterialTheme.typography.bodyLarge,

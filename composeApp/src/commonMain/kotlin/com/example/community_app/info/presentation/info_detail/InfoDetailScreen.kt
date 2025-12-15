@@ -1,9 +1,16 @@
 package com.example.community_app.info.presentation.info_detail
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
+import androidx.compose.material3.FilledIconToggleButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.core.presentation.components.detail.DetailScreenLayout
 import com.example.community_app.core.presentation.components.detail.InfoTicketDetailContent
@@ -12,6 +19,8 @@ import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.util.InfoStatus
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.info_singular
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.Star
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -55,7 +64,24 @@ private fun InfoDetailScreen(
     dataAvailable = state.info != null,
     showStatusHistory = state.showStatusHistory,
     statusHistory = historyUiItems,
-    onDismissStatusHistory = { onAction(InfoDetailAction.OnDismissStatusHistory) }
+    onDismissStatusHistory = { onAction(InfoDetailAction.OnDismissStatusHistory) },
+    actions = {
+      FilledIconToggleButton(
+        checked = state.info?.isFavorite ?: false,
+        onCheckedChange = { onAction(InfoDetailAction.OnToggleFavorite) },
+        colors = IconButtonDefaults.filledIconToggleButtonColors(
+          checkedContainerColor = Color(0xFFFFD700),
+          disabledContainerColor = MaterialTheme.colorScheme.primary
+        )
+      ) {
+        Icon(
+          imageVector = FeatherIcons.Star,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.onPrimary,
+          modifier = Modifier.size(28.dp)
+        )
+      }
+    }
   ) {
     state.info?.let { info ->
       InfoTicketDetailContent(
@@ -69,6 +95,7 @@ private fun InfoDetailScreen(
         onStatusClick = { onAction(InfoDetailAction.OnShowStatusHistory) },
         address = info.address,
         isFavorite = info.isFavorite,
+        isInfo = true,
         onToggleFavorite = { onAction(InfoDetailAction.OnToggleFavorite) }
       )
     }

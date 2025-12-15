@@ -115,6 +115,7 @@ class TicketDetailViewModel(
       TicketDetailAction.OnShowStatusHistory -> _showStatusHistory.value = true
       TicketDetailAction.OnDismissStatusHistory -> _showStatusHistory.value = false
       TicketDetailAction.OnToggleFavorite -> toggleFavorite()
+      TicketDetailAction.OnVote -> toggleVote()
       else -> Unit
     }
   }
@@ -137,6 +138,19 @@ class TicketDetailViewModel(
         type = FavoriteType.TICKET,
         isFavorite = !currentTicket.isFavorite
       )
+    }
+  }
+
+  private fun toggleVote() {
+    val currentTicket = state.value.ticket ?: return
+    if (state.value.isDraft) return
+
+    viewModelScope.launch {
+      if (currentTicket.userVoted == true) {
+        ticketRepository.unvoteTicket(currentTicket.id)
+      } else {
+        ticketRepository.voteTicket(currentTicket.id)
+      }
     }
   }
 

@@ -42,6 +42,7 @@ import community_app.composeapp.generated.resources.image_placeholder
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ChevronRight
 import compose.icons.feathericons.Star
+import compose.icons.feathericons.ThumbsUp
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -53,6 +54,7 @@ fun InfoTicketListItem(
   imageUrl: String?,
   isDraft: Boolean = false,
   isFavorite: Boolean = false,
+  isVoted: Boolean = false,
   onClick: () -> Unit,
   modifier: Modifier = Modifier
 ) {
@@ -149,19 +151,32 @@ fun InfoTicketListItem(
         )
       }
 
-      if (isFavorite) {
-        Box(
+      if (isFavorite || isVoted) {
+        Row(
           modifier = Modifier
             .align(Alignment.TopEnd)
-            .padding(16.dp)
+            .padding(16.dp),
+          horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-          Icon(
-            imageVector = FeatherIcons.Star,
-            contentDescription = null,
-            tint = Color(0xFFFFD700),
-            modifier = Modifier
-              .size(16.dp)
-          )
+          if (isFavorite) {
+            Icon(
+              imageVector = FeatherIcons.Star,
+              contentDescription = null,
+              tint = Color(0xFFFFD700),
+              modifier = Modifier
+                .size(16.dp)
+            )
+          }
+
+          if (isVoted) {
+            Icon(
+              imageVector = FeatherIcons.ThumbsUp,
+              contentDescription = null,
+              tint = Color(0xFFFFD700),
+              modifier = Modifier
+                .size(16.dp)
+            )
+          }
         }
       }
 
