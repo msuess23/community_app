@@ -8,7 +8,6 @@ interface OfficeRepository {
   fun getOffices(): Flow<List<Office>>
   fun getOffice(id: Int): Flow<Office?>
 
-  suspend fun syncOffices(): Result<Unit, DataError.Remote>
-  suspend fun refreshOffices(): Result<Unit, DataError.Remote>
+  suspend fun refreshOffices(force: Boolean = false): Result<Unit, DataError.Remote>
   suspend fun refreshOffice(id: Int): Result<Unit, DataError.Remote>
 }

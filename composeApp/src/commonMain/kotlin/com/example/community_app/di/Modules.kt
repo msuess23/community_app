@@ -50,6 +50,7 @@ import com.example.community_app.office.data.network.RemoteOfficeDataSource
 import com.example.community_app.office.data.repository.DefaultOfficeRepository
 import com.example.community_app.office.domain.OfficeRepository
 import com.example.community_app.office.domain.usecase.FilterOfficesUseCase
+import com.example.community_app.office.domain.usecase.ObserveOfficesUseCase
 import com.example.community_app.office.presentation.office_detail.OfficeDetailViewModel
 import com.example.community_app.office.presentation.office_master.OfficeMasterViewModel
 import com.example.community_app.profile.data.local.UserDao
@@ -160,8 +161,11 @@ val sharedModule = module {
   // --- USE CASES ---
   factoryOf(::IsUserLoggedInUseCase)
   factoryOf(::FetchUserLocationUseCase)
+  factoryOf(::ToggleFavoriteUseCase)
+
   factoryOf(::ObserveInfosUseCase)
   factoryOf(::FilterInfosUseCase)
+
   factoryOf(::ObserveTicketsUseCase)
   factoryOf(::ObserveCommunityTicketsUseCase)
   factoryOf(::ObserveMyTicketsUseCase)
@@ -172,8 +176,10 @@ val sharedModule = module {
   factoryOf(::GetTicketEditDetailsUseCase)
   factoryOf(::UpdateTicketUseCase)
   factoryOf(::VoteTicketUseCase)
-  factoryOf(::ToggleFavoriteUseCase)
+
+  factoryOf(::ObserveOfficesUseCase)
   factoryOf(::FilterOfficesUseCase)
+
   factoryOf(::GetFreeSlotsUseCase)
   factoryOf(::BookAppointmentUseCase)
   factoryOf(::ObserveAppointmentsUseCase)
