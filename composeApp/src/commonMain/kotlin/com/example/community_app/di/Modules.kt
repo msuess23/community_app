@@ -36,6 +36,7 @@ import com.example.community_app.info.data.network.RemoteInfoDataSource
 import com.example.community_app.info.data.repository.DefaultInfoRepository
 import com.example.community_app.info.domain.InfoRepository
 import com.example.community_app.info.domain.usecase.FilterInfosUseCase
+import com.example.community_app.info.domain.usecase.ObserveInfosUseCase
 import com.example.community_app.info.presentation.info_detail.InfoDetailViewModel
 import com.example.community_app.info.presentation.info_master.InfoMasterViewModel
 import com.example.community_app.media.data.network.KtorRemoteMediaDataSource
@@ -155,6 +156,7 @@ val sharedModule = module {
   // --- USE CASES ---
   factoryOf(::IsUserLoggedInUseCase)
   factoryOf(::FetchUserLocationUseCase)
+  factoryOf(::ObserveInfosUseCase)
   factoryOf(::FilterInfosUseCase)
   factoryOf(::FilterTicketsUseCase)
   factoryOf(::ObserveCommunityTicketsUseCase)

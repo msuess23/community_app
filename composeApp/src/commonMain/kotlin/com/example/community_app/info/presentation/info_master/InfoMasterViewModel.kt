@@ -2,73 +2,65 @@ package com.example.community_app.info.presentation.info_master
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.community_app.core.domain.location.Location
-import com.example.community_app.core.domain.onError
-import com.example.community_app.core.domain.onSuccess
-import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
-import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.core.presentation.helpers.toUiText
-import com.example.community_app.info.domain.InfoRepository
 import com.example.community_app.info.domain.usecase.FilterInfosUseCase
+import com.example.community_app.info.domain.usecase.ObserveInfosUseCase
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 class InfoMasterViewModel(
-  private val infoRepository: InfoRepository,
-  private val filterInfosUseCase: FilterInfosUseCase,
-  private val fetchUserLocationUseCase: FetchUserLocationUseCase
+  private val observeInfosUseCase: ObserveInfosUseCase,
+  private val filterInfosUseCase: FilterInfosUseCase
 ) : ViewModel() {
   private val _searchQuery = MutableStateFlow("")
   private val _filterState = MutableStateFlow(InfoFilterState())
-  private val _userLocation = MutableStateFlow<Location?>(null)
-  private val _locationPermissionGranted = MutableStateFlow(false)
-  private val _uiControlState = MutableStateFlow(UiControlState())
+  private val _forceRefreshTrigger = MutableStateFlow(false)
+  private val _isFilterSheetVisible = MutableStateFlow(false)
 
-  private val filterInputs = combine(
+  private val inputs = combine(
     _searchQuery,
     _filterState,
-    _userLocation
-  ) { query, filter, location ->
-    FilterInputs(query, filter, location)
+    _forceRefreshTrigger,
+    _isFilterSheetVisible
+  ) { query, filter, forceRefresh, isFilterVisible ->
+    Inputs(query, filter, forceRefresh, isFilterVisible)
   }
 
-  val state = combine(
-    infoRepository.getInfos(),
-    filterInputs,
-    _locationPermissionGranted,
-    _uiControlState
-  ) { infos, inputs, permission, uiControl ->
-    val filtered = filterInfosUseCase(
-      infos = infos,
-      query = inputs.query,
-      filter = inputs.filter,
-      userLocation = inputs.location
-    )
+  @OptIn(ExperimentalCoroutinesApi::class)
+  val state = inputs.flatMapLatest { inputs ->
+    observeInfosUseCase(forceRefresh = inputs.forceRefresh).map { result ->
+      val filteredInfos = filterInfosUseCase(
+        infos = result.infos,
+        query = inputs.query,
+        filter = inputs.filter,
+        userLocation = result.userLocation
+      )
 
-    InfoMasterState(
-      searchQuery = inputs.query,
-      filter = inputs.filter,
-      isFilterSheetVisible = uiControl.isFilterSheetVisible,
-      searchResults = filtered,
-      isLoading = uiControl.isLoading,
-      errorMessage = uiControl.errorMessage,
-      userLocation = inputs.location,
-      locationPermissionGranted = permission
-    )
+      if (inputs.forceRefresh && !result.isLoading) {
+        _forceRefreshTrigger.value = false
+      }
+
+      InfoMasterState(
+        searchQuery = inputs.query,
+        filter = inputs.filter,
+        isFilterSheetVisible = inputs.isFilterVisible,
+        searchResults = filteredInfos,
+        isLoading = result.isLoading,
+        errorMessage = result.error?.toUiText(),
+        locationPermissionGranted = result.userLocation != null
+      )
+    }
   }.stateIn(
     viewModelScope,
     SharingStarted.WhileSubscribed(5000L),
-    InfoMasterState()
+    InfoMasterState(isLoading = true)
   )
-
-  init {
-    checkLocationPermissionAndFetch()
-    performSmartSync()
-  }
 
   fun onAction(action: InfoMasterAction) {
     when (action) {
@@ -80,23 +72,23 @@ class InfoMasterViewModel(
         updateFilter { it.copy(sortBy = action.option) }
       }
 
-      is InfoMasterAction.OnCategorySelect -> {
-        updateFilter { current ->
-          val newCats = if (action.category in current.selectedCategories)
-            current.selectedCategories - action.category
-          else current.selectedCategories + action.category
-          current.copy(selectedCategories = newCats)
+      is InfoMasterAction.OnCategorySelect -> { updateFilter { current ->
+        val newCats = if (action.category in current.selectedCategories) {
+          current.selectedCategories - action.category
+        } else {
+          current.selectedCategories + action.category
         }
-      }
+        current.copy(selectedCategories = newCats)
+      } }
 
-      is InfoMasterAction.OnStatusSelect -> {
-        updateFilter { current ->
-          val newStats = if (action.status in current.selectedStatuses)
-            current.selectedStatuses - action.status
-          else current.selectedStatuses + action.status
-          current.copy(selectedStatuses = newStats)
+      is InfoMasterAction.OnStatusSelect -> { updateFilter { current ->
+        val newStats = if (action.status in current.selectedStatuses) {
+          current.selectedStatuses - action.status
+        } else {
+          current.selectedStatuses + action.status
         }
-      }
+        current.copy(selectedStatuses = newStats)
+      } }
 
       is InfoMasterAction.OnDistanceChange -> {
         updateFilter { it.copy(distanceRadiusKm = action.distance) }
@@ -110,23 +102,21 @@ class InfoMasterViewModel(
         updateFilter { it.copy(selectedStatuses = emptySet()) }
       }
 
-      is InfoMasterAction.OnToggleSection -> {
-        updateFilter { current ->
-          val newSections = if (action.section in current.expandedSections)
-            current.expandedSections - action.section
-          else current.expandedSections + action.section
-          current.copy(expandedSections = newSections)
+      is InfoMasterAction.OnToggleSection -> { updateFilter { current ->
+        val newSections = if (action.section in current.expandedSections) {
+          current.expandedSections - action.section
+        } else {
+          current.expandedSections + action.section
         }
-      }
+        current.copy(expandedSections = newSections)
+      } }
 
       is InfoMasterAction.OnToggleFilterSheet -> {
-        _uiControlState.update {
-          it.copy(isFilterSheetVisible = !it.isFilterSheetVisible)
-        }
+        _isFilterSheetVisible.update { !it }
       }
 
       is InfoMasterAction.OnRefresh -> {
-        checkLocationPermissionAndFetch(forceRefresh = true)
+        _forceRefreshTrigger.value = true
       }
 
       is InfoMasterAction.OnInfoClick -> {}
@@ -137,49 +127,10 @@ class InfoMasterViewModel(
     _filterState.update(update)
   }
 
-  private fun checkLocationPermissionAndFetch(forceRefresh: Boolean = false) {
-    viewModelScope.launch {
-      val locResult = fetchUserLocationUseCase()
-      _locationPermissionGranted.value = locResult.permissionGranted
-      if (locResult.location != null) {
-        _userLocation.value = locResult.location
-      }
-
-      if (forceRefresh) refreshData() else performSmartSync()
-    }
-  }
-
-  private fun performSmartSync() {
-    viewModelScope.launch {
-      _uiControlState.update { it.copy(isLoading = true) }
-      infoRepository.syncInfos()
-      _uiControlState.update { it.copy(isLoading = false) }
-    }
-  }
-
-  private fun refreshData() {
-    viewModelScope.launch {
-      _uiControlState.update { it.copy(isLoading = true, errorMessage = null) }
-
-      infoRepository.refreshInfos()
-        .onSuccess {
-          _uiControlState.update { it.copy(isLoading = false) }
-        }
-        .onError { error ->
-          _uiControlState.update { it.copy(isLoading = false, errorMessage = error.toUiText()) }
-        }
-    }
-  }
-
-  private data class UiControlState(
-    val isLoading: Boolean = false,
-    val errorMessage: UiText? = null,
-    val isFilterSheetVisible: Boolean = false
-  )
-
-  private data class FilterInputs(
+  private data class Inputs(
     val query: String,
     val filter: InfoFilterState,
-    val location: Location?
+    val forceRefresh: Boolean,
+    val isFilterVisible: Boolean
   )
 }
