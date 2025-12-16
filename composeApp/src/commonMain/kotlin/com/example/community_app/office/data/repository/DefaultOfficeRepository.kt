@@ -16,7 +16,7 @@ import com.example.community_app.office.data.network.RemoteOfficeDataSource
 import com.example.community_app.office.domain.Office
 import com.example.community_app.office.domain.OfficeRepository
 import com.example.community_app.util.SERVER_FETCH_INTERVAL_MS
-import com.example.community_app.util.SERVER_FETCH_RADIUS_KM
+import com.example.community_app.util.SERVER_FILTER_RADIUS_KM
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -55,7 +55,7 @@ class DefaultOfficeRepository(
     val currentLocation = locationService.getCurrentLocation()
 
     val bboxString = if (currentLocation != null) {
-      val bbox = GeoUtil.calculateBBox(currentLocation, SERVER_FETCH_RADIUS_KM)
+      val bbox = GeoUtil.calculateBBox(currentLocation, SERVER_FILTER_RADIUS_KM)
       GeoUtil.toBBoxString(bbox)
     } else null
 

@@ -15,8 +15,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
 class InfoMasterViewModel(
-  private val observeInfosUseCase: ObserveInfosUseCase,
-  private val filterInfosUseCase: FilterInfosUseCase
+  private val observeInfos: ObserveInfosUseCase,
+  private val filterInfos: FilterInfosUseCase
 ) : ViewModel() {
   private val _searchQuery = MutableStateFlow("")
   private val _filterState = MutableStateFlow(InfoFilterState())
@@ -34,8 +34,8 @@ class InfoMasterViewModel(
 
   @OptIn(ExperimentalCoroutinesApi::class)
   val state = inputs.flatMapLatest { inputs ->
-    observeInfosUseCase(forceRefresh = inputs.forceRefresh).map { result ->
-      val filteredInfos = filterInfosUseCase(
+    observeInfos(forceRefresh = inputs.forceRefresh).map { result ->
+      val filteredInfos = filterInfos(
         infos = result.infos,
         query = inputs.query,
         filter = inputs.filter,

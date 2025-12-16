@@ -14,9 +14,7 @@ interface TicketRepository {
   fun getCommunityTickets(userId: Int): Flow<List<Ticket>>
   fun getUserTickets(userId: Int): Flow<List<Ticket>>
 
-
-  suspend fun syncTickets(): Result<Unit, DataError.Remote>
-  suspend fun refreshTickets(): Result<Unit, DataError.Remote>
+  suspend fun refreshTickets(force: Boolean = true): Result<Unit, DataError.Remote>
   suspend fun refreshTicket(id: Int): Result<Unit, DataError.Remote>
   suspend fun getStatusHistory(id: Int): Result<List<TicketStatusDto>, DataError.Remote>
   suspend fun getCurrentStatus(id: Int): Result<TicketStatusDto?, DataError.Remote>

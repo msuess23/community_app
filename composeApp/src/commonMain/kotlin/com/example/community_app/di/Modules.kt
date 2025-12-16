@@ -28,6 +28,7 @@ import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
 import com.example.community_app.core.data.local.favorite.FavoriteDao
+import com.example.community_app.core.data.sync.SyncManager
 import com.example.community_app.core.domain.usecase.CheckStatusUpdatesUseCase
 import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
 import com.example.community_app.info.data.local.InfoDao
@@ -75,6 +76,7 @@ import com.example.community_app.ticket.domain.usecase.edit.UpdateTicketUseCase
 import com.example.community_app.ticket.domain.usecase.master.FilterTicketsUseCase
 import com.example.community_app.ticket.domain.usecase.master.ObserveCommunityTicketsUseCase
 import com.example.community_app.ticket.domain.usecase.master.ObserveMyTicketsUseCase
+import com.example.community_app.ticket.domain.usecase.master.ObserveTicketsUseCase
 import com.example.community_app.ticket.presentation.ticket_detail.TicketDetailViewModel
 import com.example.community_app.ticket.presentation.ticket_edit.TicketEditViewModel
 import com.example.community_app.ticket.presentation.ticket_master.TicketMasterViewModel
@@ -144,6 +146,8 @@ val sharedModule = module {
   single<FavoriteDao> { get<AppDatabase>().favoriteDao() }
   single<UserDao> { get<AppDatabase>().userDao() }
 
+  singleOf(::SyncManager)
+
   singleOf(::DefaultAuthRepository).bind<AuthRepository>()
   singleOf(::DefaultSettingsRepository).bind<SettingsRepository>()
   singleOf(::DefaultInfoRepository).bind<InfoRepository>()
@@ -158,9 +162,10 @@ val sharedModule = module {
   factoryOf(::FetchUserLocationUseCase)
   factoryOf(::ObserveInfosUseCase)
   factoryOf(::FilterInfosUseCase)
-  factoryOf(::FilterTicketsUseCase)
+  factoryOf(::ObserveTicketsUseCase)
   factoryOf(::ObserveCommunityTicketsUseCase)
   factoryOf(::ObserveMyTicketsUseCase)
+  factoryOf(::FilterTicketsUseCase)
   factoryOf(::SyncTicketImagesUseCase)
   factoryOf(::AddLocalImageUseCase)
   factoryOf(::DeleteTicketDataUseCase)

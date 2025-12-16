@@ -1,19 +1,13 @@
 package com.example.community_app.ticket.data.repository
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.longPreferencesKey
 import com.example.community_app.auth.domain.AuthRepository
 import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.data.local.favorite.FavoriteDao
 import com.example.community_app.core.data.local.favorite.FavoriteEntity
 import com.example.community_app.core.data.local.favorite.FavoriteType
+import com.example.community_app.core.data.sync.SyncManager
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
-import com.example.community_app.core.domain.location.LocationService
-import com.example.community_app.core.util.GeoUtil
-import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.dto.*
 import com.example.community_app.media.domain.MediaRepository
 import com.example.community_app.ticket.data.local.draft.TicketDraftDao
@@ -24,8 +18,6 @@ import com.example.community_app.ticket.domain.Ticket
 import com.example.community_app.ticket.domain.TicketDraft
 import com.example.community_app.ticket.domain.TicketRepository
 import com.example.community_app.util.MediaTargetType
-import com.example.community_app.util.SERVER_FETCH_INTERVAL_MS
-import com.example.community_app.util.SERVER_FETCH_RADIUS_KM
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
 import kotlinx.coroutines.async
@@ -42,13 +34,10 @@ class DefaultTicketRepository(
   private val ticketDao: TicketDao,
   private val ticketDraftDao: TicketDraftDao,
   private val favoriteDao: FavoriteDao,
-  private val dataStore: DataStore<Preferences>,
-  private val locationService: LocationService,
+  private val syncManager: SyncManager,
   private val authRepository: AuthRepository,
   private val fileStorage: FileStorage
 ): TicketRepository {
-  private val keyLastSync = longPreferencesKey("ticket_last_sync_timestamp")
-
   override fun getTickets(): Flow<List<Ticket>> {
     return combine(
       ticketDao.getTickets(),
@@ -85,27 +74,17 @@ class DefaultTicketRepository(
     }
   }
 
-  override suspend fun syncTickets(): Result<Unit, DataError.Remote> {
-    val prefs = dataStore.data.first()
-    val lastSync = prefs[keyLastSync] ?: 0L
-    val now = getCurrentTimeMillis()
+  override suspend fun refreshTickets(force: Boolean): Result<Unit, DataError.Remote> = coroutineScope {
+    val decision = syncManager.checkSyncStatus(
+      featureKey = "ticket",
+      forceRefresh = force
+    )
 
-    if (now - lastSync < SERVER_FETCH_INTERVAL_MS) {
-      return Result.Success(Unit)
+    if (!decision.shouldFetch) {
+      return@coroutineScope Result.Success(Unit)
     }
 
-    return refreshTickets()
-  }
-
-  override suspend fun refreshTickets(): Result<Unit, DataError.Remote> = coroutineScope {
-    val currentLocation = locationService.getCurrentLocation()
-
-    val bboxString = if (currentLocation != null) {
-      val bbox = GeoUtil.calculateBBox(currentLocation, SERVER_FETCH_RADIUS_KM)
-      GeoUtil.toBBoxString(bbox)
-    } else null
-
-    val communityDeferred = async { remoteTicketDataSource.getTickets(bboxString) }
+    val communityDeferred = async { remoteTicketDataSource.getTickets(decision.bboxString) }
 
     val token = authRepository.getAccessToken()
     val userDeferred = if (token != null) {
@@ -143,7 +122,8 @@ class DefaultTicketRepository(
     val distinctTickets = allTickets.distinctBy { it.id }
 
     ticketDao.replaceAll(distinctTickets.map { it.toEntity() })
-    dataStore.edit { it[keyLastSync] = getCurrentTimeMillis() }
+
+    syncManager.updateSyncSuccess("ticket", decision.currentLocation)
 
     Result.Success(Unit)
   }

@@ -20,7 +20,7 @@ import com.example.community_app.info.data.network.RemoteInfoDataSource
 import com.example.community_app.info.domain.Info
 import com.example.community_app.info.domain.InfoRepository
 import com.example.community_app.util.SERVER_FETCH_INTERVAL_MS
-import com.example.community_app.util.SERVER_FETCH_RADIUS_KM
+import com.example.community_app.util.SERVER_FILTER_RADIUS_KM
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -75,7 +75,7 @@ class DefaultInfoRepository(
 
     val bboxString = if (currentLocation != null) {
       println("DefaultInfoRepository: Location found: $currentLocation")
-      val bbox = GeoUtil.calculateBBox(currentLocation, SERVER_FETCH_RADIUS_KM)
+      val bbox = GeoUtil.calculateBBox(currentLocation, SERVER_FILTER_RADIUS_KM)
       GeoUtil.toBBoxString(bbox)
     } else {
       println("DefaultInfoRepository: WARNING - No location available for BBox filter!")
