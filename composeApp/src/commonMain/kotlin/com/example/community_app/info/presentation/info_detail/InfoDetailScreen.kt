@@ -6,12 +6,15 @@ import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.community_app.core.presentation.components.ObserveErrorMessage
 import com.example.community_app.core.presentation.components.detail.DetailScreenLayout
 import com.example.community_app.core.presentation.components.detail.InfoTicketDetailContent
 import com.example.community_app.core.presentation.components.detail.StatusHistoryUiItem
@@ -56,6 +59,14 @@ private fun InfoDetailScreen(
       createdAt = dto.createdAt
     )
   }
+
+  val snackbarHostState = remember { SnackbarHostState() }
+
+  ObserveErrorMessage(
+    errorMessage = state.errorMessage,
+    snackbarHostState = snackbarHostState,
+    isLoading = (state.isLoading)
+  )
 
   DetailScreenLayout(
     title = state.info?.category?.toUiText()?.asString() ?: stringResource(Res.string.info_singular),

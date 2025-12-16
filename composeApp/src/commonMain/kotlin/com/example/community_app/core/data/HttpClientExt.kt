@@ -9,6 +9,8 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.util.network.UnresolvedAddressException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.serialization.SerializationException
+import okio.IOException
 
 suspend inline fun <reified T> safeCall(
   execute: () -> HttpResponse
@@ -21,13 +23,24 @@ suspend inline fun <reified T> safeCall(
   } catch (e: UnresolvedAddressException) {
     e.printStackTrace()
     return Result.Error(DataError.Remote.NO_INTERNET)
+  } catch (e: IOException) {
+    e.printStackTrace()
+    return Result.Error(DataError.Remote.NO_INTERNET)
   } catch (e: Exception) {
     currentCoroutineContext().ensureActive()
     e.printStackTrace()
     return Result.Error(DataError.Remote.UNKNOWN)
   }
 
-  return responseToResult(response)
+  return try {
+    responseToResult(response)
+  } catch (e: SerializationException) {
+    e.printStackTrace()
+    Result.Error(DataError.Remote.SERIALIZATION)
+  } catch (e: Exception) {
+    e.printStackTrace()
+    Result.Error(DataError.Remote.UNKNOWN)
+  }
 }
 
 suspend inline fun <reified T> responseToResult(

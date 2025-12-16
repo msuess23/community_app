@@ -6,66 +6,41 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
 import com.example.community_app.core.data.local.favorite.FavoriteType
-import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
-import com.example.community_app.info.domain.InfoRepository
-import com.example.community_app.media.domain.MediaRepository
-import com.example.community_app.util.BASE_URL
-import com.example.community_app.util.MediaTargetType
+import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.info.domain.usecase.GetInfoDetailUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class InfoDetailViewModel(
   savedStateHandle: SavedStateHandle,
-  private val infoRepository: InfoRepository,
-  private val mediaRepository: MediaRepository,
+  private val getInfoDetail: GetInfoDetailUseCase,
   private val toggleFavoriteUseCase: ToggleFavoriteUseCase
 ) : ViewModel() {
   private val infoId = savedStateHandle.toRoute<Route.InfoDetail>().id
 
   private val _showStatusHistory = MutableStateFlow(false)
-  private val _isLoading = MutableStateFlow(false)
 
-  private val infoFlow = infoRepository.getInfo(infoId)
-  private val additionalDataFlow = flow {
-    _isLoading.value = true
-    val imagesResult = mediaRepository.getMediaList(
-      targetType = MediaTargetType.INFO,
-      targetId = infoId
-    )
-
-    val historyResult = infoRepository.getStatusHistory(infoId)
-
-    val imageUrls = if (imagesResult is Result.Success) {
-      imagesResult.data.map { "$BASE_URL${it.url}" }
-    } else emptyList()
-
-    val history = if (historyResult is Result.Success) {
-      historyResult.data
-    } else emptyList()
-
-    emit(Pair(imageUrls, history))
-    _isLoading.value = false
-  }
+  private val infoFlow = getInfoDetail(infoId)
 
   val state = combine(
     infoFlow,
-    additionalDataFlow,
-    _showStatusHistory,
-    _isLoading
-  ) { info, (images, history), showHistory, loading ->
-    val finalImages = images.ifEmpty { listOfNotNull(info?.imageUrl) }
+    _showStatusHistory
+  ) { result, showHistory ->
+    val finalImages = result.imageUrls.ifEmpty {
+      listOfNotNull(result.info?.imageUrl)
+    }
 
     InfoDetailState(
-      isLoading = loading,
-      info = info,
+      isLoading = result.syncStatus.isLoading,
+      info = result.info,
       imageUrls = finalImages,
       showStatusHistory = showHistory,
-      statusHistory = history
+      statusHistory = result.statusHistory,
+      errorMessage = result.syncStatus.error?.toUiText()
     )
   }.stateIn(
     viewModelScope,
@@ -73,22 +48,12 @@ class InfoDetailViewModel(
     InfoDetailState(isLoading = true)
   )
 
-  init {
-    refreshInfoData()
-  }
-
   fun onAction(action: InfoDetailAction) {
     when (action) {
       InfoDetailAction.OnShowStatusHistory -> _showStatusHistory.value = true
       InfoDetailAction.OnDismissStatusHistory -> _showStatusHistory.value = false
       InfoDetailAction.OnToggleFavorite -> toggleFavorite()
       else -> Unit
-    }
-  }
-
-  private fun refreshInfoData() {
-    viewModelScope.launch {
-      infoRepository.refreshInfo(infoId)
     }
   }
 

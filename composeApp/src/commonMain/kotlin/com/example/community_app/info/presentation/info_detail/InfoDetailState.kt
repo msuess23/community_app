@@ -1,5 +1,6 @@
 package com.example.community_app.info.presentation.info_detail
 
+import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.dto.InfoStatusDto
 import com.example.community_app.info.domain.Info
 
@@ -8,5 +9,6 @@ data class InfoDetailState(
   val info: Info? = null,
   val imageUrls: List<String> = emptyList(),
   val showStatusHistory: Boolean = false,
-  val statusHistory: List<InfoStatusDto> = emptyList()
+  val statusHistory: List<InfoStatusDto> = emptyList(),
+  val errorMessage: UiText? = null
 )

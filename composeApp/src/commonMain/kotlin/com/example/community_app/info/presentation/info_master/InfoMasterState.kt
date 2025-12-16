@@ -13,9 +13,7 @@ data class InfoMasterState(
   val isFilterSheetVisible: Boolean = false,
   val searchResults: List<Info> = emptyList(),
   val isLoading: Boolean = false,
-  val errorMessage: UiText? = null,
-  val userLocation: Location? = null,
-  val locationPermissionGranted: Boolean = false
+  val errorMessage: UiText? = null
 )
 
 data class InfoFilterState(

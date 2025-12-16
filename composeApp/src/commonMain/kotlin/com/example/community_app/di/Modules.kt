@@ -37,6 +37,7 @@ import com.example.community_app.info.data.network.RemoteInfoDataSource
 import com.example.community_app.info.data.repository.DefaultInfoRepository
 import com.example.community_app.info.domain.InfoRepository
 import com.example.community_app.info.domain.usecase.FilterInfosUseCase
+import com.example.community_app.info.domain.usecase.GetInfoDetailUseCase
 import com.example.community_app.info.domain.usecase.ObserveInfosUseCase
 import com.example.community_app.info.presentation.info_detail.InfoDetailViewModel
 import com.example.community_app.info.presentation.info_master.InfoMasterViewModel
@@ -44,6 +45,7 @@ import com.example.community_app.media.data.network.KtorRemoteMediaDataSource
 import com.example.community_app.media.data.network.RemoteMediaDataSource
 import com.example.community_app.media.data.repository.DefaultMediaRepository
 import com.example.community_app.media.domain.MediaRepository
+import com.example.community_app.media.domain.usecase.GetImagesUseCase
 import com.example.community_app.office.data.local.OfficeDao
 import com.example.community_app.office.data.network.KtorRemoteOfficeDataSource
 import com.example.community_app.office.data.network.RemoteOfficeDataSource
@@ -162,9 +164,11 @@ val sharedModule = module {
   factoryOf(::IsUserLoggedInUseCase)
   factoryOf(::FetchUserLocationUseCase)
   factoryOf(::ToggleFavoriteUseCase)
+  factoryOf(::GetImagesUseCase)
 
   factoryOf(::ObserveInfosUseCase)
   factoryOf(::FilterInfosUseCase)
+  factoryOf(::GetInfoDetailUseCase)
 
   factoryOf(::ObserveTicketsUseCase)
   factoryOf(::ObserveCommunityTicketsUseCase)

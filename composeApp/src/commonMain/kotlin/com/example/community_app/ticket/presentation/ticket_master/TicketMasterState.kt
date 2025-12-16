@@ -18,9 +18,7 @@ data class TicketMasterState(
   val communitySearchResults: List<TicketListItem> = emptyList(),
   val userSearchResults: List<TicketListItem> = emptyList(),
   val isLoading: Boolean = false,
-  val errorMessage: UiText? = null,
-  val userLocation: Location? = null,
-  val locationPermissionGranted: Boolean = false
+  val errorMessage: UiText? = null
 )
 
 data class TicketFilterState(

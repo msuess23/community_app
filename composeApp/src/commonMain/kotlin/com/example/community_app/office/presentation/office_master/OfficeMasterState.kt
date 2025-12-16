@@ -14,8 +14,6 @@ data class OfficeMasterState(
 
   val isLoading: Boolean = false,
   val errorMessage: UiText? = null,
-  val userLocation: Location? = null,
-  val locationPermissionGranted: Boolean = false
 )
 
 data class OfficeFilterState(

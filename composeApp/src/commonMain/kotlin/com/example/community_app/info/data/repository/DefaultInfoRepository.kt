@@ -58,6 +58,9 @@ class DefaultInfoRepository(
     }
 
     val bboxResult = remoteInfoDataSource.getInfos(decision.bboxString)
+    if (bboxResult is Result.Error) {
+      return@coroutineScope Result.Error(bboxResult.error)
+    }
     val bboxInfos = (bboxResult as Result.Success).data
 
     val favoriteIds = favoriteDao.getFavoriteIds(FavoriteType.INFO).first()
