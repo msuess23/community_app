@@ -4,6 +4,8 @@ import com.example.community_app.appointment.domain.Appointment
 import com.example.community_app.appointment.domain.AppointmentRepository
 import com.example.community_app.auth.domain.AuthRepository
 import com.example.community_app.auth.domain.AuthState
+import com.example.community_app.core.domain.DataError
+import com.example.community_app.core.domain.Result
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -24,7 +26,7 @@ class ObserveAppointmentsUseCase(
     }
   }
 
-  suspend fun sync() {
-    appointmentRepository.refreshAppointments()
+  suspend fun sync(): Result<Unit, DataError.Remote> {
+    return appointmentRepository.refreshAppointments()
   }
 }

@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.appointment.presentation.master.component.AppointmentListItem
 import com.example.community_app.auth.presentation.components.AuthGuard
+import com.example.community_app.core.presentation.components.ObserveErrorMessage
 import com.example.community_app.core.presentation.components.list.ScreenMessage
 import com.example.community_app.core.presentation.components.master.MasterScreenLayout
 import com.example.community_app.core.presentation.components.master.SingleTabHeader
@@ -55,6 +56,12 @@ private fun AppointmentMasterScreen(
   onOpenDrawer: () -> Unit
 ) {
   val snackbarHostState = remember { SnackbarHostState() }
+
+  ObserveErrorMessage(
+    errorMessage = state.errorMessage,
+    snackbarHostState = snackbarHostState,
+    isLoading = (state.isLoading && state.appointments.isEmpty())
+  )
 
   MasterScreenLayout(
     searchQuery = "",

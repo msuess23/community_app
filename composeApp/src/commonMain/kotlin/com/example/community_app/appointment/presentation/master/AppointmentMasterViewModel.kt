@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.community_app.appointment.domain.usecase.ObserveAppointmentsUseCase
 import com.example.community_app.appointment.domain.usecase.ScheduleAppointmentRemindersUseCase
-import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
+import com.example.community_app.core.domain.Result
+import com.example.community_app.core.presentation.helpers.UiText
+import com.example.community_app.core.presentation.helpers.toUiText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -17,15 +19,16 @@ class AppointmentMasterViewModel(
   private val scheduleAppointmentReminders: ScheduleAppointmentRemindersUseCase
 ) : ViewModel() {
 
-  private val _isRefreshing = MutableStateFlow(false)
+  private val _uiControlState = MutableStateFlow(UiControlState())
 
   val state = combine(
     observeAppointments(),
-    _isRefreshing
-  ) { appointments, refreshing ->
+    _uiControlState
+  ) { appointments, uiControl ->
     AppointmentMasterState(
       appointments = appointments.sortedBy { it.startsAt },
-      isLoading = refreshing
+      isLoading = uiControl.isLoading,
+      errorMessage = uiControl.errorMessage
     )
   }.stateIn(
     viewModelScope,
@@ -48,9 +51,24 @@ class AppointmentMasterViewModel(
 
   private fun refresh() {
     viewModelScope.launch {
-      _isRefreshing.value = true
-      observeAppointments.sync()
-      _isRefreshing.value = false
+      _uiControlState.update { it.copy(isLoading = true, errorMessage = null) }
+
+      when(val result = observeAppointments.sync()) {
+        is Result.Success -> {
+          _uiControlState.update { it.copy(isLoading = false) }
+        }
+        is Result.Error -> {
+          _uiControlState.update { it.copy(
+            isLoading = false,
+            errorMessage = result.error.toUiText()
+          ) }
+        }
+      }
     }
   }
+
+  private data class UiControlState(
+    val isLoading: Boolean = false,
+    val errorMessage: UiText? = null
+  )
 }
