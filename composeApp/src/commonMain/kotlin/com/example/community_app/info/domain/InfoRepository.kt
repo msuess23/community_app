@@ -9,9 +9,7 @@ interface InfoRepository {
   fun getInfos(): Flow<List<Info>>
   fun getInfo(id: Int): Flow<Info?>
 
-  suspend fun syncInfos(): Result<Unit, DataError.Remote>
-
-  suspend fun refreshInfos(): Result<Unit, DataError.Remote>
+  suspend fun refreshInfos(force: Boolean = false): Result<Unit, DataError.Remote>
   suspend fun refreshInfo(id: Int): Result<Unit, DataError.Remote>
 
   suspend fun getStatusHistory(id: Int): Result<List<InfoStatusDto>, DataError.Remote>

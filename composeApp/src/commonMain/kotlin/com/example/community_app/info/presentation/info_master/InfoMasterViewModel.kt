@@ -38,8 +38,7 @@ class InfoMasterViewModel(
       val filteredInfos = filterInfos(
         infos = result.infos,
         query = inputs.query,
-        filter = inputs.filter,
-        userLocation = result.userLocation
+        filter = inputs.filter
       )
 
       if (inputs.forceRefresh && !result.isLoading) {
@@ -52,8 +51,7 @@ class InfoMasterViewModel(
         isFilterSheetVisible = inputs.isFilterVisible,
         searchResults = filteredInfos,
         isLoading = result.isLoading,
-        errorMessage = result.error?.toUiText(),
-        locationPermissionGranted = result.userLocation != null
+        errorMessage = result.error?.toUiText()
       )
     }
   }.stateIn(
