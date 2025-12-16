@@ -12,6 +12,7 @@ interface AppointmentRepository {
 
   fun getAppointments(): Flow<List<Appointment>>
   fun getAppointment(id: Int): Flow<Appointment?>
+  suspend fun syncAppointments(): Result<Unit, DataError.Remote>
   suspend fun refreshAppointments(): Result<Unit, DataError.Remote>
   suspend fun cancelAppointment(id: Int): Result<Unit, DataError.Remote>
 }

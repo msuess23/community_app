@@ -4,14 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.community_app.appointment.domain.usecase.ObserveAppointmentsUseCase
 import com.example.community_app.appointment.domain.usecase.ScheduleAppointmentRemindersUseCase
-import com.example.community_app.core.domain.Result
-import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.core.presentation.helpers.toUiText
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class AppointmentMasterViewModel(
@@ -19,56 +18,35 @@ class AppointmentMasterViewModel(
   private val scheduleAppointmentReminders: ScheduleAppointmentRemindersUseCase
 ) : ViewModel() {
 
-  private val _uiControlState = MutableStateFlow(UiControlState())
+  private val _forceRefreshTrigger = MutableStateFlow(false)
 
-  val state = combine(
-    observeAppointments(),
-    _uiControlState
-  ) { appointments, uiControl ->
-    AppointmentMasterState(
-      appointments = appointments.sortedBy { it.startsAt },
-      isLoading = uiControl.isLoading,
-      errorMessage = uiControl.errorMessage
-    )
+  @OptIn(ExperimentalCoroutinesApi::class)
+  val state = _forceRefreshTrigger.flatMapLatest { forceRefresh ->
+    observeAppointments(forceRefresh = forceRefresh).map { result ->
+      if (forceRefresh && !result.syncStatus.isLoading) {
+        _forceRefreshTrigger.value = false
+      }
+
+      AppointmentMasterState(
+        appointments = result.appointments.sortedBy { it.startsAt },
+        isLoading = result.syncStatus.isLoading,
+        errorMessage = result.syncStatus.error?.toUiText()
+      )
+    }
   }.stateIn(
     viewModelScope,
     SharingStarted.WhileSubscribed(5000L),
-    AppointmentMasterState()
+    AppointmentMasterState(isLoading = true)
   )
 
   init {
-    refresh()
-
     viewModelScope.launch { scheduleAppointmentReminders() }
   }
 
   fun onAction(action: AppointmentMasterAction) {
     when(action) {
-      AppointmentMasterAction.OnRefresh -> refresh()
+      AppointmentMasterAction.OnRefresh -> _forceRefreshTrigger.value = true
       else -> Unit
     }
   }
-
-  private fun refresh() {
-    viewModelScope.launch {
-      _uiControlState.update { it.copy(isLoading = true, errorMessage = null) }
-
-      when(val result = observeAppointments.sync()) {
-        is Result.Success -> {
-          _uiControlState.update { it.copy(isLoading = false) }
-        }
-        is Result.Error -> {
-          _uiControlState.update { it.copy(
-            isLoading = false,
-            errorMessage = result.error.toUiText()
-          ) }
-        }
-      }
-    }
-  }
-
-  private data class UiControlState(
-    val isLoading: Boolean = false,
-    val errorMessage: UiText? = null
-  )
 }

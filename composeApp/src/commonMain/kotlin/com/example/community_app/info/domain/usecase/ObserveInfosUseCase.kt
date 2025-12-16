@@ -4,7 +4,7 @@ import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
-import com.example.community_app.core.presentation.state.SyncState
+import com.example.community_app.core.presentation.state.SyncStatus
 import com.example.community_app.info.domain.Info
 import com.example.community_app.info.domain.InfoRepository
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +24,7 @@ class ObserveInfosUseCase(
 ) {
   operator fun invoke(forceRefresh: Boolean = false): Flow<InfoDataResult> {
     val syncFlow = flow {
-      emit(InternalSyncState(status = SyncState(isLoading = true)))
+      emit(InternalSyncState(status = SyncStatus(isLoading = true)))
 
       val location = fetchUserLocation().location
 
@@ -38,7 +38,7 @@ class ObserveInfosUseCase(
 
       val error = (result as? Result.Error)?.error
       emit(InternalSyncState(
-        status = SyncState(isLoading = false, error = error),
+        status = SyncStatus(isLoading = false, error = error),
         location = location
       ))
     }
@@ -57,7 +57,7 @@ class ObserveInfosUseCase(
   }
 
   private data class InternalSyncState(
-    val status: SyncState,
+    val status: SyncStatus,
     val location: Location? = null
   )
 }
