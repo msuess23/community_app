@@ -66,6 +66,7 @@
     <string name="slot_book_title">Would you like to make a binding reservation for this date?</string>
     <string name="slot_book_export">Export to calendar</string>
     <string name="slot_none">No appointments available on this day.</string>
+    <string name="slot_booking_error">Please log in to book an appointment</string>
 
     <!-- Appointment -->
     <string name="appointment_singular">Appointment</string>
@@ -202,6 +203,7 @@
     <!-- Errors -->
     <string name="error_data_not_found">The data could not be found.</string>
     <string name="error_disk_full">Oops, it seems like your disk is full.</string>
+    <string name="error_calendar_export_failed">The appointment was booked, but the calendar export failed.</string>
     <string name="error_unknown">Oops, something went wrong.</string>
     <string name="error_request_timeout">The request timed out.</string>
     <string name="error_no_internet">Couldn't reach server. Please check your internet connection.</string>

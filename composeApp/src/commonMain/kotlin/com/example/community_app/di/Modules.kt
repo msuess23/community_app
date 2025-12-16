@@ -29,6 +29,7 @@ import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
 import com.example.community_app.core.data.local.favorite.FavoriteDao
 import com.example.community_app.core.data.sync.SyncManager
+import com.example.community_app.core.domain.calendar.usecase.GetCalendarSyncStateUseCase
 import com.example.community_app.core.domain.usecase.CheckStatusUpdatesUseCase
 import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
 import com.example.community_app.info.data.local.InfoDao
@@ -52,6 +53,8 @@ import com.example.community_app.office.data.network.RemoteOfficeDataSource
 import com.example.community_app.office.data.repository.DefaultOfficeRepository
 import com.example.community_app.office.domain.OfficeRepository
 import com.example.community_app.office.domain.usecase.FilterOfficesUseCase
+import com.example.community_app.office.domain.usecase.FilterSlotsUseCase
+import com.example.community_app.office.domain.usecase.GetOfficeDetailUseCase
 import com.example.community_app.office.domain.usecase.ObserveOfficesUseCase
 import com.example.community_app.office.presentation.office_detail.OfficeDetailViewModel
 import com.example.community_app.office.presentation.office_master.OfficeMasterViewModel
@@ -164,6 +167,7 @@ val sharedModule = module {
   factoryOf(::IsUserLoggedInUseCase)
   factoryOf(::FetchUserLocationUseCase)
   factoryOf(::ToggleFavoriteUseCase)
+  factoryOf(::GetCalendarSyncStateUseCase)
   factoryOf(::GetImagesUseCase)
 
   factoryOf(::ObserveInfosUseCase)
@@ -183,6 +187,8 @@ val sharedModule = module {
 
   factoryOf(::ObserveOfficesUseCase)
   factoryOf(::FilterOfficesUseCase)
+  factoryOf(::GetOfficeDetailUseCase)
+  factoryOf(::FilterSlotsUseCase)
 
   factoryOf(::GetFreeSlotsUseCase)
   factoryOf(::BookAppointmentUseCase)

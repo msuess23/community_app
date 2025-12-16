@@ -23,15 +23,18 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.community_app.core.presentation.components.ObserveErrorMessage
 import com.example.community_app.core.presentation.components.detail.CommunityAddressCard
 import com.example.community_app.core.presentation.components.detail.DetailScreenLayout
 import com.example.community_app.core.presentation.theme.Spacing
@@ -80,11 +83,20 @@ private fun OfficeDetailScreen(
   state: OfficeDetailState,
   onAction: (OfficeDetailAction) -> Unit
 ) {
+  val snackbarHostState = remember { SnackbarHostState() }
+
+  ObserveErrorMessage(
+    errorMessage = state.errorMessage,
+    snackbarHostState = snackbarHostState,
+    isLoading = (state.isLoading && state.visibleSlots.isEmpty())
+  )
+
   DetailScreenLayout(
     title = state.office?.name ?: stringResource(Res.string.office_singular),
     onNavigateBack = { onAction(OfficeDetailAction.OnNavigateBack) },
     isLoading = state.isLoading,
-    dataAvailable = state.office != null
+    dataAvailable = state.office != null,
+    snackbarHostState = snackbarHostState
   ) {
     state.office?.let { office ->
       LazyColumn(
@@ -121,7 +133,7 @@ private fun OfficeDetailScreen(
         } else if (state.visibleSlots.isEmpty()) {
           item {
             Text(
-              text = stringResource(Res.string.slot_none),
+              text = state.infoMessage?.asString() ?: stringResource(Res.string.slot_none),
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
               textAlign = TextAlign.Center,

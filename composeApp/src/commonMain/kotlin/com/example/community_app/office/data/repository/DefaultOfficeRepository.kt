@@ -30,7 +30,7 @@ class DefaultOfficeRepository(
 
   override suspend fun refreshOffices(force: Boolean): Result<Unit, DataError.Remote> = coroutineScope {
     val decision = syncManager.checkSyncStatus(
-      featureKey = "ticket",
+      featureKey = "office",
       forceRefresh = force
     )
 

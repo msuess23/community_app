@@ -92,7 +92,8 @@ private fun InfoDetailScreen(
           modifier = Modifier.size(28.dp)
         )
       }
-    }
+    },
+    snackbarHostState = snackbarHostState
   ) {
     state.info?.let { info ->
       InfoTicketDetailContent(

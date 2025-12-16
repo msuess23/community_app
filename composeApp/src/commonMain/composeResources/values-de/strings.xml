@@ -66,6 +66,7 @@
     <string name="slot_book_title">Möchtest Du diesen Termin verbindlich buchen?</string>
     <string name="slot_book_export">In Kalender exportieren</string>
     <string name="slot_none">An diesem Tag sind freien Termine verfügbar.</string>
+    <string name="slot_booking_error">Bitte melde Dich an, um einen Termin zu buchen.</string>
 
     <!-- Appointment -->
     <string name="appointment_singular">Termin</string>
@@ -202,6 +203,7 @@
     <!-- Errors -->
     <string name="error_data_not_found">Die Daten konnten nicht gefunden werden.</string>
     <string name="error_disk_full">Hoppla, anscheinend ist Deine Festplatte voll.</string>
+    <string name="error_calendar_export_failed">Der Termin wurde gebucht, aber der Kalender-Export ist fehlgeschlagen.</string>
     <string name="error_unknown">Hoppla, etwas ist schiefgelaufen.</string>
     <string name="error_request_timeout">Die Anfrage ist abgelaufen.</string>
     <string name="error_no_internet">Der Server konnte nicht erreicht werden. Bitte überprüfe Deine Internetverbindung.</string>

@@ -3,6 +3,7 @@ package com.example.community_app.core.presentation.helpers
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.presentation.helpers.UiText
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.error_calendar_export_failed
 import community_app.composeapp.generated.resources.error_disk_full
 import community_app.composeapp.generated.resources.error_no_internet
 import community_app.composeapp.generated.resources.error_request_timeout
@@ -13,6 +14,7 @@ import community_app.composeapp.generated.resources.error_unknown
 fun DataError.toUiText(): UiText {
   val stringResource = when(this) {
     DataError.Local.DISK_FULL -> Res.string.error_disk_full
+    DataError.Local.CALENDAR_EXPORT_FAILED -> Res.string.error_calendar_export_failed
     DataError.Local.UNKNOWN -> Res.string.error_unknown
     DataError.Remote.REQUEST_TIMEOUT -> Res.string.error_request_timeout
     DataError.Remote.TOO_MANY_REQUESTS -> Res.string.error_too_many_requests

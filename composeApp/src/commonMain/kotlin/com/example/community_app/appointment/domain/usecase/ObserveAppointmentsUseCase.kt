@@ -29,11 +29,7 @@ class ObserveAppointmentsUseCase(
         val syncFlow = flow {
           emit(SyncStatus(isLoading = true))
 
-          val result = if (forceRefresh) {
-            appointmentRepository.refreshAppointments()
-          } else {
-            appointmentRepository.syncAppointments()
-          }
+          val result = appointmentRepository.refreshAppointments(force = forceRefresh)
 
           val error = (result as? Result.Error)?.error
           emit(SyncStatus(isLoading = false, error = error))

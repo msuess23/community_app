@@ -22,5 +22,6 @@ data class OfficeDetailState(
   val isUserLoggedIn: Boolean = false,
   val showDatePicker: Boolean = false,
 
+  val infoMessage: UiText? = null,
   val errorMessage: UiText? = null
 )

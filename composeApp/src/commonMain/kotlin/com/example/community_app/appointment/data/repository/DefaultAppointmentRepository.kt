@@ -1,8 +1,5 @@
 package com.example.community_app.appointment.data.repository
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.longPreferencesKey
 import com.example.community_app.appointment.data.local.AppointmentDao
 import com.example.community_app.appointment.data.mappers.toAppointment
 import com.example.community_app.appointment.data.mappers.toEntity
@@ -10,11 +7,11 @@ import com.example.community_app.appointment.data.network.RemoteAppointmentDataS
 import com.example.community_app.appointment.domain.Appointment
 import com.example.community_app.appointment.domain.AppointmentRepository
 import com.example.community_app.appointment.domain.Slot
+import com.example.community_app.core.data.sync.SyncManager
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.map
-import com.example.community_app.core.util.getCurrentTimeMillis
-import com.example.community_app.util.SERVER_FETCH_INTERVAL_MS
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -22,10 +19,8 @@ import kotlinx.coroutines.flow.map
 class DefaultAppointmentRepository(
   private val remoteDataSource: RemoteAppointmentDataSource,
   private val appointmentDao: AppointmentDao,
-  private val dataStore: DataStore<Preferences>
+  private val syncManager: SyncManager
 ) : AppointmentRepository {
-  private val keyLastSync = longPreferencesKey("appointment_last_sync_timestamp")
-
   override suspend fun getFreeSlots(
     officeId: Int,
     from: String?,
@@ -66,20 +61,17 @@ class DefaultAppointmentRepository(
     return appointmentDao.getAppointmentById(id).map { it?.toAppointment() }
   }
 
-  override suspend fun syncAppointments(): Result<Unit, DataError.Remote> {
-    val prefs = dataStore.data.first()
-    val lastSync = prefs[keyLastSync] ?: 0L
-    val now = getCurrentTimeMillis()
+  override suspend fun refreshAppointments(force: Boolean): Result<Unit, DataError.Remote> = coroutineScope{
+    val decision = syncManager.checkSyncStatus(
+      featureKey = "appointment",
+      forceRefresh = force
+    )
 
-    if (now - lastSync < SERVER_FETCH_INTERVAL_MS) {
-      return Result.Success(Unit)
+    if (!decision.shouldFetch) {
+      return@coroutineScope Result.Success(Unit)
     }
 
-    return refreshAppointments()
-  }
-
-  override suspend fun refreshAppointments(): Result<Unit, DataError.Remote> {
-    return when(val result = remoteDataSource.getUserAppointments()) {
+    when (val result = remoteDataSource.getUserAppointments()) {
       is Result.Success -> {
         val localAppointments = appointmentDao.getAppointments().first()
         val localIdMap = localAppointments.associate { it.id to it.calendarEventId }
@@ -90,9 +82,12 @@ class DefaultAppointmentRepository(
         }
 
         appointmentDao.replaceAll(newAppointments)
+        syncManager.updateSyncSuccess("appointment", decision.currentLocation)
         Result.Success(Unit)
       }
-      is Result.Error -> Result.Error(result.error)
+      is Result.Error -> {
+        Result.Error(result.error)
+      }
     }
   }
 
