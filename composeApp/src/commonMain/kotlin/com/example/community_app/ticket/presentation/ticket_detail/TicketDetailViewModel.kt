@@ -5,111 +5,52 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
-import com.example.community_app.auth.domain.AuthRepository
 import com.example.community_app.core.data.local.favorite.FavoriteType
-import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
-import com.example.community_app.dto.TicketStatusDto
-import com.example.community_app.profile.domain.UserRepository
-import com.example.community_app.profile.domain.getUserIdOrNull
-import com.example.community_app.ticket.domain.Ticket
-import com.example.community_app.ticket.domain.TicketDraft
-import com.example.community_app.ticket.domain.TicketRepository
-import com.example.community_app.ticket.domain.usecase.detail.SyncTicketImagesUseCase
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.ticket.domain.usecase.detail.ObserveTicketDetailUseCase
+import com.example.community_app.ticket.domain.usecase.detail.VoteTicketUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class TicketDetailViewModel(
   savedStateHandle: SavedStateHandle,
-  private val ticketRepository: TicketRepository,
-  private val userRepository: UserRepository,
-  private val syncTicketImages: SyncTicketImagesUseCase,
-  private val toggleFavoriteUseCase: ToggleFavoriteUseCase
+  private val observeTicketDetail: ObserveTicketDetailUseCase,
+  private val toggleFavorite: ToggleFavoriteUseCase,
+  private val voteTicket: VoteTicketUseCase
 ) : ViewModel() {
   private val args = savedStateHandle.toRoute<Route.TicketDetail>()
 
   private val _showStatusHistory = MutableStateFlow(false)
-  private val _isLoading = MutableStateFlow(false)
 
-  private val ticketDataFlow = flow {
-    if (args.isDraft) {
-      val draft = ticketRepository.getDraft(args.id)
-      emit(TicketDetailData.Draft(draft))
-    } else {
-      ticketRepository.getTicket(args.id.toInt()).collect { ticket ->
-        emit(TicketDetailData.Remote(ticket))
-      }
-    }
-  }
-
-  @OptIn(ExperimentalCoroutinesApi::class)
-  private val additionalDataFlow = ticketDataFlow.mapLatest { data ->
-    when (data) {
-      is TicketDetailData.Draft -> {
-        AdditionalData(
-          images = data.draft?.images ?: emptyList(),
-          history = emptyList(),
-          isOwner = true
-        )
-      }
-      is TicketDetailData.Remote -> {
-        val ticket = data.ticket ?: return@mapLatest AdditionalData()
-        val userId = userRepository.getUserIdOrNull()
-        val isOwner = userId != null && userId == ticket.creatorUserId
-
-        val imagesResult = syncTicketImages(ticket.id, isOwner)
-        val historyResult = ticketRepository.getStatusHistory(ticket.id)
-
-        val images = if (imagesResult is Result.Success) imagesResult.data else emptyList()
-        val history = if (historyResult is Result.Success) historyResult.data else emptyList()
-
-        AdditionalData(images, history, isOwner)
-      }
-    }
-  }
+  private val detailFlow = observeTicketDetail(args.id, args.isDraft)
 
   val state = combine(
-    ticketDataFlow,
-    additionalDataFlow,
-    _showStatusHistory,
-    _isLoading
-  ) { data, additional, showHistory, loading ->
-    val (ticket, draft) = when (data) {
-      is TicketDetailData.Remote -> data.ticket to null
-      is TicketDetailData.Draft -> null to data.draft
-    }
-
-    val fallbackImage = ticket?.imageUrl
-    val finalImages = additional.images.ifEmpty { listOfNotNull(fallbackImage) }
+    detailFlow,
+    _showStatusHistory
+  ) { result, showHistory ->
+    val fallbackImage = result.ticket?.imageUrl
+    val finalImages = result.images.ifEmpty { listOfNotNull(fallbackImage) }
 
     TicketDetailState(
-      isLoading = loading,
-      ticket = ticket,
-      draft = draft,
+      isLoading = result.syncStatus.isLoading,
+      ticket = result.ticket,
+      draft = result.draft,
       isDraft = args.isDraft,
-      isOwner = additional.isOwner,
+      isOwner = result.isOwner,
       imageUrls = finalImages,
       showStatusHistory = showHistory,
-      statusHistory = additional.history
+      statusHistory = result.history,
+      errorMessage = result.syncStatus.error?.toUiText()
     )
   }.stateIn(
     viewModelScope,
     SharingStarted.WhileSubscribed(5000L),
     TicketDetailState(isLoading = true)
   )
-
-  init {
-    if (!args.isDraft) {
-      refreshTicket()
-    }
-  }
 
   fun onAction(action: TicketDetailAction) {
     when(action) {
@@ -121,20 +62,12 @@ class TicketDetailViewModel(
     }
   }
 
-  private fun refreshTicket() {
-    viewModelScope.launch {
-      _isLoading.update { true }
-      ticketRepository.refreshTicket(args.id.toInt())
-      _isLoading.update { false }
-    }
-  }
-
   private fun toggleFavorite() {
     val currentTicket = state.value.ticket ?: return
     if (state.value.isDraft || state.value.isOwner) return
 
     viewModelScope.launch {
-      toggleFavoriteUseCase(
+      toggleFavorite(
         itemId = currentTicket.id,
         type = FavoriteType.TICKET,
         isFavorite = !currentTicket.isFavorite
@@ -144,25 +77,8 @@ class TicketDetailViewModel(
 
   private fun toggleVote() {
     val currentTicket = state.value.ticket ?: return
-    if (state.value.isDraft) return
-
     viewModelScope.launch {
-      if (currentTicket.userVoted == true) {
-        ticketRepository.unvoteTicket(currentTicket.id)
-      } else {
-        ticketRepository.voteTicket(currentTicket.id)
-      }
+      voteTicket(currentTicket.id, currentTicket.userVoted ?: false)
     }
   }
-
-  sealed interface TicketDetailData {
-    data class Remote(val ticket: Ticket?) : TicketDetailData
-    data class Draft(val draft: TicketDraft?) : TicketDetailData
-  }
-
-  data class AdditionalData(
-    val images: List<String> = emptyList(),
-    val history: List<TicketStatusDto> = emptyList(),
-    val isOwner: Boolean = false
-  )
 }

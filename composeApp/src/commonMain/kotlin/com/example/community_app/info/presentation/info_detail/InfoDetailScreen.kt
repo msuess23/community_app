@@ -65,7 +65,7 @@ private fun InfoDetailScreen(
   ObserveErrorMessage(
     errorMessage = state.errorMessage,
     snackbarHostState = snackbarHostState,
-    isLoading = (state.isLoading)
+    isLoading = (state.isLoading && state.info == null)
   )
 
   DetailScreenLayout(

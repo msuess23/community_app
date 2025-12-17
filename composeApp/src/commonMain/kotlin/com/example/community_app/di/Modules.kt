@@ -73,8 +73,9 @@ import com.example.community_app.ticket.data.network.KtorRemoteTicketDataSource
 import com.example.community_app.ticket.data.network.RemoteTicketDataSource
 import com.example.community_app.ticket.data.repository.DefaultTicketRepository
 import com.example.community_app.ticket.domain.TicketRepository
-import com.example.community_app.ticket.domain.usecase.VoteTicketUseCase
+import com.example.community_app.ticket.domain.usecase.detail.ObserveTicketDetailUseCase
 import com.example.community_app.ticket.domain.usecase.detail.SyncTicketImagesUseCase
+import com.example.community_app.ticket.domain.usecase.detail.VoteTicketUseCase
 import com.example.community_app.ticket.domain.usecase.edit.AddLocalImageUseCase
 import com.example.community_app.ticket.domain.usecase.edit.DeleteTicketDataUseCase
 import com.example.community_app.ticket.domain.usecase.edit.GetTicketEditDetailsUseCase
@@ -178,12 +179,15 @@ val sharedModule = module {
   factoryOf(::ObserveCommunityTicketsUseCase)
   factoryOf(::ObserveMyTicketsUseCase)
   factoryOf(::FilterTicketsUseCase)
+
+  factoryOf(::ObserveTicketDetailUseCase)
   factoryOf(::SyncTicketImagesUseCase)
+  factoryOf(::VoteTicketUseCase)
+
   factoryOf(::AddLocalImageUseCase)
   factoryOf(::DeleteTicketDataUseCase)
   factoryOf(::GetTicketEditDetailsUseCase)
   factoryOf(::UpdateTicketUseCase)
-  factoryOf(::VoteTicketUseCase)
 
   factoryOf(::ObserveOfficesUseCase)
   factoryOf(::FilterOfficesUseCase)
