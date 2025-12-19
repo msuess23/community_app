@@ -6,11 +6,14 @@ import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
 
 data class TicketEditState(
+  // Status Flags & Error
   val isLoading: Boolean = false,
   val isSaving: Boolean = false,
+  val isUploadSuccess: Boolean = false,
+  val isDeleteSuccess: Boolean = false,
   val errorMessage: UiText? = null,
 
-  // Modus
+  // Mode
   val isDraft: Boolean = true,
   val ticketId: Int? = null,
   val draftId: Long? = null,
@@ -36,15 +39,7 @@ data class TicketEditState(
   // Dialogs
   val showDeleteDialog: Boolean = false,
   val showUploadDialog: Boolean = false,
-  val showImageSourceDialog: Boolean = false,
-
-  // Permissions
-  val cameraPermissionGranted: Boolean = false,
-  val storagePermissionGranted: Boolean = false,
-  val locationPermissionGranted: Boolean = false,
-
-  val isUploadSuccess: Boolean = false,
-  val isDeleteSuccess: Boolean = false
+  val showImageSourceDialog: Boolean = false
 ) {
   val filteredOffices: List<Office>
     get() = if (officeSearchQuery.isBlank()) {

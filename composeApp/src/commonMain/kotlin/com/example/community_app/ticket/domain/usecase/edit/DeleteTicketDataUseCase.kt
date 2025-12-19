@@ -26,7 +26,12 @@ class DeleteTicketDataUseCase(
       Result.Success(Unit)
     } else if (ticketId != null) {
       val result = ticketRepository.deleteTicket(ticketId)
-      if (result is Result.Error) Result.Error(result.error) else Result.Success(Unit)
+
+      if (result is Result.Error) {
+        Result.Error(result.error)
+      } else {
+        Result.Success(Unit)
+      }
     } else {
       Result.Success(Unit)
     }

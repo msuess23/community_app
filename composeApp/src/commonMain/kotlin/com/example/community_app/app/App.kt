@@ -17,6 +17,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import coil3.ImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.network.ktor3.KtorNetworkFetcherFactory
 import com.example.community_app.app.navigation.AppScaffold
 import com.example.community_app.app.navigation.Route
 import com.example.community_app.app.navigation.TopLevelDestination
@@ -42,11 +45,13 @@ import com.example.community_app.ticket.presentation.ticket_edit.TicketEditScree
 import com.example.community_app.ticket.presentation.ticket_master.TicketMasterScreenRoot
 import dev.icerock.moko.permissions.PermissionsController
 import dev.icerock.moko.permissions.compose.BindEffect
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinMultiplatformApplication
 import org.koin.compose.koinInject
 import org.koin.core.annotation.KoinExperimentalAPI
+import org.koin.core.qualifier.named
 
 @OptIn(KoinExperimentalAPI::class)
 @Composable
@@ -55,6 +60,15 @@ fun App() {
   KoinMultiplatformApplication(
     config = createKoinConfiguration()
   ) {
+    val authClient = koinInject<HttpClient>(named("authClient"))
+    setSingletonImageLoaderFactory { context ->
+      ImageLoader.Builder(context)
+        .components {
+          add(KtorNetworkFetcherFactory(authClient))
+        }
+        .build()
+    }
+
     val permissionsController = koinInject<PermissionsController>()
     BindEffect(permissionsController)
 

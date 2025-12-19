@@ -78,8 +78,12 @@ import com.example.community_app.ticket.domain.usecase.detail.SyncTicketImagesUs
 import com.example.community_app.ticket.domain.usecase.detail.VoteTicketUseCase
 import com.example.community_app.ticket.domain.usecase.edit.AddLocalImageUseCase
 import com.example.community_app.ticket.domain.usecase.edit.DeleteTicketDataUseCase
+import com.example.community_app.ticket.domain.usecase.edit.DiscardLocalImagesUseCase
 import com.example.community_app.ticket.domain.usecase.edit.GetTicketEditDetailsUseCase
+import com.example.community_app.ticket.domain.usecase.edit.RemoveTicketImageUseCase
+import com.example.community_app.ticket.domain.usecase.edit.SaveDraftUseCase
 import com.example.community_app.ticket.domain.usecase.edit.UpdateTicketUseCase
+import com.example.community_app.ticket.domain.usecase.edit.UploadDraftUseCase
 import com.example.community_app.ticket.domain.usecase.master.FilterTicketsUseCase
 import com.example.community_app.ticket.domain.usecase.master.ObserveCommunityTicketsUseCase
 import com.example.community_app.ticket.domain.usecase.master.ObserveMyTicketsUseCase
@@ -184,10 +188,14 @@ val sharedModule = module {
   factoryOf(::SyncTicketImagesUseCase)
   factoryOf(::VoteTicketUseCase)
 
+  factoryOf(::GetTicketEditDetailsUseCase)
   factoryOf(::AddLocalImageUseCase)
   factoryOf(::DeleteTicketDataUseCase)
-  factoryOf(::GetTicketEditDetailsUseCase)
   factoryOf(::UpdateTicketUseCase)
+  factoryOf(::DiscardLocalImagesUseCase)
+  factoryOf(::SaveDraftUseCase)
+  factoryOf(::UploadDraftUseCase)
+  factoryOf(::RemoveTicketImageUseCase)
 
   factoryOf(::ObserveOfficesUseCase)
   factoryOf(::FilterOfficesUseCase)

@@ -81,14 +81,15 @@ private fun InfoDetailScreen(
         checked = state.info?.isFavorite ?: false,
         onCheckedChange = { onAction(InfoDetailAction.OnToggleFavorite) },
         colors = IconButtonDefaults.filledIconToggleButtonColors(
-          checkedContainerColor = Color(0xFFFFD700),
-          disabledContainerColor = MaterialTheme.colorScheme.primary
+          contentColor = Color(0xFFFFD700),
+          checkedContentColor = MaterialTheme.colorScheme.primary,
+          containerColor = MaterialTheme.colorScheme.primary,
+          checkedContainerColor = Color(0xFFFFD700)
         )
       ) {
         Icon(
           imageVector = FeatherIcons.Star,
           contentDescription = null,
-          tint = MaterialTheme.colorScheme.onPrimary,
           modifier = Modifier.size(28.dp)
         )
       }

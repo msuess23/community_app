@@ -145,7 +145,7 @@ fun InfoTicketDetailContent(
                 Icon(
                   imageVector = FeatherIcons.ThumbsUp,
                   contentDescription = null,
-                  tint = if (isFavorite) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant,
+                  tint = if (isVoted) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant,
                   modifier = Modifier.size(28.dp)
                 )
               }
