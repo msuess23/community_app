@@ -27,11 +27,25 @@ import com.example.community_app.core.data.permission.MokoPermissionService
 import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
+import com.example.community_app.auth.domain.usecase.RequestPasswordResetUseCase
 import com.example.community_app.core.data.local.favorite.FavoriteDao
 import com.example.community_app.core.data.sync.SyncManager
 import com.example.community_app.core.domain.calendar.usecase.GetCalendarSyncStateUseCase
 import com.example.community_app.core.domain.usecase.CheckStatusUpdatesUseCase
 import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
+import com.example.community_app.geocoding.data.local.AddressDao
+import com.example.community_app.geocoding.data.network.KtorRemoteGeocodingDataSource
+import com.example.community_app.geocoding.data.network.RemoteGeocodingDataSource
+import com.example.community_app.geocoding.data.repository.DefaultAddressRepository
+import com.example.community_app.geocoding.data.repository.DefaultGeocodingRepository
+import com.example.community_app.geocoding.domain.AddressRepository
+import com.example.community_app.geocoding.domain.GeocodingRepository
+import com.example.community_app.geocoding.domain.usecase.AddToAddressHistoryUseCase
+import com.example.community_app.geocoding.domain.usecase.GetAddressFromLocationUseCase
+import com.example.community_app.geocoding.domain.usecase.GetAddressHistoryUseCase
+import com.example.community_app.geocoding.domain.usecase.GetHomeAddressUseCase
+import com.example.community_app.geocoding.domain.usecase.SearchAddressUseCase
+import com.example.community_app.geocoding.domain.usecase.SetHomeAddressUseCase
 import com.example.community_app.info.data.local.InfoDao
 import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
 import com.example.community_app.info.data.network.RemoteInfoDataSource
@@ -63,6 +77,9 @@ import com.example.community_app.profile.data.network.KtorRemoteUserDataSource
 import com.example.community_app.profile.data.network.RemoteUserDataSource
 import com.example.community_app.profile.data.repository.DefaultUserRepository
 import com.example.community_app.profile.domain.UserRepository
+import com.example.community_app.profile.domain.usecase.GetProfileDataUseCase
+import com.example.community_app.profile.domain.usecase.LogoutUserUseCase
+import com.example.community_app.profile.domain.usecase.UpdateUserProfileUseCase
 import com.example.community_app.profile.presentation.ProfileViewModel
 import com.example.community_app.settings.data.DefaultSettingsRepository
 import com.example.community_app.settings.domain.SettingsRepository
@@ -147,6 +164,10 @@ val sharedModule = module {
     KtorRemoteUserDataSource(httpClient = get(named("authClient")))
   }
 
+  single<RemoteGeocodingDataSource> {
+    KtorRemoteGeocodingDataSource(httpClient = get(named("publicClient")))
+  }
+
 
   // --- REPOSITORIES ---
   single<InfoDao> { get<AppDatabase>().infoDao() }
@@ -156,6 +177,7 @@ val sharedModule = module {
   single<AppointmentDao> { get<AppDatabase>().appointmentDao() }
   single<FavoriteDao> { get<AppDatabase>().favoriteDao() }
   single<UserDao> { get<AppDatabase>().userDao() }
+  single<AddressDao> { get<AppDatabase>().addressHistoryDao() }
 
   singleOf(::SyncManager)
 
@@ -167,9 +189,17 @@ val sharedModule = module {
   singleOf(::DefaultOfficeRepository).bind<OfficeRepository>()
   singleOf(::DefaultAppointmentRepository).bind<AppointmentRepository>()
   singleOf(::DefaultUserRepository).bind<UserRepository>()
+  singleOf(::DefaultGeocodingRepository).bind<GeocodingRepository>()
+  singleOf(::DefaultAddressRepository).bind<AddressRepository>()
 
   // --- USE CASES ---
   factoryOf(::IsUserLoggedInUseCase)
+  factoryOf(::RequestPasswordResetUseCase)
+
+  factoryOf(::LogoutUserUseCase)
+  factoryOf(::GetProfileDataUseCase)
+  factoryOf(::UpdateUserProfileUseCase)
+
   factoryOf(::FetchUserLocationUseCase)
   factoryOf(::ToggleFavoriteUseCase)
   factoryOf(::GetCalendarSyncStateUseCase)
@@ -209,6 +239,13 @@ val sharedModule = module {
   factoryOf(::CancelAppointmentUseCase)
   factoryOf(::CheckStatusUpdatesUseCase)
   factoryOf(::ScheduleAppointmentRemindersUseCase)
+
+  factoryOf(::SearchAddressUseCase)
+  factoryOf(::GetAddressFromLocationUseCase)
+  factoryOf(::GetHomeAddressUseCase)
+  factoryOf(::SetHomeAddressUseCase)
+  factoryOf(::GetAddressHistoryUseCase)
+  factoryOf(::AddToAddressHistoryUseCase)
 
   // --- VIEW MODELS ---
   viewModelOf(::LoginViewModel)
