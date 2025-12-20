@@ -1,6 +1,6 @@
 package com.example.community_app.office.domain
 
-import com.example.community_app.core.domain.model.Address
+import com.example.community_app.geocoding.domain.Address
 
 data class Office(
   val id: Int,

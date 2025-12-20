@@ -1,7 +1,7 @@
 package com.example.community_app.office.domain.usecase
 
 import com.example.community_app.core.domain.location.Location
-import com.example.community_app.core.domain.model.Address
+import com.example.community_app.geocoding.domain.Address
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.core.util.GeoUtil
 import com.example.community_app.office.domain.Office

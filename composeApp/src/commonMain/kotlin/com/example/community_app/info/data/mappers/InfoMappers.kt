@@ -1,6 +1,6 @@
 package com.example.community_app.info.data.mappers
 
-import com.example.community_app.core.domain.model.Address
+import com.example.community_app.geocoding.domain.Address
 import com.example.community_app.dto.InfoDto
 import com.example.community_app.info.data.local.InfoAddressEntity
 import com.example.community_app.info.data.local.InfoEntity

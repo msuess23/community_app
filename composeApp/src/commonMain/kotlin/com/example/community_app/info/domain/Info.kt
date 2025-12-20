@@ -1,6 +1,6 @@
 package com.example.community_app.info.domain
 
-import com.example.community_app.core.domain.model.Address
+import com.example.community_app.geocoding.domain.Address
 import com.example.community_app.util.InfoCategory
 import com.example.community_app.util.InfoStatus
 

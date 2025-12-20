@@ -1,6 +1,6 @@
 package com.example.community_app.ticket.domain
 
-import com.example.community_app.core.domain.model.Address
+import com.example.community_app.geocoding.domain.Address
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketStatus
 import com.example.community_app.util.TicketVisibility

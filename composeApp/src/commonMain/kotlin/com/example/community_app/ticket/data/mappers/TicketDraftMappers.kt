@@ -1,6 +1,6 @@
 package com.example.community_app.ticket.data.mappers
 
-import com.example.community_app.core.domain.model.Address
+import com.example.community_app.geocoding.domain.Address
 import com.example.community_app.ticket.data.local.draft.TicketDraftEntity
 import com.example.community_app.ticket.data.local.draft.TicketDraftWithImages
 import com.example.community_app.ticket.data.local.ticket.TicketAddressEntity

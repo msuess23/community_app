@@ -1,6 +1,6 @@
 package com.example.community_app.ticket.domain.usecase.edit
 
-import com.example.community_app.core.domain.model.Address
+import com.example.community_app.geocoding.domain.Address
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.core.util.getFileNameFromPath

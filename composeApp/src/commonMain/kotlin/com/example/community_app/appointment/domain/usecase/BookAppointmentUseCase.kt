@@ -4,7 +4,7 @@ import com.example.community_app.appointment.domain.AppointmentRepository
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.calendar.CalendarManager
-import com.example.community_app.core.domain.model.Address
+import com.example.community_app.geocoding.domain.Address
 import com.example.community_app.core.presentation.state.SyncStatus
 import com.example.community_app.core.util.parseIsoToMillis
 import com.example.community_app.office.domain.Office
