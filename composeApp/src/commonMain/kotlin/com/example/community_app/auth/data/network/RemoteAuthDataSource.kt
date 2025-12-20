@@ -10,6 +10,7 @@ import com.example.community_app.dto.TokenResponse
 interface RemoteAuthDataSource {
   suspend fun login(request: LoginDto): Result<TokenResponse, DataError.Remote>
   suspend fun register(request: RegisterDto): Result<TokenResponse, DataError.Remote>
+  suspend fun logout(): Result<Unit, DataError.Remote>
   suspend fun forgotPassword(email: String): Result<Unit, DataError.Remote>
   suspend fun resetPassword(request: ResetPasswordRequest): Result<TokenResponse, DataError.Remote>
 }

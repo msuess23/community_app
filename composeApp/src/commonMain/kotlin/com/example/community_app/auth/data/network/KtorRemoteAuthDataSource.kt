@@ -32,6 +32,12 @@ class KtorRemoteAuthDataSource(
     }
   }
 
+  override suspend fun logout(): Result<Unit, DataError.Remote> {
+    return safeCall {
+      httpClient.post("$BASE_URL/api/auth/logout")
+    }
+  }
+
   override suspend fun forgotPassword(email: String): Result<Unit, DataError.Remote> {
     return safeCall {
       httpClient.post("$BASE_URL/api/auth/forgot-password") {

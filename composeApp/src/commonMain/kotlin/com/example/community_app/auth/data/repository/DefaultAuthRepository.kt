@@ -49,8 +49,8 @@ class DefaultAuthRepository(
   }
 
   override suspend fun logout() {
+    remoteAuthDataSource.logout()
     clearSession()
-    userDao.clearUser()
   }
 
   override suspend fun forgotPassword(email: String): Result<Unit, DataError.Remote> {

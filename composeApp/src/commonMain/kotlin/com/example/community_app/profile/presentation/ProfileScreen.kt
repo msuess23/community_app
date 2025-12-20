@@ -31,9 +31,12 @@ import com.example.community_app.core.presentation.components.ObserveErrorMessag
 import com.example.community_app.core.presentation.components.TopBarNavigationType
 import com.example.community_app.core.presentation.components.button.CommunityButton
 import com.example.community_app.core.presentation.components.button.CommunityOutlinedButton
+import com.example.community_app.core.presentation.components.detail.CommunityAddressCard
 import com.example.community_app.core.presentation.components.dialog.CommunityDialog
+import com.example.community_app.core.presentation.components.input.CommunityCheckbox
 import com.example.community_app.core.presentation.components.input.CommunityTextField
 import com.example.community_app.core.presentation.theme.Spacing
+import com.example.community_app.geocoding.presentation.AddressSearchOverlay
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.auth_forgot_password_dialog_text
 import community_app.composeapp.generated.resources.auth_forgot_password_dialog_title
@@ -44,9 +47,9 @@ import community_app.composeapp.generated.resources.auth_otp_label
 import community_app.composeapp.generated.resources.auth_reset_password_label
 import community_app.composeapp.generated.resources.cancel
 import community_app.composeapp.generated.resources.profile_label
-import community_app.composeapp.generated.resources.save
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Check
+import compose.icons.feathericons.Edit2
 import compose.icons.feathericons.LogOut
 import compose.icons.feathericons.User
 import org.jetbrains.compose.resources.stringResource
@@ -142,15 +145,21 @@ private fun ProfileScreen(
         }
 
         CommunityTextField(
-          value = state.displayName,
+          value = state.editName,
           onValueChange = { onAction(ProfileAction.OnDisplayNameChange(it)) },
           label = Res.string.auth_name_label,
           singleLine = true,
           trailingIcon = {
             IconButton(onClick = { onAction(ProfileAction.OnSaveProfile) }) {
-              Icon(FeatherIcons.Check, null)
+              Icon(if (state.isEditing) FeatherIcons.Check else FeatherIcons.Edit2, null)
             }
           }
+        )
+
+        CommunityAddressCard(
+          address = state.homeAddress,
+          onClick = { onAction(ProfileAction.OnAddressSearchActiveChange(true)) },
+          label = "Adresse auswählen"
         )
 
         HorizontalDivider()
@@ -184,13 +193,28 @@ private fun ProfileScreen(
   if (state.showLogoutDialog) {
     CommunityDialog(
       title = Res.string.auth_logout_label,
-      text = Res.string.auth_logout_dialog,
       onDismissRequest = { onAction(ProfileAction.OnLogoutCancel) },
       confirmButtonText = Res.string.auth_logout_label,
       onConfirm = { onAction(ProfileAction.OnLogoutConfirm) },
       dismissButtonText = Res.string.cancel,
       onDismiss = { onAction(ProfileAction.OnLogoutCancel) }
-    )
+    ) {
+      Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Spacing.medium)
+      ) {
+        Text(
+          text = stringResource(Res.string.auth_logout_dialog),
+          style = MaterialTheme.typography.bodyMedium
+        )
+
+        CommunityCheckbox(
+          label = Res.string.auth_otp_label, // TODO
+          checked = state.isLogoutClearDataChecked,
+          onCheckChange = { onAction(ProfileAction.OnLogoutClearDataChange(!state.isLogoutClearDataChecked)) }
+        )
+      }
+    }
   }
 
   // --- Reset Password Dialog ---
@@ -201,6 +225,16 @@ private fun ProfileScreen(
       onDismissRequest = { },
       confirmButtonText = Res.string.auth_otp_label,
       onConfirm = { onAction(ProfileAction.OnChangePasswordConfirm) }
+    )
+  }
+
+  if (state.isAddressSearchActive) {
+    AddressSearchOverlay(
+      query = state.addressSearchQuery,
+      onQueryChange = { onAction(ProfileAction.OnAddressQueryChange(it)) },
+      suggestions = state.addressSugestions,
+      onAddressClick = { onAction(ProfileAction.OnSelectAddress(it)) },
+      onBackClick = { onAction(ProfileAction.OnAddressSearchActiveChange(false)) }
     )
   }
 }
