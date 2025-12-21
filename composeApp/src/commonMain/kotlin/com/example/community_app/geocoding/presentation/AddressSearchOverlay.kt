@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.example.community_app.core.presentation.components.LocationGuard
 import com.example.community_app.geocoding.domain.Address
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.search_address_current_location
@@ -85,8 +86,8 @@ fun AddressSearchOverlay(
       onExpandedChange = { }
     ) {
       LazyColumn {
-        if (isLocationAvailable) {
-          item {
+        item {
+          LocationGuard {
             ListItem(
               headlineContent = {
                 Text(stringResource(Res.string.search_address_current_location))
