@@ -1,9 +1,11 @@
 package com.example.community_app.auth.presentation.components
 
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.example.community_app.core.presentation.components.input.CommunityTextField
@@ -19,6 +21,8 @@ fun EmailTextField(
   modifier: Modifier = Modifier,
   imeAction: ImeAction = ImeAction.Next
 ) {
+  val focusManager = LocalFocusManager.current
+
   CommunityTextField(
     value = value,
     onValueChange = onValueChange,
@@ -27,6 +31,9 @@ fun EmailTextField(
     keyboardOptions = KeyboardOptions(
       keyboardType = KeyboardType.Email,
       imeAction = imeAction
+    ),
+    keyboardActions = KeyboardActions(
+      onDone = { focusManager.clearFocus() }
     ),
     modifier = modifier
   )

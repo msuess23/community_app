@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -32,6 +33,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -42,7 +44,6 @@ import com.example.community_app.core.presentation.components.TopBarNavigationTy
 import com.example.community_app.core.presentation.components.button.CommunityButton
 import com.example.community_app.core.presentation.components.detail.CommunityAddressCard
 import com.example.community_app.core.presentation.components.dialog.CommunityDialog
-import com.example.community_app.core.presentation.components.input.CommunityCheckbox
 import com.example.community_app.core.presentation.components.input.CommunityDropdownMenu
 import com.example.community_app.core.presentation.components.input.CommunityTextField
 import com.example.community_app.core.presentation.helpers.toUiText
@@ -50,7 +51,6 @@ import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.ImagePickerFactory
 import com.example.community_app.geocoding.presentation.AddressSearchOverlay
 import com.example.community_app.office.presentation.office_master.component.OfficeListItem
-import com.example.community_app.profile.presentation.ProfileAction
 import com.example.community_app.ticket.presentation.ticket_edit.component.ImageSelectionSection
 import com.example.community_app.ticket.presentation.ticket_edit.component.OfficePlaceholderCard
 import com.example.community_app.ticket.presentation.ticket_edit.component.OfficeSearchOverlay
@@ -75,7 +75,6 @@ import community_app.composeapp.generated.resources.ticket_upload_dialog_text
 import community_app.composeapp.generated.resources.ticket_visibility_info_text
 import community_app.composeapp.generated.resources.ticket_visibility_label
 import community_app.composeapp.generated.resources.upload
-import community_app.composeapp.generated.resources.use_current_location
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Camera
 import compose.icons.feathericons.Image
@@ -118,6 +117,7 @@ private fun TicketEditScreen(
 ) {
   val snackbarHostState = remember { SnackbarHostState() }
   var expanded by rememberSaveable { mutableStateOf(false) }
+  val focusManager = LocalFocusManager.current
 
   // Image Picker Integration
   val imagePicker = ImagePickerFactory().createPicker()
@@ -186,6 +186,9 @@ private fun TicketEditScreen(
           keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text,
             imeAction = ImeAction.Done
+          ),
+          keyboardActions = KeyboardActions(
+            onDone = { focusManager.clearFocus() }
           ),
           modifier = Modifier.height(120.dp)
         )

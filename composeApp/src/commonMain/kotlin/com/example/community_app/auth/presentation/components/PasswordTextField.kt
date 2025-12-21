@@ -1,11 +1,13 @@
 package com.example.community_app.auth.presentation.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -29,6 +31,8 @@ fun PasswordTextField(
   label: StringResource = Res.string.auth_password_label,
   imeAction: ImeAction = ImeAction.Done
 ) {
+  val focusManager = LocalFocusManager.current
+
   CommunityTextField(
     value = value,
     onValueChange = onValueChange,
@@ -46,6 +50,9 @@ fun PasswordTextField(
     keyboardOptions = KeyboardOptions(
       keyboardType = KeyboardType.Password,
       imeAction = imeAction
+    ),
+    keyboardActions = KeyboardActions(
+      onDone = { focusManager.clearFocus() }
     ),
     modifier = modifier
   )
