@@ -1,6 +1,5 @@
 package com.example.community_app.info.presentation.info_master
 
-import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.presentation.components.search.FilterSection
 import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.info.domain.Info
@@ -24,6 +23,10 @@ data class InfoFilterState(
   val expandedSections: Set<FilterSection> = setOf(FilterSection.CATEGORY)
 )
 
-enum class InfoSortOption {
-  DATE_DESC, DATE_ASC, ALPHABETICAL
+enum class InfoSortOption(val requiresLocation: Boolean = false) {
+  DATE_DESC,
+  DATE_ASC,
+  ALPHABETICAL,
+  FAVORITES,
+  DISTANCE(requiresLocation = true)
 }

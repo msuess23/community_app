@@ -30,6 +30,10 @@ data class TicketFilterState(
   val expandedSections: Set<FilterSection> = setOf(FilterSection.CATEGORY)
 )
 
-enum class TicketSortOption {
-  DATE_DESC, DATE_ASC, ALPHABETICAL
+enum class TicketSortOption(val requiresLocation: Boolean = false) {
+  DATE_DESC,
+  DATE_ASC,
+  ALPHABETICAL,
+  FAVORITES,
+  DISTANCE(requiresLocation = true)
 }

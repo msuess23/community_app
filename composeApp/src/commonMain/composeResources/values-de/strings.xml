@@ -92,6 +92,7 @@
     <string name="sorting_latest">Neueste zuerst</string>
     <string name="sorting_oldest">Älteste zuerst</string>
     <string name="sorting_alphabetical">Alphabetisch (A-Z)</string>
+    <string name="sorting_favorites">Favoriten zuerst</string>
     <!-- Address -->
     <string name="search_address_current_location">aktuellen Standort verwenden</string>
 

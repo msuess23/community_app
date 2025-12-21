@@ -53,6 +53,21 @@ class FilterInfosUseCase(
       InfoSortOption.DATE_DESC -> result.sortedByDescending { it.startsAt }
       InfoSortOption.DATE_ASC -> result.sortedBy { it.startsAt }
       InfoSortOption.ALPHABETICAL -> result.sortedBy { it.title }
+      InfoSortOption.FAVORITES -> result.sortedByDescending { it.isFavorite }
+      InfoSortOption.DISTANCE -> {
+        if (userLocation != null) {
+          result.sortedBy { info ->
+            if (info.address != null) {
+              val infoLoc = Location(info.address.latitude, info.address.longitude)
+              GeoUtil.calculateDistanceKm(userLocation, infoLoc)
+            } else {
+              Double.MAX_VALUE
+            }
+          }
+        } else {
+          result
+        }
+      }
     }
 
     return result

@@ -92,6 +92,7 @@
     <string name="sorting_latest">Latest first</string>
     <string name="sorting_oldest">Oldest first</string>
     <string name="sorting_alphabetical">Alphabetical (A-Z)</string>
+    <string name="sorting_favorites">Favourites first</string>
 
     <!-- Category -->
     <string name="category_singular">Category</string>

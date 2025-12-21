@@ -73,6 +73,28 @@ class FilterTicketsUseCase(
       TicketSortOption.DATE_DESC -> result.sortedByDescending { getSortDate(it) }
       TicketSortOption.DATE_ASC -> result.sortedBy { getSortDate(it) }
       TicketSortOption.ALPHABETICAL -> result.sortedBy { getTitle(it) }
+      TicketSortOption.FAVORITES -> result.sortedByDescending { item ->
+        (item as? TicketListItem.Remote)?.ticket?.isFavorite == true
+      }
+      TicketSortOption.DISTANCE -> {
+        if (userLocation != null) {
+          result.sortedBy { item ->
+            val address = when(item) {
+              is TicketListItem.Remote -> item.ticket.address
+              is TicketListItem.Local -> item.draft.address
+            }
+
+            if (address != null) {
+              val itemLoc = Location(address.latitude, address.longitude)
+              GeoUtil.calculateDistanceKm(userLocation, itemLoc)
+            } else {
+              Double.MAX_VALUE
+            }
+          }
+        } else {
+          result
+        }
+      }
     }
 
     return result

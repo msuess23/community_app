@@ -7,15 +7,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.community_app.core.presentation.components.rememberLocationAwareItems
 import com.example.community_app.core.presentation.components.search.CommunityFilterSheet
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketStatus
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.distance
 import community_app.composeapp.generated.resources.draft_show_filter
 import community_app.composeapp.generated.resources.sorting_alphabetical
+import community_app.composeapp.generated.resources.sorting_favorites
 import community_app.composeapp.generated.resources.sorting_latest
 import community_app.composeapp.generated.resources.sorting_oldest
 import org.jetbrains.compose.resources.stringResource
@@ -26,9 +30,17 @@ fun TicketFilterSheet(
   isCommunityTab: Boolean,
   onAction: (TicketMasterAction) -> Unit
 ) {
+  val tabAwareOptions = remember(isCommunityTab) {
+    TicketSortOption.entries.filter {
+      if (it == TicketSortOption.FAVORITES) isCommunityTab else true
+    }
+  }
+
+  val finalSortOptions = rememberLocationAwareItems(tabAwareOptions) { it.requiresLocation }
+
   CommunityFilterSheet(
     // State
-    sortOptions = TicketSortOption.entries,
+    sortOptions = finalSortOptions,
     selectedSort = filterState.sortBy,
     categories = TicketCategory.entries,
     selectedCategories = filterState.selectedCategories,
@@ -46,6 +58,8 @@ fun TicketFilterSheet(
         TicketSortOption.DATE_DESC -> stringResource(Res.string.sorting_latest)
         TicketSortOption.DATE_ASC -> stringResource(Res.string.sorting_oldest)
         TicketSortOption.ALPHABETICAL -> stringResource(Res.string.sorting_alphabetical)
+        TicketSortOption.FAVORITES -> stringResource(Res.string.sorting_favorites)
+        TicketSortOption.DISTANCE -> stringResource(Res.string.distance)
       }
     },
     categoryLabel = { it.toUiText().asString() },
