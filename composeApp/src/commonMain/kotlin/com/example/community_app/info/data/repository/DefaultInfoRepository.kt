@@ -16,6 +16,7 @@ import com.example.community_app.info.domain.Info
 import com.example.community_app.info.domain.InfoRepository
 import com.example.community_app.profile.domain.UserRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withTimeout
 import kotlin.collections.map
 
 class DefaultInfoRepository(
@@ -58,49 +60,58 @@ class DefaultInfoRepository(
   }
 
   override suspend fun refreshInfos(force: Boolean): Result<Unit, DataError.Remote> = coroutineScope {
-    val decision = syncManager.checkSyncStatus(
-      featureKey = "ticket",
-      forceRefresh = force
-    )
-
-    if (!decision.shouldFetch) {
-      return@coroutineScope Result.Success(Unit)
-    }
-
-    val bboxResult = remoteInfoDataSource.getInfos(decision.bboxString)
-
-    val allInfos = mutableListOf<InfoDto>()
-
-    when (bboxResult) {
-      is Result.Error -> return@coroutineScope Result.Error(bboxResult.error)
-      is Result.Success -> allInfos.addAll(bboxResult.data)
-    }
-
-    val user = userRepository.getUser().firstOrNull()
-    if (user != null) {
-      val loadedIds = allInfos.map { it.id }.toSet()
-      val favoriteIds = favoriteDao.getFavoriteIds(user.id, FavoriteType.INFO).first()
-      val missingFavs = favoriteIds.filter { it !in loadedIds }
-
-      if (missingFavs.isNotEmpty()) {
-        val favResults = missingFavs.map { id ->
-          async { remoteInfoDataSource.getInfo(id) }
-        }.awaitAll()
-
-        val fetchedFavorites = favResults.mapNotNull { if (it is Result.Success) it.data else null }
-        allInfos.addAll(fetchedFavorites)
-      }
-    }
-
-    val distinctInfos = allInfos.distinctBy { it.id }
-
     try {
-      val entities = distinctInfos.map { it.toEntity() }
-      infoDao.replaceAll(entities)
+      withTimeout(10_000L) {
+        val decision = syncManager.checkSyncStatus(
+          featureKey = "info",
+          forceRefresh = force
+        )
 
-      syncManager.updateSyncSuccess("info", decision.currentLocation)
+        if (!decision.shouldFetch) {
+          return@withTimeout Result.Success(Unit)
+        }
 
-      Result.Success(Unit)
+        val bboxResult = remoteInfoDataSource.getInfos(decision.bboxString)
+
+        val allInfos = mutableListOf<InfoDto>()
+
+        when (bboxResult) {
+          is Result.Error -> return@withTimeout Result.Error(bboxResult.error)
+          is Result.Success -> allInfos.addAll(bboxResult.data)
+        }
+
+        val user = userRepository.getUser().firstOrNull()
+        if (user != null) {
+          val loadedIds = allInfos.map { it.id }.toSet()
+          val favoriteIds = favoriteDao.getFavoriteIds(user.id, FavoriteType.INFO).first()
+          val missingFavs = favoriteIds.filter { it !in loadedIds }
+
+          if (missingFavs.isNotEmpty()) {
+            val favResults = missingFavs.map { id ->
+              async { remoteInfoDataSource.getInfo(id) }
+            }.awaitAll()
+
+            val fetchedFavorites = favResults.mapNotNull { if (it is Result.Success) it.data else null }
+            allInfos.addAll(fetchedFavorites)
+          }
+        }
+
+        val distinctInfos = allInfos.distinctBy { it.id }
+
+        try {
+          val entities = distinctInfos.map { it.toEntity() }
+          infoDao.replaceAll(entities)
+
+          syncManager.updateSyncSuccess("info", decision.currentLocation)
+
+          Result.Success(Unit)
+        } catch (e: Exception) {
+          e.printStackTrace()
+          Result.Error(DataError.Remote.UNKNOWN)
+        }
+      }
+    } catch (e: TimeoutCancellationException) {
+      Result.Error(DataError.Remote.REQUEST_TIMEOUT)
     } catch (e: Exception) {
       e.printStackTrace()
       Result.Error(DataError.Remote.UNKNOWN)

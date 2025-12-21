@@ -12,6 +12,7 @@ import com.example.community_app.core.util.GeoUtil
 import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.util.SERVER_FILTER_RADIUS_KM
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 
 data class SyncDecision(
   val shouldFetch: Boolean,
@@ -28,7 +29,15 @@ class SyncManager(
     forceRefresh: Boolean,
     radiusKm: Double = SERVER_FILTER_RADIUS_KM
   ): SyncDecision {
-    val currentLocation = fetchUserLocation().location
+    val fetchResult = withTimeoutOrNull(3000L) {
+      try {
+        fetchUserLocation()
+      } catch(_: Exception) {
+        null
+      }
+    }
+
+    val currentLocation = fetchResult?.location
 
     val keyTime = longPreferencesKey("${featureKey}_last_sync_time")
     val keyLat = doublePreferencesKey("${featureKey}_last_sync_lat")
