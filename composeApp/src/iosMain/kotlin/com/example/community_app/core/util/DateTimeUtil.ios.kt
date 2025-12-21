@@ -70,7 +70,15 @@ private fun formatDateObject(
   formatter.timeStyle = timeStyle
   formatter.locale = locale
 
-  return formatter.stringFromDate(date)
+  val formattedString = formatter.stringFromDate(date)
+
+  if (currentTag.startsWith("de")
+    && dateStyle == NSDateFormatterNoStyle
+    && timeStyle != NSDateFormatterNoStyle) {
+    return "$formattedString Uhr"
+  }
+
+  return formattedString
 }
 
 actual fun getStartOfDay(millis: Long): Long {
