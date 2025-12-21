@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.core.presentation.components.detail.CommunityAddressCard
 import com.example.community_app.core.presentation.components.detail.DetailScreenLayout
-import com.example.community_app.core.presentation.components.detail.MapPlaceholder
 import com.example.community_app.core.presentation.components.dialog.CommunityDialog
 import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatIsoDate
@@ -42,7 +40,6 @@ import community_app.composeapp.generated.resources.appointment_singular
 import community_app.composeapp.generated.resources.cancel
 import community_app.composeapp.generated.resources.point_in_time
 import community_app.composeapp.generated.resources.no
-import community_app.composeapp.generated.resources.office_singular
 import community_app.composeapp.generated.resources.yes
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Mail
@@ -113,15 +110,23 @@ private fun AppointmentDetailScreen(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
       ) {
-        Column(Modifier.padding(Spacing.medium)) {
+        Column(
+          modifier = Modifier.padding(Spacing.medium),
+          verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
           Text(
             text = stringResource(Res.string.point_in_time),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onPrimaryContainer
           )
-          Spacer(Modifier.height(4.dp))
           Text(
-            text = "${formatIsoDate(appointment.startsAt)}, ${formatIsoTime(appointment.startsAt)} - ${formatIsoTime(appointment.endsAt)}",
+            text = formatIsoDate(appointment.startsAt),
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            fontWeight = FontWeight.Bold
+          )
+          Text(
+            text = "${formatIsoTime(appointment.startsAt)} - ${formatIsoTime(appointment.endsAt)}",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
             fontWeight = FontWeight.Bold
@@ -131,12 +136,6 @@ private fun AppointmentDetailScreen(
 
       // Office
       if (office != null) {
-        Text(
-          text = stringResource(Res.string.office_singular),
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.onSurface,
-          fontWeight = FontWeight.Bold
-        )
         Card(
           modifier = Modifier.fillMaxWidth(),
           colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
@@ -170,8 +169,6 @@ private fun AppointmentDetailScreen(
         }
 
         CommunityAddressCard(address = office.address)
-
-        MapPlaceholder()
       }
     }
   }

@@ -15,6 +15,7 @@ import com.example.community_app.core.presentation.components.detail.DetailScree
 import com.example.community_app.core.presentation.components.detail.InfoTicketDetailContent
 import com.example.community_app.core.presentation.components.detail.StatusHistoryUiItem
 import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.core.util.toIso8601
 import com.example.community_app.util.TicketStatus
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.draft_label
@@ -72,6 +73,11 @@ private fun TicketDetailScreen(
     ?: state.draft?.category?.toUiText()?.asString() ?: "-"
   val displayDesc = state.ticket?.description ?: state.draft?.description
   val displayStatus = state.ticket?.currentStatus?.toUiText()?.asString()
+  val displayDate = if (state.isDraft) {
+     toIso8601(state.draft?.lastModified?.toLong() ?: 0)
+  } else {
+    state.ticket?.createdAt
+  }
 
   val historyUiItems = state.statusHistory.map { dto ->
     StatusHistoryUiItem(
@@ -116,7 +122,7 @@ private fun TicketDetailScreen(
       description = displayDesc,
       images = state.imageUrls,
       statusText = displayStatus,
-      startDate = null,
+      startDate = displayDate,
       endDate = null,
       onStatusClick = { onAction(TicketDetailAction.OnShowStatusHistory) },
       address = state.ticket?.address,

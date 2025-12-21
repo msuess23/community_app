@@ -16,13 +16,16 @@
     <string name="camera">Kamera</string>
     <string name="gallery">Galerie</string>
     <string name="point_in_time">Zeitpunkt</string>
+    <string name="date">Datum</string>
     <string name="distance">Distanz</string>
     <string name="okay">OK</string>
     <string name="book">Buchen</string>
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
-    <string name="from">Von</string>
-    <string name="until">Bis</string>
+    <string name="from">von</string>
+    <string name="until">bis</string>
+    <string name="at">um</string>
+    <string name="on">am</string>
 
     <!-- Info -->
     <string name="info_singular">Information</string>
@@ -59,6 +62,10 @@
     <string name="ticket_responsible_office_label">Zuständige Behörde auswählen</string>
     <string name="ticket_empty_address_info">Standort auswählen</string>
     <string name="ticket_add_image">Bild hinzufügen</string>
+    <!-- DateTime -->
+    <string name="ticket_uploaded_at">Hochgeladen am</string>
+    <string name="draft_last_edited">Zuletzt bearbeitet</string>
+
 
     <!-- Office -->
     <string name="office_singular">Behörde</string>

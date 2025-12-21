@@ -3,22 +3,17 @@ package com.example.community_app.core.presentation.components.detail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
@@ -65,10 +60,12 @@ fun InfoTicketDetailContent(
   onToggleFavorite: () -> Unit = {},
   onVote: () -> Unit = {}
 ) {
+  val scrollState = rememberScrollState()
+
   Column(
     modifier = Modifier
       .fillMaxSize()
-      .verticalScroll(rememberScrollState())
+      .verticalScroll(scrollState)
   ) {
     if (images.isNotEmpty()) {
       ImageGallery(
@@ -109,6 +106,15 @@ fun InfoTicketDetailContent(
             modifier = Modifier.padding(bottom = 8.dp)
           )
         }
+      }
+
+      if (startDate != null) {
+        DetailTimeSection(
+          startDate = startDate,
+          endDate = endDate,
+          isInfo = isInfo,
+          isDraft = isDraft
+        )
       }
 
       description?.let { desc ->
@@ -209,9 +215,9 @@ fun InfoTicketDetailContent(
 
       if (address != null) {
         CommunityAddressCard(address = address)
-        Spacer(modifier = Modifier.height(16.dp))
-        MapPlaceholder()
       }
     }
   }
 }
+
+
