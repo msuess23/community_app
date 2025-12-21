@@ -5,10 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
-import com.example.community_app.core.data.local.favorite.FavoriteType
-import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.info.domain.usecase.GetInfoDetailUseCase
+import com.example.community_app.info.domain.usecase.ToggleInfoFavoriteUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -18,7 +17,7 @@ import kotlinx.coroutines.launch
 class InfoDetailViewModel(
   savedStateHandle: SavedStateHandle,
   private val getInfoDetail: GetInfoDetailUseCase,
-  private val toggleFavoriteUseCase: ToggleFavoriteUseCase
+  private val toggleFavoriteUseCase: ToggleInfoFavoriteUseCase
 ) : ViewModel() {
   private val infoId = savedStateHandle.toRoute<Route.InfoDetail>().id
 
@@ -63,7 +62,6 @@ class InfoDetailViewModel(
     viewModelScope.launch {
       toggleFavoriteUseCase(
         itemId = currentInfo.id,
-        type = FavoriteType.INFO,
         isFavorite = !currentInfo.isFavorite
       )
     }

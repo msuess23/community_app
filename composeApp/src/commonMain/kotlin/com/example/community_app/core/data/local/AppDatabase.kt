@@ -34,7 +34,7 @@ import com.example.community_app.ticket.data.local.ticket.TicketEntity
     UserEntity::class,
     AddressEntity::class
   ],
-  version = 10
+  version = 11
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {

@@ -8,7 +8,7 @@ import com.example.community_app.ticket.domain.TicketDraft
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
 
-fun TicketDraft.toEntity(): TicketDraftEntity {
+fun TicketDraft.toEntity(userId: Int): TicketDraftEntity {
   return TicketDraftEntity(
     id = id,
     title = title,
@@ -26,7 +26,8 @@ fun TicketDraft.toEntity(): TicketDraftEntity {
       )
     },
     visibility = visibility.name,
-    lastModified = lastModified
+    lastModified = lastModified,
+    userId = userId
   )
 }
 

@@ -12,12 +12,15 @@ interface FavoriteDao {
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun addFavorite(favorite: FavoriteEntity)
 
+  @Query("SELECT itemId FROM favorites WHERE userId = :userId AND type = :type")
+  fun getFavoriteIds(userId: Int, type: FavoriteType): Flow<List<Int>>
+
+  @Query("SELECT EXISTS(SELECT 1 FROM favorites WHERE userId = :userId AND itemId = :itemId AND type = :type)")
+  suspend fun isFavorite(userId: Int, itemId: Int, type: FavoriteType): Boolean
+
   @Delete
   suspend fun removeFavorite(favorite: FavoriteEntity)
 
-  @Query("SELECT itemId FROM favorites WHERE type = :type")
-  fun getFavoriteIds(type: FavoriteType): Flow<List<Int>>
-
-  @Query("SELECT COUNT(*) > 0 FROM favorites WHERE itemId = :itemId AND type = :type")
-  suspend fun isFavorite(itemId: Int, type: FavoriteType): Boolean
+  @Query("DELETE FROM favorites WHERE userId = :userId")
+  suspend fun clearFavoritesForUser(userId: Int)
 }

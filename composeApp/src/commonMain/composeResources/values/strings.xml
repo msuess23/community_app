@@ -190,7 +190,7 @@
     <string name="auth_reset_password_dialog_title">Password changed</string>
     <string name="auth_reset_password_dialog_text">Your password has been successfully changed.</string>
     <!-- Logout -->
-    <string name="auth_logout_delete_data">Delete data</string>
+    <string name="auth_logout_delete_data">Delete local data</string>
     <!-- Guard -->
     <string name="auth_guard_title">This area requires an account.</string>
     <string name="auth_guard_text">Please log in or register a new account.</string>

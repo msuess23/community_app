@@ -32,7 +32,6 @@ import com.example.community_app.core.data.local.favorite.FavoriteDao
 import com.example.community_app.core.data.sync.SyncManager
 import com.example.community_app.core.domain.calendar.usecase.GetCalendarSyncStateUseCase
 import com.example.community_app.core.domain.usecase.CheckStatusUpdatesUseCase
-import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
 import com.example.community_app.geocoding.data.local.AddressDao
 import com.example.community_app.geocoding.data.network.KtorRemoteGeocodingDataSource
 import com.example.community_app.geocoding.data.network.RemoteGeocodingDataSource
@@ -55,6 +54,7 @@ import com.example.community_app.info.domain.InfoRepository
 import com.example.community_app.info.domain.usecase.FilterInfosUseCase
 import com.example.community_app.info.domain.usecase.GetInfoDetailUseCase
 import com.example.community_app.info.domain.usecase.ObserveInfosUseCase
+import com.example.community_app.info.domain.usecase.ToggleInfoFavoriteUseCase
 import com.example.community_app.info.presentation.info_detail.InfoDetailViewModel
 import com.example.community_app.info.presentation.info_master.InfoMasterViewModel
 import com.example.community_app.media.data.network.KtorRemoteMediaDataSource
@@ -93,6 +93,7 @@ import com.example.community_app.ticket.data.repository.DefaultTicketRepository
 import com.example.community_app.ticket.domain.TicketRepository
 import com.example.community_app.ticket.domain.usecase.detail.ObserveTicketDetailUseCase
 import com.example.community_app.ticket.domain.usecase.detail.SyncTicketImagesUseCase
+import com.example.community_app.ticket.domain.usecase.detail.ToggleTicketFavoriteUseCase
 import com.example.community_app.ticket.domain.usecase.detail.VoteTicketUseCase
 import com.example.community_app.ticket.domain.usecase.edit.AddLocalImageUseCase
 import com.example.community_app.ticket.domain.usecase.edit.DeleteTicketDataUseCase
@@ -202,13 +203,13 @@ val sharedModule = module {
   factoryOf(::UpdateUserProfileUseCase)
 
   factoryOf(::FetchUserLocationUseCase)
-  factoryOf(::ToggleFavoriteUseCase)
   factoryOf(::GetCalendarSyncStateUseCase)
   factoryOf(::GetImagesUseCase)
 
   factoryOf(::ObserveInfosUseCase)
   factoryOf(::FilterInfosUseCase)
   factoryOf(::GetInfoDetailUseCase)
+  factoryOf(::ToggleInfoFavoriteUseCase)
 
   factoryOf(::ObserveTicketsUseCase)
   factoryOf(::ObserveCommunityTicketsUseCase)
@@ -218,6 +219,7 @@ val sharedModule = module {
   factoryOf(::ObserveTicketDetailUseCase)
   factoryOf(::SyncTicketImagesUseCase)
   factoryOf(::VoteTicketUseCase)
+  factoryOf(::ToggleTicketFavoriteUseCase)
 
   factoryOf(::GetTicketEditDetailsUseCase)
   factoryOf(::AddLocalImageUseCase)

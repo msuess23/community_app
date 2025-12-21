@@ -12,6 +12,7 @@ import com.example.community_app.dto.*
 import com.example.community_app.geocoding.data.mappers.toDto
 import com.example.community_app.geocoding.domain.Address
 import com.example.community_app.media.domain.MediaRepository
+import com.example.community_app.profile.domain.UserRepository
 import com.example.community_app.ticket.data.local.draft.TicketDraftDao
 import com.example.community_app.ticket.data.local.ticket.TicketDao
 import com.example.community_app.ticket.data.mappers.*
@@ -23,12 +24,17 @@ import com.example.community_app.ticket.domain.TicketStatusEntry
 import com.example.community_app.util.MediaTargetType
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class DefaultTicketRepository(
@@ -39,12 +45,13 @@ class DefaultTicketRepository(
   private val favoriteDao: FavoriteDao,
   private val syncManager: SyncManager,
   private val authRepository: AuthRepository,
+  private val userRepository: UserRepository,
   private val fileStorage: FileStorage
 ): TicketRepository {
   override fun getTickets(): Flow<List<Ticket>> {
     return combine(
       ticketDao.getTickets(),
-      favoriteDao.getFavoriteIds(FavoriteType.TICKET)
+      getFavoritesFlow()
     ) { entities, favoriteIds ->
       val favSet = favoriteIds.toSet()
       entities.map { it.toTicket().copy(isFavorite = it.id in favSet) }
@@ -54,7 +61,7 @@ class DefaultTicketRepository(
   override fun getTicket(id: Int): Flow<Ticket?> {
     return combine(
       ticketDao.getTicketById(id),
-      favoriteDao.getFavoriteIds(FavoriteType.TICKET)
+      getFavoritesFlow()
     ) { entity, favIds ->
       val isFav = id in favIds
       entity?.toTicket()?.copy(isFavorite = isFav)
@@ -64,7 +71,7 @@ class DefaultTicketRepository(
   override fun getCommunityTickets(userId: Int): Flow<List<Ticket>> {
     return combine(
       ticketDao.getCommunityTickets(userId),
-      favoriteDao.getFavoriteIds(FavoriteType.TICKET)
+      getFavoritesFlow()
     ) { entities, favoriteIds ->
       val favSet = favoriteIds.toSet()
       entities.map { it.toTicket().copy(isFavorite = it.id in favSet) }
@@ -110,17 +117,21 @@ class DefaultTicketRepository(
       else -> {}
     }
 
-    val loadedIds = allTickets.map { it.id }.toSet()
-    val favoriteIds = favoriteDao.getFavoriteIds(FavoriteType.TICKET).first()
-    val missingFavs = favoriteIds.filter { it !in loadedIds }
+    val user = userRepository.getUser().firstOrNull()
+    if (user != null) {
+      val loadedIds = allTickets.map { it.id }.toSet()
+      val favoriteIds = favoriteDao.getFavoriteIds(user.id, FavoriteType.TICKET).first()
+      val missingFavs = favoriteIds.filter { it !in loadedIds }
 
-    val favDeferreds = missingFavs.map { id ->
-      async { remoteTicketDataSource.getTicket(id) }
+      if (missingFavs.isNotEmpty()) {
+        val favResults = missingFavs.map { id ->
+          async { remoteTicketDataSource.getTicket(id) }
+        }.awaitAll()
+
+        val fetchedFavorites = favResults.mapNotNull { if (it is Result.Success) it.data else null }
+        allTickets.addAll(fetchedFavorites)
+      }
     }
-    val favResults = favDeferreds.awaitAll()
-
-    val fetchedFavorites = favResults.mapNotNull { if (it is Result.Success) it.data else null }
-    allTickets.addAll(fetchedFavorites)
 
     val distinctTickets = allTickets.distinctBy { it.id }
 
@@ -160,26 +171,38 @@ class DefaultTicketRepository(
     }
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   override fun getDrafts(): Flow<List<TicketDraft>> {
-    return ticketDraftDao.getDrafts().map { list ->
-      list.map {
-        val draft = it.toTicketDraft()
-        draft.copy(images = draft.images.map { name ->
-          fileStorage.getFullPath(name)
-        })
+    return userRepository.getUser().flatMapLatest { user ->
+      if (user != null) {
+        ticketDraftDao.getDrafts(user.id).map { list ->
+          list.map {
+            val draft = it.toTicketDraft()
+            draft.copy(images = draft.images.map { name ->
+              fileStorage.getFullPath(name)
+            })
+          }
+        }
+      } else {
+        flowOf(emptyList())
       }
     }
   }
 
+
   override suspend fun getDraft(id: Long): TicketDraft? {
-    val draft = ticketDraftDao.getDraftById(id)?.toTicketDraft() ?: return null
+    val user = userRepository.getUser().firstOrNull() ?: return null
+    val draftRelation = ticketDraftDao.getDraftById(id, user.id) ?: return null
+
+    val draft = draftRelation.toTicketDraft()
     return draft.copy(images = draft.images.map { name ->
       fileStorage.getFullPath(name)
     })
   }
 
   override suspend fun saveDraft(draft: TicketDraft): Long {
-    return ticketDraftDao.upsertDraftFull(draft.toEntity(), draft.images)
+    val user = userRepository.getUser().firstOrNull() ?: throw IllegalStateException("No user")
+    return ticketDraftDao.upsertDraftFull(draft.toEntity(user.id), draft.images)
   }
 
   override suspend fun deleteDraft(id: Long) {
@@ -253,7 +276,10 @@ class DefaultTicketRepository(
         val updatedTicket = ticketDao.getTicketById(id).first()?.toTicket()
           ?: result.data.toEntity().toTicket()
 
-        val isFav = favoriteDao.isFavorite(id, FavoriteType.TICKET)
+        val user = userRepository.getUser().firstOrNull()
+        val isFav = if (user != null) {
+          favoriteDao.isFavorite(user.id, id, FavoriteType.TICKET)
+        } else false
         Result.Success(updatedTicket.copy(isFavorite = isFav))
       }
       is Result.Error -> Result.Error(result.error)
@@ -292,11 +318,37 @@ class DefaultTicketRepository(
   }
 
   override suspend fun toggleFavorite(ticketId: Int, isFavorite: Boolean) {
-    val entity = FavoriteEntity(itemId = ticketId, type = FavoriteType.TICKET)
+    val user = userRepository.getUser().firstOrNull() ?: return
+
+    val entity = FavoriteEntity(
+      userId = user.id,
+      itemId = ticketId,
+      type = FavoriteType.TICKET
+    )
+
     if (isFavorite) {
       favoriteDao.addFavorite(entity)
     } else {
       favoriteDao.removeFavorite(entity)
     }
+  }
+
+  override suspend fun clearUserData() {
+    val user = userRepository.getUser().firstOrNull() ?: return
+    favoriteDao.clearFavoritesForUser(user.id)
+    ticketDraftDao.deleteDraftsForUser(user.id)
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  private fun getFavoritesFlow(): Flow<Set<Int>> {
+    return userRepository.getUser()
+      .distinctUntilChanged()
+      .flatMapLatest { user ->
+        if (user != null) {
+          favoriteDao.getFavoriteIds(user.id, FavoriteType.TICKET).map { it.toSet() }
+        } else {
+          flowOf(emptySet())
+        }
+      }
   }
 }

@@ -5,10 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
-import com.example.community_app.core.data.local.favorite.FavoriteType
-import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.ticket.domain.usecase.detail.ObserveTicketDetailUseCase
+import com.example.community_app.ticket.domain.usecase.detail.ToggleTicketFavoriteUseCase
 import com.example.community_app.ticket.domain.usecase.detail.VoteTicketUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,7 +18,7 @@ import kotlinx.coroutines.launch
 class TicketDetailViewModel(
   savedStateHandle: SavedStateHandle,
   private val observeTicketDetail: ObserveTicketDetailUseCase,
-  private val toggleFavorite: ToggleFavoriteUseCase,
+  private val toggleFavorite: ToggleTicketFavoriteUseCase,
   private val voteTicket: VoteTicketUseCase
 ) : ViewModel() {
   private val args = savedStateHandle.toRoute<Route.TicketDetail>()
@@ -69,7 +68,6 @@ class TicketDetailViewModel(
     viewModelScope.launch {
       toggleFavorite(
         itemId = currentTicket.id,
-        type = FavoriteType.TICKET,
         isFavorite = !currentTicket.isFavorite
       )
     }

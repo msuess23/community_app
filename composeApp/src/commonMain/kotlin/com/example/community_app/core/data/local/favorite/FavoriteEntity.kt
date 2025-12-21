@@ -9,10 +9,11 @@ enum class FavoriteType {
 
 @Entity(
   tableName = "favorites",
-  primaryKeys = ["itemId", "type"]
+  primaryKeys = ["userId", "itemId", "type"]
 )
 data class FavoriteEntity(
   val itemId: Int,
+  val userId: Int,
   val type: FavoriteType,
   val createdAt: Long = getCurrentTimeMillis()
 )

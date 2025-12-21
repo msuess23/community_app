@@ -41,4 +41,6 @@ interface TicketRepository {
   suspend fun unvoteTicket(id: Int): Result<Unit, DataError.Remote>
 
   suspend fun toggleFavorite(ticketId: Int, isFavorite: Boolean)
+
+  suspend fun clearUserData()
 }
