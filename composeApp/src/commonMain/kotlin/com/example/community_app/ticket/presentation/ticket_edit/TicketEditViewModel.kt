@@ -6,9 +6,15 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
 import com.example.community_app.core.domain.Result
+import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.domain.usecase.AddToAddressHistoryUseCase
+import com.example.community_app.geocoding.domain.usecase.GetAddressFromLocationUseCase
+import com.example.community_app.geocoding.domain.usecase.GetAddressSuggestionsUseCase
 import com.example.community_app.office.domain.Office
 import com.example.community_app.ticket.domain.EditableImage
+import com.example.community_app.ticket.domain.TicketEditInput
 import com.example.community_app.ticket.domain.usecase.edit.AddLocalImageUseCase
 import com.example.community_app.ticket.domain.usecase.edit.DeleteTicketDataUseCase
 import com.example.community_app.ticket.domain.usecase.edit.DiscardLocalImagesUseCase
@@ -18,9 +24,17 @@ import com.example.community_app.ticket.domain.usecase.edit.SaveDraftUseCase
 import com.example.community_app.ticket.domain.usecase.edit.UpdateTicketUseCase
 import com.example.community_app.ticket.domain.usecase.edit.UploadDraftUseCase
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -28,23 +42,42 @@ import kotlinx.coroutines.launch
 
 class TicketEditViewModel(
   savedStateHandle: SavedStateHandle,
-  private val observeTicketEditDataUseCase: GetTicketEditDetailsUseCase,
-  private val updateTicketUseCase: UpdateTicketUseCase,
-  private val deleteTicketDataUseCase: DeleteTicketDataUseCase,
-  private val addLocalImageUseCase: AddLocalImageUseCase,
-  private val saveDraftUseCase: SaveDraftUseCase,
-  private val uploadDraftUseCase: UploadDraftUseCase,
-  private val discardLocalImagesUseCase: DiscardLocalImagesUseCase
+  private val observeTicketEditData: GetTicketEditDetailsUseCase,
+  private val updateTicket: UpdateTicketUseCase,
+  private val deleteTicketData: DeleteTicketDataUseCase,
+  private val addLocalImage: AddLocalImageUseCase,
+  private val saveDraft: SaveDraftUseCase,
+  private val uploadDraft: UploadDraftUseCase,
+  private val discardLocalImages: DiscardLocalImagesUseCase,
+  private val getAddressSuggestions: GetAddressSuggestionsUseCase,
+  private val fetchUserLocation: FetchUserLocationUseCase,
+  private val getAddressFromLocation: GetAddressFromLocationUseCase,
+  private val addToAddressHistory: AddToAddressHistoryUseCase
 ) : ViewModel() {
-
   private val args = savedStateHandle.toRoute<Route.TicketEdit>()
   private val _state = MutableStateFlow(TicketEditState())
 
   private var imagesPendingDeletion: Set<TicketImageState> = emptySet()
   private var newlyAddedLocalUris: Set<String> = emptySet()
 
+  private val currentInput: TicketEditInput
+    get() = with(_state.value) {
+      TicketEditInput(
+        title = title,
+        description = description,
+        category = category,
+        visibility = visibility,
+        officeId = officeId,
+        address = selectedAddress,
+        images = images.map { EditableImage(it.uri, it.isLocal, it.id) }
+      )
+    }
+
   val state = _state
-    .onStart { loadData() }
+    .onStart {
+      loadData()
+      observeAddressSearchQuery()
+    }
     .stateIn(
       viewModelScope,
       SharingStarted.WhileSubscribed(5000L),
@@ -59,13 +92,26 @@ class TicketEditViewModel(
       is TicketEditAction.OnCategoryChange -> _state.update { it.copy(category = action.category) }
       is TicketEditAction.OnVisibilityChange -> _state.update { it.copy(visibility = action.visibility) }
 
-      // Location
-      is TicketEditAction.OnUseLocationChange -> _state.update { it.copy(useCurrentLocation = action.use) }
-
       // Office Search
       is TicketEditAction.OnOfficeQueryChange -> _state.update { it.copy(officeSearchQuery = action.query) }
       is TicketEditAction.OnOfficeSearchActiveChange -> toggleOfficeSearch(action.active)
       is TicketEditAction.OnSelectOffice -> selectOffice(action.office)
+
+      // Address Selection
+      is TicketEditAction.OnAddressSearchActiveChange -> {
+        _state.update {
+          it.copy(
+            isAddressSearchActive = action.active,
+            addressSearchQuery = if (!action.active) "" else it.addressSearchQuery
+          )
+        }
+        if (action.active) fetchCurrentLocation()
+      }
+      is TicketEditAction.OnAddressQueryChange -> {
+        _state.update { it.copy(addressSearchQuery = action.query) }
+      }
+      is TicketEditAction.OnSelectAddress -> selectAddress(action.address)
+      TicketEditAction.OnUseCurrentLocationClick -> useCurrentLocation()
 
       // Dialogs & Images
       TicketEditAction.OnAddImageClick -> _state.update { it.copy(showImageSourceDialog = true) }
@@ -91,7 +137,7 @@ class TicketEditViewModel(
     viewModelScope.launch {
       _state.update { it.copy(isLoading = true) }
 
-      observeTicketEditDataUseCase(args.ticketId, args.draftId).collect { result ->
+      observeTicketEditData(args.ticketId, args.draftId).collect { result ->
         when (result) {
           is Result.Success -> {
             val data = result.data
@@ -106,6 +152,7 @@ class TicketEditViewModel(
                   category = data.details.category,
                   visibility = data.details.visibility,
                   officeId = data.details.officeId,
+                  selectedAddress = data.details.address,
                   coverImageUri = data.details.coverImageUri,
                   images = data.details.images.map { TicketImageState(it.uri, it.isLocal, it.id) }
                 )
@@ -133,65 +180,105 @@ class TicketEditViewModel(
     }
   }
 
+  @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+  private fun observeAddressSearchQuery() {
+    _state.map { it.addressSearchQuery }
+      .distinctUntilChanged()
+      .debounce(500L)
+      .flatMapLatest { query ->
+        getAddressSuggestions(query)
+      }
+      .onEach { suggestions ->
+        _state.update { it.copy(addressSuggestions = suggestions) }
+      }
+      .launchIn(viewModelScope)
+  }
+
+  private fun selectAddress(address: Address) {
+    viewModelScope.launch {
+      _state.update {
+        it.copy(
+          selectedAddress = address,
+          isAddressSearchActive = false,
+          addressSearchQuery = ""
+        )
+      }
+      addToAddressHistory(address)
+    }
+  }
+
+  private fun fetchCurrentLocation() {
+    viewModelScope.launch {
+      val result = fetchUserLocation()
+      if (result.location != null) {
+        _state.update { it.copy(currentLocation = result.location) }
+      }
+    }
+  }
+
+  private fun useCurrentLocation() {
+    viewModelScope.launch {
+      val location = _state.value.currentLocation ?: return@launch
+
+      when (val result = getAddressFromLocation(location.latitude, location.longitude)) {
+        is Result.Success -> {
+          result.data?.let { address ->
+            _state.update {
+              it.copy(
+                selectedAddress = address,
+                isAddressSearchActive = false
+              )
+            }
+            addToAddressHistory(address)
+          }
+        }
+        is Result.Error -> {
+          _state.update { it.copy(errorMessage = result.error.toUiText()) }
+        }
+      }
+    }
+  }
+
   private fun saveTicket() {
     val s = _state.value
-    val params = UpdateTicketUseCase.Params(
-      ticketId = s.ticketId ?: return,
-      title = s.title,
-      description = s.description,
-      category = s.category,
-      visibility = s.visibility,
-      officeId = s.officeId,
-      images = s.images.map { EditableImage(it.uri, it.isLocal, it.id) },
-      imagesToDelete = imagesPendingDeletion.map { EditableImage(it.uri, it.isLocal, it.id) }.toSet(),
-      coverImageUri = s.coverImageUri
-    )
+    val ticketId = s.ticketId ?: return
 
     viewModelScope.launch {
-      updateTicketUseCase(params).collect { applyOperationResult(it) }
+      updateTicket(
+        ticketId = ticketId,
+        input = currentInput,
+        imagesToDelete = imagesPendingDeletion.map {
+          EditableImage(it.uri, it.isLocal, it.id)
+        }.toSet(),
+        coverImageUri = s.coverImageUri
+      ).collect { applyOperationResult(it) }
     }
   }
 
   private fun uploadDraft() {
-    val s = _state.value
-    val params = UploadDraftUseCase.Params(
-      draftId = s.draftId,
-      title = s.title,
-      description = s.description,
-      category = s.category,
-      officeId = s.officeId,
-      visibility = s.visibility,
-      images = s.images.map { EditableImage(it.uri, it.isLocal, it.id) },
-      useCurrentLocation = s.useCurrentLocation
-    )
-
     viewModelScope.launch {
       _state.update { it.copy(showUploadDialog = false) }
-      uploadDraftUseCase(params).collect { applyOperationResult(it,) }
+
+      uploadDraft(
+        draftId = _state.value.draftId,
+        input = currentInput
+      ).collect { applyOperationResult(it) }
     }
   }
 
   private fun saveDraft() {
-    val s = _state.value
-    val params = SaveDraftUseCase.Params(
-      draftId = s.draftId,
-      title = s.title,
-      description = s.description,
-      category = s.category,
-      officeId = s.officeId,
-      visibility = s.visibility,
-      images = s.images.map { EditableImage(it.uri, it.isLocal, it.id) },
-      useCurrentLocation = s.useCurrentLocation
-    )
     viewModelScope.launch {
-      saveDraftUseCase(params).collect { applyOperationResult(it) }
+      saveDraft(
+        draftId = _state.value.draftId,
+        input = currentInput
+      ).collect { applyOperationResult(it) }
     }
   }
 
   private fun deleteEntity() {
     viewModelScope.launch {
       _state.update { it.copy(showDeleteDialog = false) }
-      val result = deleteTicketDataUseCase(
+      val result = deleteTicketData(
         ticketId = _state.value.ticketId,
         draftId = _state.value.draftId,
         images = _state.value.images.map { EditableImage(it.uri, it.isLocal, it.id) }
@@ -211,7 +298,7 @@ class TicketEditViewModel(
 
   fun onImagePicked(tempPath: String) {
     viewModelScope.launch {
-      val newImage = addLocalImageUseCase(tempPath)
+      val newImage = addLocalImage(tempPath)
       val uiImage = TicketImageState(newImage.uri, newImage.isLocal, newImage.id)
       _state.update {
         it.copy(
@@ -227,7 +314,7 @@ class TicketEditViewModel(
     val isFresh = image.uri in newlyAddedLocalUris
 
     if (image.isLocal && isFresh) {
-      viewModelScope.launch { discardLocalImagesUseCase(setOf(image.uri)) }
+      viewModelScope.launch { discardLocalImages(setOf(image.uri)) }
       newlyAddedLocalUris = newlyAddedLocalUris - image.uri
       _state.update { it.copy(images = it.images - image) }
     } else {
@@ -273,7 +360,7 @@ class TicketEditViewModel(
     if (!s.isUploadSuccess && !s.isDeleteSuccess && newlyAddedLocalUris.isNotEmpty()) {
       GlobalScope.launch {
         try {
-          discardLocalImagesUseCase(newlyAddedLocalUris)
+          discardLocalImages(newlyAddedLocalUris)
         } catch (e: Exception) {
           e.printStackTrace()
         }

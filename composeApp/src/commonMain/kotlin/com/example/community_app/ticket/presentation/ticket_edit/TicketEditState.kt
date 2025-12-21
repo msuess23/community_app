@@ -1,6 +1,9 @@
 package com.example.community_app.ticket.presentation.ticket_edit
 
+import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.presentation.helpers.UiText
+import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.presentation.AddressSuggestion
 import com.example.community_app.office.domain.Office
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
@@ -24,7 +27,12 @@ data class TicketEditState(
   val category: TicketCategory = TicketCategory.OTHER,
   val visibility: TicketVisibility = TicketVisibility.PRIVATE,
   val officeId: Int? = null,
-  val useCurrentLocation: Boolean = true,
+
+  val selectedAddress: Address? = null,
+  val isAddressSearchActive: Boolean = false,
+  val addressSearchQuery: String = "",
+  val addressSuggestions: List<AddressSuggestion> = emptyList(),
+  val currentLocation: Location? = null,
 
   // Office Selection
   val availableOffices: List<Office> = emptyList(),

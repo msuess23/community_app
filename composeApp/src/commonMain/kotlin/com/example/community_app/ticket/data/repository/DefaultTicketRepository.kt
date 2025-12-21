@@ -9,6 +9,8 @@ import com.example.community_app.core.data.sync.SyncManager
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.dto.*
+import com.example.community_app.geocoding.data.mappers.toDto
+import com.example.community_app.geocoding.domain.Address
 import com.example.community_app.media.domain.MediaRepository
 import com.example.community_app.ticket.data.local.draft.TicketDraftDao
 import com.example.community_app.ticket.data.local.ticket.TicketDao
@@ -17,6 +19,7 @@ import com.example.community_app.ticket.data.network.RemoteTicketDataSource
 import com.example.community_app.ticket.domain.Ticket
 import com.example.community_app.ticket.domain.TicketDraft
 import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.ticket.domain.TicketStatusEntry
 import com.example.community_app.util.MediaTargetType
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
@@ -138,12 +141,23 @@ class DefaultTicketRepository(
     }
   }
 
-  override suspend fun getStatusHistory(id: Int): Result<List<TicketStatusDto>, DataError.Remote> {
-    return remoteTicketDataSource.getStatusHistory(id)
+  override suspend fun getStatusHistory(id: Int): Result<List<TicketStatusEntry>, DataError.Remote> {
+    return when (val result = remoteTicketDataSource.getStatusHistory(id)) {
+      is Result.Success -> {
+        val domainList = result.data.map { it.toDomain() }
+        Result.Success(domainList)
+      }
+      is Result.Error -> Result.Error(result.error)
+    }
   }
 
-  override suspend fun getCurrentStatus(id: Int): Result<TicketStatusDto?, DataError.Remote> {
-    return remoteTicketDataSource.getCurrentStatus(id)
+  override suspend fun getCurrentStatus(id: Int): Result<TicketStatusEntry?, DataError.Remote> {
+    return when (val result = remoteTicketDataSource.getCurrentStatus(id)) {
+      is Result.Success -> {
+        Result.Success(result.data?.toDomain())
+      }
+      is Result.Error -> Result.Error(result.error)
+    }
   }
 
   override fun getDrafts(): Flow<List<TicketDraft>> {
@@ -177,10 +191,8 @@ class DefaultTicketRepository(
       title = draft.title,
       description = draft.description,
       category = draft.category ?: TicketCategory.OTHER,
-      officeId = draft.officeId ?: 1, // Mock
-      address = draft.address?.let {
-        AddressDto(it.street, it.houseNumber, it.zipCode, it.city, it.longitude, it.latitude)
-      },
+      officeId = draft.officeId ?: 1,
+      address = draft.address?.toDto(),
       visibility = draft.visibility
     )
 
@@ -229,10 +241,11 @@ class DefaultTicketRepository(
     description: String?,
     category: TicketCategory?,
     officeId: Int?,
-    address: AddressDto?,
+    address: Address?,
     visibility: TicketVisibility?
   ): Result<Ticket, DataError.Remote> {
-    val request = TicketUpdateDto(title, description, category, officeId, address, visibility)
+    val request = TicketUpdateDto(title, description, category, officeId, address?.toDto(), visibility)
+
     return when(val result = remoteTicketDataSource.updateTicket(id, request)) {
       is Result.Success -> {
         ticketDao.upsertTickets(listOf(result.data.toEntity()))

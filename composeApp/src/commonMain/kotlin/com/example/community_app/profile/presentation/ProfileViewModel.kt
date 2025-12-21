@@ -4,21 +4,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.community_app.auth.domain.usecase.RequestPasswordResetUseCase
 import com.example.community_app.core.domain.Result
+import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.geocoding.domain.Address
-import com.example.community_app.geocoding.domain.usecase.AddToAddressHistoryUseCase
-import com.example.community_app.geocoding.domain.usecase.GetAddressHistoryUseCase
-import com.example.community_app.geocoding.domain.usecase.SearchAddressUseCase
+import com.example.community_app.geocoding.domain.usecase.GetAddressFromLocationUseCase
+import com.example.community_app.geocoding.domain.usecase.GetAddressSuggestionsUseCase
 import com.example.community_app.geocoding.domain.usecase.SetHomeAddressUseCase
 import com.example.community_app.profile.domain.usecase.GetProfileDataUseCase
 import com.example.community_app.profile.domain.usecase.LogoutUserUseCase
 import com.example.community_app.profile.domain.usecase.UpdateUserProfileUseCase
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -33,10 +34,10 @@ class ProfileViewModel(
   private val updateUserProfile: UpdateUserProfileUseCase,
   private val logoutUser: LogoutUserUseCase,
   private val requestPasswordReset: RequestPasswordResetUseCase,
+  private val getAddressSuggestions: GetAddressSuggestionsUseCase,
   private val setHomeAddress: SetHomeAddressUseCase,
-  private val searchAddress: SearchAddressUseCase,
-  private val getAddressHistory: GetAddressHistoryUseCase,
-  private val addToAddressHistory: AddToAddressHistoryUseCase
+  private val getAddressFromLocation: GetAddressFromLocationUseCase,
+  private val fetchUserLocation: FetchUserLocationUseCase
 ) : ViewModel() {
   private val _state = MutableStateFlow(ProfileState())
   val state = _state
@@ -66,11 +67,13 @@ class ProfileViewModel(
             addressSearchQuery = if (!action.active) "" else it.addressSearchQuery
           )
         }
+        if (action.active) fetchCurrentLocation()
       }
       is ProfileAction.OnAddressQueryChange -> {
         _state.update { it.copy(addressSearchQuery = action.query) }
       }
       is ProfileAction.OnSelectAddress -> selectAddress(action.address)
+      ProfileAction.OnUseCurrentLocationClick -> useCurrentLocation()
 
       // Logout
       ProfileAction.OnLogoutClick -> _state.update { it.copy(showLogoutDialog = true) }
@@ -113,29 +116,47 @@ class ProfileViewModel(
       .launchIn(viewModelScope)
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   private fun observeSearchQuery() {
-    combine(
-      _state.map { it.addressSearchQuery }.distinctUntilChanged(),
-      getAddressHistory()
-    ) { query, history -> Pair(query, history) }
+    _state.map { it.addressSearchQuery }
+      .distinctUntilChanged()
       .debounce(500L)
-      .map { (query, history) ->
-        if (query.isBlank()) {
-          history
-        } else {
-          val localMatches = history.filter {
-            it.getUiLine1().contains(query, ignoreCase = true) ||
-                it.city?.contains(query, ignoreCase = true) == true
-          }
-          val apiResult = searchAddress(query)
-          val apiMatches = if (apiResult is Result.Success) apiResult.data else emptyList()
-          (localMatches + apiMatches).distinctBy { "${it.latitude},${it.longitude}" }
-        }
+      .flatMapLatest { query ->
+        getAddressSuggestions(query)
       }
       .onEach { suggestions ->
-        _state.update { it.copy(addressSugestions = suggestions) }
+        _state.update { it.copy(addressSuggestions = suggestions) }
       }
       .launchIn(viewModelScope)
+  }
+
+  private fun fetchCurrentLocation() {
+    viewModelScope.launch {
+      val result = fetchUserLocation()
+      val loc = result.location
+
+      if (loc != null) {
+        _state.update { it.copy(currentLocation = loc) }
+      }
+    }
+  }
+
+  private fun useCurrentLocation() {
+    viewModelScope.launch {
+      val location = _state.value.currentLocation ?: return@launch
+
+      when (val addressResult = getAddressFromLocation(location.latitude, location.longitude)) {
+        is Result.Success -> {
+          val address = addressResult.data
+          if (address != null) {
+            selectAddress(address)
+          }
+        }
+        is Result.Error -> {
+          _state.update { it.copy(errorMessage = addressResult.error.toUiText()) }
+        }
+      }
+    }
   }
 
   private fun selectAddress(address: Address) {

@@ -3,28 +3,25 @@ package com.example.community_app.ticket.domain.usecase.detail
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.presentation.state.SyncStatus
-import com.example.community_app.dto.TicketStatusDto
 import com.example.community_app.profile.domain.UserRepository
 import com.example.community_app.profile.domain.getUserIdOrNull
 import com.example.community_app.ticket.domain.Ticket
 import com.example.community_app.ticket.domain.TicketDraft
 import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.ticket.domain.TicketStatusEntry
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.transformLatest
 
 data class TicketDetailResult(
   val ticket: Ticket? = null,
   val draft: TicketDraft? = null,
   val images: List<String> = emptyList(),
-  val history: List<TicketStatusDto> = emptyList(),
+  val history: List<TicketStatusEntry> = emptyList(),
   val isOwner: Boolean = false,
   val syncStatus: SyncStatus
 )
@@ -120,7 +117,7 @@ class ObserveTicketDetailUseCase(
 
   private data class LoadState(
     val isLoading: Boolean,
-    val history: List<TicketStatusDto> = emptyList(),
+    val history: List<TicketStatusEntry> = emptyList(),
     val images: List<String> = emptyList(),
     val error: DataError? = null
   )

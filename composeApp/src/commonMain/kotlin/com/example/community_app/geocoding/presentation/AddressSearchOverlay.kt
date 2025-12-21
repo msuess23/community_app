@@ -22,13 +22,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.community_app.geocoding.domain.Address
 import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.search_address_current_location
 import community_app.composeapp.generated.resources.search_hint
 import community_app.composeapp.generated.resources.search_no_results
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ChevronLeft
 import compose.icons.feathericons.Clock
+import compose.icons.feathericons.Home
 import compose.icons.feathericons.MapPin
 import compose.icons.feathericons.Search
+import compose.icons.feathericons.User
 import compose.icons.feathericons.X
 import org.jetbrains.compose.resources.stringResource
 
@@ -38,8 +41,10 @@ fun AddressSearchOverlay(
   query: String,
   onQueryChange: (String) -> Unit,
   isSearching: Boolean = false,
-  suggestions: List<Address>,
+  isLocationAvailable: Boolean = false,
+  suggestions: List<AddressSuggestion>,
   onAddressClick: (Address) -> Unit,
+  onUseCurrentLocationClick: () -> Unit,
   onBackClick: () -> Unit
 ) {
   Box(
@@ -80,8 +85,28 @@ fun AddressSearchOverlay(
       onExpandedChange = { }
     ) {
       LazyColumn {
-        items(suggestions) { address ->
-          val isHistoryItem = query.isBlank()
+        if (isLocationAvailable) {
+          item {
+            ListItem(
+              headlineContent = {
+                Text(stringResource(Res.string.search_address_current_location))
+              },
+              leadingContent = {
+                Icon(
+                  imageVector = FeatherIcons.User,
+                  contentDescription = null,
+                  tint = MaterialTheme.colorScheme.primary
+                )
+              },
+              modifier = Modifier
+                .clickable { onUseCurrentLocationClick() }
+                .fillMaxWidth()
+            )
+          }
+        }
+
+        items(suggestions) { suggestion ->
+          val address = suggestion.address
 
           ListItem(
             headlineContent = {
@@ -92,8 +117,14 @@ fun AddressSearchOverlay(
               if (detail.isNotBlank()) Text(detail)
             },
             leadingContent = {
+              val icon = when (suggestion.type) {
+                AddressSuggestionType.HISTORY -> FeatherIcons.Clock
+                AddressSuggestionType.API -> FeatherIcons.MapPin
+                AddressSuggestionType.HOME -> FeatherIcons.Home
+              }
+
               Icon(
-                imageVector = if (isHistoryItem) FeatherIcons.Clock else FeatherIcons.MapPin,
+                imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
               )

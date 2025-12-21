@@ -1,5 +1,6 @@
 package com.example.community_app.ticket.domain
 
+import com.example.community_app.geocoding.domain.Address
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
 
@@ -12,6 +13,7 @@ data class TicketEditDetails(
   val category: TicketCategory = TicketCategory.OTHER,
   val visibility: TicketVisibility = TicketVisibility.PRIVATE,
   val officeId: Int? = null,
+  val address: Address ? = null,
   val images: List<EditableImage> = emptyList(),
   val coverImageUri: String? = null
 )

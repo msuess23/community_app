@@ -12,6 +12,7 @@ sealed interface ProfileAction {
   data class OnAddressQueryChange(val query: String) : ProfileAction
   data class OnAddressSearchActiveChange(val active: Boolean) : ProfileAction
   data class OnSelectAddress(val address: Address) : ProfileAction
+  data object OnUseCurrentLocationClick : ProfileAction
 
   // Log in/out
   data object OnLoginClick : ProfileAction

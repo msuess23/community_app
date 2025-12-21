@@ -34,7 +34,7 @@ fun CommunityDialog(
       if (content != null) {
         content()
       } else if (text != null) {
-        stringResource(text)
+        Text(stringResource(text))
       }
     },
     modifier = modifier,

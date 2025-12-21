@@ -40,6 +40,7 @@ import com.example.community_app.core.presentation.components.CommunityTopAppBar
 import com.example.community_app.core.presentation.components.ObserveErrorMessage
 import com.example.community_app.core.presentation.components.TopBarNavigationType
 import com.example.community_app.core.presentation.components.button.CommunityButton
+import com.example.community_app.core.presentation.components.detail.CommunityAddressCard
 import com.example.community_app.core.presentation.components.dialog.CommunityDialog
 import com.example.community_app.core.presentation.components.input.CommunityCheckbox
 import com.example.community_app.core.presentation.components.input.CommunityDropdownMenu
@@ -47,7 +48,9 @@ import com.example.community_app.core.presentation.components.input.CommunityTex
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.ImagePickerFactory
+import com.example.community_app.geocoding.presentation.AddressSearchOverlay
 import com.example.community_app.office.presentation.office_master.component.OfficeListItem
+import com.example.community_app.profile.presentation.ProfileAction
 import com.example.community_app.ticket.presentation.ticket_edit.component.ImageSelectionSection
 import com.example.community_app.ticket.presentation.ticket_edit.component.OfficePlaceholderCard
 import com.example.community_app.ticket.presentation.ticket_edit.component.OfficeSearchOverlay
@@ -63,9 +66,11 @@ import community_app.composeapp.generated.resources.gallery
 import community_app.composeapp.generated.resources.save
 import community_app.composeapp.generated.resources.ticket_singular
 import community_app.composeapp.generated.resources.info_singular
+import community_app.composeapp.generated.resources.ticket_add_image
 import community_app.composeapp.generated.resources.ticket_create_label
 import community_app.composeapp.generated.resources.ticket_delete_dialog_text
 import community_app.composeapp.generated.resources.ticket_edit_label
+import community_app.composeapp.generated.resources.ticket_empty_address_info
 import community_app.composeapp.generated.resources.ticket_upload_dialog_text
 import community_app.composeapp.generated.resources.ticket_visibility_info_text
 import community_app.composeapp.generated.resources.ticket_visibility_label
@@ -227,10 +232,10 @@ private fun TicketEditScreen(
         }
 
         // Location
-        CommunityCheckbox(
-          label = Res.string.use_current_location,
-          checked = state.useCurrentLocation,
-          onCheckChange = { onAction(TicketEditAction.OnUseLocationChange(it)) }
+        CommunityAddressCard(
+          address = state.selectedAddress,
+          onClick = { onAction(TicketEditAction.OnAddressSearchActiveChange(true)) },
+          label = stringResource(Res.string.ticket_empty_address_info),
         )
 
         // Images Section
@@ -285,6 +290,19 @@ private fun TicketEditScreen(
     )
   }
 
+  // Address Search Overlay
+  if (state.isAddressSearchActive) {
+    AddressSearchOverlay(
+      query = state.addressSearchQuery,
+      onQueryChange = { onAction(TicketEditAction.OnAddressQueryChange(it)) },
+      isLocationAvailable = state.currentLocation != null,
+      suggestions = state.addressSuggestions,
+      onAddressClick = { onAction(TicketEditAction.OnSelectAddress(it)) },
+      onUseCurrentLocationClick = { onAction(TicketEditAction.OnUseCurrentLocationClick) },
+      onBackClick = { onAction(TicketEditAction.OnAddressSearchActiveChange(false)) }
+    )
+  }
+
   // Dialogs
   if (state.showDeleteDialog) {
     CommunityDialog(
@@ -314,7 +332,7 @@ private fun TicketEditScreen(
   if (state.showImageSourceDialog) {
     AlertDialog(
       onDismissRequest = { onAction(TicketEditAction.OnImageSourceDialogDismiss) },
-      title = { Text("Bild hinzufügen") },
+      title = { Text(stringResource(Res.string.ticket_add_image)) },
       text = {
         Column {
           ListItem(

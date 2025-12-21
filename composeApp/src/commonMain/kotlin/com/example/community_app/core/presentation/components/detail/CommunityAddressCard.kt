@@ -25,6 +25,7 @@ import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.geocoding.domain.Address
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ChevronRight
+import compose.icons.feathericons.Home
 import compose.icons.feathericons.MapPin
 
 @Composable
@@ -32,7 +33,8 @@ fun CommunityAddressCard(
   address: Address?,
   onClick: () -> Unit = {},
   label: String? = null,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
+  isHome: Boolean = false
 ) {
   Surface(
     shape = RoundedCornerShape(Spacing.medium),
@@ -54,7 +56,7 @@ fun CommunityAddressCard(
       ) {
         Box(contentAlignment = Alignment.Center) {
           Icon(
-            imageVector = FeatherIcons.MapPin,
+            imageVector = if (isHome) FeatherIcons.Home else FeatherIcons.MapPin,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onPrimaryContainer
           )

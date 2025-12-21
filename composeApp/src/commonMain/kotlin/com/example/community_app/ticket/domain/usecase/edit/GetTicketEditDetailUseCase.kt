@@ -92,6 +92,7 @@ class GetTicketEditDetailsUseCase(
         category = ticket.category,
         visibility = ticket.visibility,
         officeId = ticket.officeId,
+        address = ticket.address,
         images = images,
         coverImageUri = ticket.imageUrl
       )
@@ -113,6 +114,7 @@ class GetTicketEditDetailsUseCase(
         category = draft.category ?: TicketCategory.OTHER,
         visibility = draft.visibility,
         officeId = draft.officeId,
+        address = draft.address,
         images = images,
         coverImageUri = images.firstOrNull()?.uri
       )

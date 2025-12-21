@@ -40,12 +40,14 @@ import com.example.community_app.geocoding.presentation.AddressSearchOverlay
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.auth_forgot_password_dialog_text
 import community_app.composeapp.generated.resources.auth_forgot_password_dialog_title
+import community_app.composeapp.generated.resources.auth_logout_delete_data
 import community_app.composeapp.generated.resources.auth_logout_dialog
 import community_app.composeapp.generated.resources.auth_logout_label
 import community_app.composeapp.generated.resources.auth_name_label
 import community_app.composeapp.generated.resources.auth_otp_label
 import community_app.composeapp.generated.resources.auth_reset_password_label
 import community_app.composeapp.generated.resources.cancel
+import community_app.composeapp.generated.resources.profile_address_empty_info
 import community_app.composeapp.generated.resources.profile_label
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Check
@@ -159,7 +161,8 @@ private fun ProfileScreen(
         CommunityAddressCard(
           address = state.homeAddress,
           onClick = { onAction(ProfileAction.OnAddressSearchActiveChange(true)) },
-          label = "Adresse auswählen"
+          label = stringResource(Res.string.profile_address_empty_info),
+          isHome = true
         )
 
         HorizontalDivider()
@@ -209,7 +212,7 @@ private fun ProfileScreen(
         )
 
         CommunityCheckbox(
-          label = Res.string.auth_otp_label, // TODO
+          label = Res.string.auth_logout_delete_data,
           checked = state.isLogoutClearDataChecked,
           onCheckChange = { onAction(ProfileAction.OnLogoutClearDataChange(!state.isLogoutClearDataChecked)) }
         )
@@ -232,8 +235,10 @@ private fun ProfileScreen(
     AddressSearchOverlay(
       query = state.addressSearchQuery,
       onQueryChange = { onAction(ProfileAction.OnAddressQueryChange(it)) },
-      suggestions = state.addressSugestions,
+      isLocationAvailable = state.currentLocation != null,
+      suggestions = state.addressSuggestions,
       onAddressClick = { onAction(ProfileAction.OnSelectAddress(it)) },
+      onUseCurrentLocationClick = { onAction(ProfileAction.OnUseCurrentLocationClick) },
       onBackClick = { onAction(ProfileAction.OnAddressSearchActiveChange(false)) }
     )
   }

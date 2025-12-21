@@ -43,6 +43,7 @@ import com.example.community_app.geocoding.domain.GeocodingRepository
 import com.example.community_app.geocoding.domain.usecase.AddToAddressHistoryUseCase
 import com.example.community_app.geocoding.domain.usecase.GetAddressFromLocationUseCase
 import com.example.community_app.geocoding.domain.usecase.GetAddressHistoryUseCase
+import com.example.community_app.geocoding.domain.usecase.GetAddressSuggestionsUseCase
 import com.example.community_app.geocoding.domain.usecase.GetHomeAddressUseCase
 import com.example.community_app.geocoding.domain.usecase.SearchAddressUseCase
 import com.example.community_app.geocoding.domain.usecase.SetHomeAddressUseCase
@@ -240,6 +241,7 @@ val sharedModule = module {
   factoryOf(::CheckStatusUpdatesUseCase)
   factoryOf(::ScheduleAppointmentRemindersUseCase)
 
+  factoryOf(::GetAddressSuggestionsUseCase)
   factoryOf(::SearchAddressUseCase)
   factoryOf(::GetAddressFromLocationUseCase)
   factoryOf(::GetHomeAddressUseCase)

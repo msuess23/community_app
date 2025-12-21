@@ -1,7 +1,9 @@
 package com.example.community_app.profile.presentation
 
+import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.presentation.AddressSuggestion
 import com.example.community_app.profile.domain.User
 
 data class ProfileState(
@@ -16,7 +18,8 @@ data class ProfileState(
   val homeAddress: Address? = null,
   val addressSearchQuery: String = "",
   val isAddressSearchActive: Boolean = false,
-  val addressSugestions: List<Address> = emptyList(),
+  val addressSuggestions: List<AddressSuggestion> = emptyList(),
+  val currentLocation: Location? = null,
 
   val showLogoutDialog: Boolean = false,
   val showPasswordResetDialog: Boolean = false,

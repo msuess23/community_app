@@ -55,6 +55,8 @@
     <string name="ticket_delete_dialog_text">Are you sure you want to delete this concern?</string>
     <string name="ticket_upload_dialog_text">Are you sure you want to upload this concern?</string>
     <string name="ticket_responsible_office_label">Select responsible office</string>
+    <string name="ticket_empty_address_info">Select location</string>
+    <string name="ticket_add_image">Add image</string>
 
     <!-- Office -->
     <string name="office_singular">Office</string>
@@ -158,9 +160,12 @@
     <!-- Radius -->
     <string name="settings_radius_label">Search radius</string>
     <string name="settings_radius_helper">Filters based on your current location (requires GPS).</string>
+    <!-- Address -->
+    <string name="search_address_current_location">use current location</string>
 
     <!-- Profile -->
     <string name="profile_label">Profile</string>
+    <string name="profile_address_empty_info">Select location</string>
 
     <!-- Authentication -->
     <string name="auth_logout_label">Log out</string>
@@ -184,6 +189,8 @@
     <string name="auth_reset_password_label">Change password</string>
     <string name="auth_reset_password_dialog_title">Password changed</string>
     <string name="auth_reset_password_dialog_text">Your password has been successfully changed.</string>
+    <!-- Logout -->
+    <string name="auth_logout_delete_data">Delete data</string>
     <!-- Guard -->
     <string name="auth_guard_title">This area requires an account.</string>
     <string name="auth_guard_text">Please log in or register a new account.</string>

@@ -55,6 +55,8 @@
     <string name="ticket_delete_dialog_text">Bist Du sicher, dass Du dieses Anliegen löschen möchtest?</string>
     <string name="ticket_upload_dialog_text">Bist Du sicher, dass Du dieses Anliegen veröffentlichen möchtest?</string>
     <string name="ticket_responsible_office_label">Zuständige Behörde auswählen</string>
+    <string name="ticket_empty_address_info">Standort auswählen</string>
+    <string name="ticket_add_image">Bild hinzufügen</string>
 
     <!-- Office -->
     <string name="office_singular">Behörde</string>
@@ -90,6 +92,8 @@
     <string name="sorting_latest">Neueste zuerst</string>
     <string name="sorting_oldest">Älteste zuerst</string>
     <string name="sorting_alphabetical">Alphabetisch (A-Z)</string>
+    <!-- Address -->
+    <string name="search_address_current_location">aktuellen Standort verwenden</string>
 
     <!-- Category -->
     <string name="category_singular">Kategorie</string>
@@ -161,6 +165,7 @@
 
     <!-- Profile -->
     <string name="profile_label">Profil</string>
+    <string name="profile_address_empty_info">Wohnort auswählen</string>
 
     <!-- Authentication -->
     <string name="auth_logout_label">Abmelden</string>
@@ -184,6 +189,8 @@
     <string name="auth_reset_password_label">Passwort ändern</string>
     <string name="auth_reset_password_dialog_title">Passwort geändert</string>
     <string name="auth_reset_password_dialog_text">Dein Passwort wurde erfolgreich geändert.</string>
+    <!-- Logout -->
+    <string name="auth_logout_delete_data">Daten löschen</string>
     <!-- Guard -->
     <string name="auth_guard_title">Für diesen Bereich musst Du angemeldet sein.</string>
     <string name="auth_guard_text">Bitte melde Dich an oder erstelle ein neues Benutzerkonto.</string>
