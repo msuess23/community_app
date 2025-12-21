@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
-import com.example.community_app.appointment.domain.usecase.CancelAppointmentUseCase
-import com.example.community_app.appointment.domain.usecase.GetAppointmentDetailsUseCase
+import com.example.community_app.appointment.domain.usecase.detail.CancelAppointmentUseCase
+import com.example.community_app.appointment.domain.usecase.detail.GetAppointmentDetailsUseCase
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.core.presentation.helpers.toUiText

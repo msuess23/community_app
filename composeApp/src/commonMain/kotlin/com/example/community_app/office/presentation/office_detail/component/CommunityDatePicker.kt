@@ -22,15 +22,15 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CommunityDatePicker(
-  initialDateMillis: Long,
-  dateRange: LongRange,
+  initialDateMillis: Long? = null,
+  dateRange: LongRange? = null,
   onDateSelected: (Long?) -> Unit,
   onDismiss: () -> Unit
 ) {
   val dateValidator = remember(dateRange) {
     object : SelectableDates {
       override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-        return dateRange.contains(utcTimeMillis)
+        return dateRange?.contains(utcTimeMillis) ?: true
       }
       override fun isSelectableYear(year: Int): Boolean = true
     }

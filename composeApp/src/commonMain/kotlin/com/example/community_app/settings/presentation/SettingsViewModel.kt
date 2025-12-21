@@ -2,7 +2,7 @@ package com.example.community_app.settings.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.community_app.appointment.domain.usecase.ScheduleAppointmentRemindersUseCase
+import com.example.community_app.appointment.domain.usecase.detail.ScheduleAppointmentRemindersUseCase
 import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.core.domain.permission.CalendarPermissionService
 import com.example.community_app.core.domain.permission.PermissionStatus

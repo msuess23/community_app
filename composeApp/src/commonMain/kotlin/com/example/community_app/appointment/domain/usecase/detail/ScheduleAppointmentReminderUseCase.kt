@@ -1,4 +1,4 @@
-package com.example.community_app.appointment.domain.usecase
+package com.example.community_app.appointment.domain.usecase.detail
 
 import com.example.community_app.appointment.domain.AppointmentRepository
 import com.example.community_app.core.domain.notification.NotificationService

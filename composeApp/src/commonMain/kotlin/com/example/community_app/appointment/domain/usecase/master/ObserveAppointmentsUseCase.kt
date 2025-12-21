@@ -1,4 +1,4 @@
-package com.example.community_app.appointment.domain.usecase
+package com.example.community_app.appointment.domain.usecase.master
 
 import com.example.community_app.appointment.domain.Appointment
 import com.example.community_app.appointment.domain.AppointmentRepository

@@ -1,4 +1,4 @@
-package com.example.community_app.appointment.domain.usecase
+package com.example.community_app.appointment.domain.usecase.detail
 
 import com.example.community_app.appointment.domain.Appointment
 import com.example.community_app.appointment.domain.AppointmentRepository
@@ -10,7 +10,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transformLatest
 
 data class AppointmentDetails(
