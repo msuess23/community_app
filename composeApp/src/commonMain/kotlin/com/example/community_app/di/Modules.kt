@@ -5,12 +5,13 @@ import com.example.community_app.appointment.data.network.KtorRemoteAppointmentD
 import com.example.community_app.appointment.data.network.RemoteAppointmentDataSource
 import com.example.community_app.appointment.data.repository.DefaultAppointmentRepository
 import com.example.community_app.appointment.domain.AppointmentRepository
-import com.example.community_app.appointment.domain.usecase.BookAppointmentUseCase
-import com.example.community_app.appointment.domain.usecase.CancelAppointmentUseCase
-import com.example.community_app.appointment.domain.usecase.GetAppointmentDetailsUseCase
-import com.example.community_app.appointment.domain.usecase.GetFreeSlotsUseCase
-import com.example.community_app.appointment.domain.usecase.ObserveAppointmentsUseCase
-import com.example.community_app.appointment.domain.usecase.ScheduleAppointmentRemindersUseCase
+import com.example.community_app.appointment.domain.usecase.detail.BookAppointmentUseCase
+import com.example.community_app.appointment.domain.usecase.detail.CancelAppointmentUseCase
+import com.example.community_app.appointment.domain.usecase.detail.GetAppointmentDetailsUseCase
+import com.example.community_app.appointment.domain.usecase.detail.GetFreeSlotsUseCase
+import com.example.community_app.appointment.domain.usecase.master.ObserveAppointmentsUseCase
+import com.example.community_app.appointment.domain.usecase.detail.ScheduleAppointmentRemindersUseCase
+import com.example.community_app.appointment.domain.usecase.master.FilterAppointmentsUseCase
 import com.example.community_app.appointment.presentation.detail.AppointmentDetailViewModel
 import com.example.community_app.appointment.presentation.master.AppointmentMasterViewModel
 import com.example.community_app.auth.data.network.KtorRemoteAuthDataSource
@@ -242,6 +243,7 @@ val sharedModule = module {
   factoryOf(::CancelAppointmentUseCase)
   factoryOf(::CheckStatusUpdatesUseCase)
   factoryOf(::ScheduleAppointmentRemindersUseCase)
+  factoryOf(::FilterAppointmentsUseCase)
 
   factoryOf(::GetAddressSuggestionsUseCase)
   factoryOf(::SearchAddressUseCase)

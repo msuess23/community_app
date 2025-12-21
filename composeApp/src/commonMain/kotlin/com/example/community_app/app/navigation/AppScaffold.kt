@@ -1,7 +1,10 @@
 package com.example.community_app.app.navigation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DrawerState
@@ -103,7 +106,11 @@ fun AppScaffold(
       }
     ) { paddingValues ->
       Box(modifier = Modifier
+        .fillMaxSize()
         .padding(bottom = paddingValues.calculateBottomPadding())
+        .consumeWindowInsets(
+          PaddingValues(bottom = paddingValues.calculateBottomPadding())
+        )
       ) {
         content()
       }

@@ -1,6 +1,7 @@
 package com.example.community_app.office.presentation.office_master
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +22,7 @@ import com.example.community_app.core.presentation.components.ObserveErrorMessag
 import com.example.community_app.core.presentation.components.list.ScreenMessage
 import com.example.community_app.core.presentation.components.master.MasterScreenLayout
 import com.example.community_app.core.presentation.components.master.SingleTabHeader
+import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.office.domain.Office
 import com.example.community_app.office.presentation.office_master.component.OfficeFilterSheet
 import com.example.community_app.office.presentation.office_master.component.OfficeListItem
@@ -91,6 +93,7 @@ private fun OfficeMasterScreen(
   ) {
     LazyColumn(
       modifier = Modifier.fillMaxSize(),
+      contentPadding = Spacing.listPadding,
       state = lazyListState,
       verticalArrangement = Arrangement.spacedBy(12.dp),
       horizontalAlignment = Alignment.CenterHorizontally

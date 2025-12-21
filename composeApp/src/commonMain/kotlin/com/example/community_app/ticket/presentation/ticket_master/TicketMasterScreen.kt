@@ -1,6 +1,7 @@
 package com.example.community_app.ticket.presentation.ticket_master
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,6 +32,7 @@ import com.example.community_app.core.presentation.components.list.InfoTicketLis
 import com.example.community_app.core.presentation.components.list.ScreenMessage
 import com.example.community_app.core.presentation.components.master.MasterScreenLayout
 import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatIsoDate
 import com.example.community_app.core.util.formatMillisDate
 import com.example.community_app.ticket.domain.TicketListItem
@@ -161,6 +163,7 @@ private fun TicketMasterScreen(
   ) {
     LazyColumn(
       modifier = Modifier.fillMaxSize(),
+      contentPadding = Spacing.listPadding,
       state = lazyListState,
       verticalArrangement = Arrangement.spacedBy(12.dp),
       horizontalAlignment = Alignment.CenterHorizontally

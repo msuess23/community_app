@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -51,6 +52,7 @@ fun MasterScreenLayout(
   onToggleFilterSheet: () -> Unit,
 
   modifier: Modifier = Modifier,
+  hasSearchBar: Boolean = true,
   floatingActionButton: @Composable () -> Unit = {},
   tabsContent: @Composable (ColumnScope.() -> Unit)? = null,
   emptyStateContent: @Composable () -> Unit = { DefaultEmptyState() },
@@ -63,12 +65,14 @@ fun MasterScreenLayout(
     topBar = {
       CommunityTopAppBar(
         titleContent = {
-          SearchBar(
-            searchQuery = searchQuery,
-            onSearchQueryChange = onSearchQueryChange,
-            onImeSearch = { keyboardController?.hide() },
-            modifier = Modifier.fillMaxWidth()
-          )
+          if (hasSearchBar) {
+            SearchBar(
+              searchQuery = searchQuery,
+              onSearchQueryChange = onSearchQueryChange,
+              onImeSearch = { keyboardController?.hide() },
+              modifier = Modifier.fillMaxWidth()
+            )
+          } else Text("")
         },
         navigationType = TopBarNavigationType.Drawer,
         onNavigationClick = onOpenDrawer,
@@ -96,7 +100,7 @@ fun MasterScreenLayout(
         .fillMaxSize()
         .padding(padding)
         .background(MaterialTheme.colorScheme.primary)
-        .statusBarsPadding()
+        .padding(top = Spacing.small)
     ) {
       Surface(
         modifier = Modifier
@@ -110,7 +114,7 @@ fun MasterScreenLayout(
             Column(
               modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = Spacing.medium, top = Spacing.extraSmall)
+                .padding(top = Spacing.extraSmall)
             ) {
               tabsContent()
             }
