@@ -1,19 +1,17 @@
 package com.example.community_app.info.domain.usecase
 
 import com.example.community_app.core.domain.location.Location
-import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.core.util.GeoUtil
 import com.example.community_app.info.domain.Info
 import com.example.community_app.info.presentation.info_master.InfoFilterState
 import com.example.community_app.info.presentation.info_master.InfoSortOption
 
-class FilterInfosUseCase(
-  private val fetchUserLocation: FetchUserLocationUseCase
-) {
-  suspend operator fun invoke(
+class FilterInfosUseCase() {
+  operator fun invoke(
     infos: List<Info>,
     query: String,
-    filter: InfoFilterState
+    filter: InfoFilterState,
+    userLocation: Location?
   ): List<Info> {
     var result = infos
 
@@ -37,8 +35,7 @@ class FilterInfosUseCase(
       }
     }
 
-    val userLocation = fetchUserLocation().location
-    if (userLocation != null) {
+    if (userLocation != null && filter.distanceRadiusKm < 50f) {
       result = result.filter { info ->
         val infoAddr = info.address
         if (infoAddr != null) {

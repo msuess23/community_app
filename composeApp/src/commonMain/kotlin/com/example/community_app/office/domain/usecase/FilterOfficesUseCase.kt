@@ -2,21 +2,18 @@ package com.example.community_app.office.domain.usecase
 
 import com.example.community_app.core.domain.location.Location
 import com.example.community_app.geocoding.domain.Address
-import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.core.util.GeoUtil
 import com.example.community_app.office.domain.Office
 import com.example.community_app.office.presentation.office_master.OfficeFilterState
 import com.example.community_app.office.presentation.office_master.OfficeSortOption
 
-class FilterOfficesUseCase(
-  private val fetchUserLocation: FetchUserLocationUseCase
-) {
-  suspend operator fun invoke(
+class FilterOfficesUseCase() {
+  operator fun invoke(
     offices: List<Office>,
     query: String,
-    filter: OfficeFilterState
+    filter: OfficeFilterState,
+    userLocation: Location?
   ): List<Office> {
-    val userLocation = fetchUserLocation().location
     var result = offices
 
     if (query.isNotBlank()) {
@@ -27,7 +24,7 @@ class FilterOfficesUseCase(
       }
     }
 
-    if (userLocation != null) {
+    if (userLocation != null && filter.distanceRadiusKm < 50f) {
       result = result.filter { office ->
         val dist = calculateDistance(userLocation, office.address)
         dist <= filter.distanceRadiusKm

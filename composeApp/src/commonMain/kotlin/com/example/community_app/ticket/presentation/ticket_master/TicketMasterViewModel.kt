@@ -2,6 +2,8 @@ package com.example.community_app.ticket.presentation.ticket_master
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.community_app.core.domain.location.Location
+import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.presentation.state.UiControlState
 import com.example.community_app.ticket.domain.TicketListItem
@@ -12,13 +14,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class TicketMasterViewModel(
   private val observeTickets: ObserveTicketsUseCase,
-  private val filterTickets: FilterTicketsUseCase
+  private val filterTickets: FilterTicketsUseCase,
+  private val fetchUserLocation: FetchUserLocationUseCase
 ): ViewModel() {
   private val _searchQuery = MutableStateFlow("")
   private val _filterState = MutableStateFlow(TicketFilterState())
@@ -26,52 +29,64 @@ class TicketMasterViewModel(
   private val _forceRefreshTrigger = MutableStateFlow(false)
   private val _uiControlState = MutableStateFlow(UiControlState())
 
-  private val inputs = combine(
+  private val _userLocation = MutableStateFlow<Location?>(null)
+
+  init { refreshLocation() }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  private val ticketDataFlow = _forceRefreshTrigger.flatMapLatest { force ->
+    observeTickets(forceRefresh = force)
+  }
+
+  private val filterInputsFlow = combine(
     _searchQuery,
     _filterState,
     _selectedTabIndex,
-    _forceRefreshTrigger,
-    _uiControlState
-  ) { query, filter, tabIndex, forceRefresh, uiControl ->
-    Inputs(query, filter, tabIndex, forceRefresh, uiControl)
+    _userLocation
+  ) { query, filter, tabIndex, location ->
+    FilterInputs(query, filter, tabIndex, location)
   }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
-  val state = inputs.flatMapLatest { inputs ->
-    observeTickets(forceRefresh = inputs.forceRefresh).map { result ->
-      val communityTickets = result.communityTickets.map { TicketListItem.Remote(it) }
+  val state = combine(
+    ticketDataFlow,
+    filterInputsFlow,
+    _uiControlState,
+    _forceRefreshTrigger
+  ) { dataResult, inputs, uiState, forceRefresh ->
+    val (query, filter, tabIndex, location) = inputs
 
-      val filteredCommunity = filterTickets(
-        items = communityTickets,
-        query = inputs.query,
-        filter = inputs.filter,
-        isUserList = false
-      )
-
-      val filteredUser = filterTickets(
-        items = result.myTickets,
-        query = inputs.query,
-        filter = inputs.filter,
-        isUserList = true
-      )
-
-      if (inputs.forceRefresh && !result.syncStatus.isLoading) {
-        _forceRefreshTrigger.value = false
-      }
-
-      TicketMasterState(
-        searchQuery = inputs.query,
-        selectedTabIndex = inputs.tabIndex,
-        filter = inputs.filter,
-        communityTickets = result.communityTickets,
-        userTicketsAndDrafts = result.myTickets,
-        communitySearchResults = filteredCommunity,
-        userSearchResults = filteredUser,
-        isFilterSheetVisible = inputs.uiControl.isFilterSheetVisible,
-        isLoading = result.syncStatus.isLoading,
-        errorMessage = result.syncStatus.error?.toUiText()
-      )
+    if (forceRefresh && !dataResult.syncStatus.isLoading) {
+      _forceRefreshTrigger.value = false
     }
+
+    val filteredCommunity = filterTickets(
+      items = dataResult.communityTickets.map { TicketListItem.Remote(it) },
+      query = inputs.query,
+      filter = inputs.filter,
+      isUserList = false,
+      userLocation = location
+    )
+
+    val filteredUser = filterTickets(
+      items = dataResult.myTickets,
+      query = inputs.query,
+      filter = inputs.filter,
+      isUserList = true,
+      userLocation = location
+    )
+
+    TicketMasterState(
+      searchQuery = query,
+      selectedTabIndex = tabIndex,
+      filter = filter,
+      communityTickets = dataResult.communityTickets,
+      userTicketsAndDrafts = dataResult.myTickets,
+      communitySearchResults = filteredCommunity,
+      userSearchResults = filteredUser,
+      isFilterSheetVisible = uiState.isFilterSheetVisible,
+      isLoading = dataResult.syncStatus.isLoading,
+      errorMessage = dataResult.syncStatus.error?.toUiText()
+    )
   }.stateIn(
     viewModelScope,
     SharingStarted.WhileSubscribed(5000L),
@@ -138,6 +153,7 @@ class TicketMasterViewModel(
 
       TicketMasterAction.OnRefresh -> {
         _forceRefreshTrigger.value = true
+        refreshLocation()
       }
 
       else -> Unit
@@ -148,11 +164,21 @@ class TicketMasterViewModel(
     _filterState.update(update)
   }
 
-  private data class Inputs(
+  private fun refreshLocation() {
+    viewModelScope.launch {
+      try {
+        val result = fetchUserLocation()
+        if (result.location != null) {
+          _userLocation.value = result.location
+        }
+      } catch (_: Exception) { }
+    }
+  }
+
+  private data class FilterInputs(
     val query: String,
     val filter: TicketFilterState,
-    val tabIndex: Int,
-    val forceRefresh: Boolean,
-    val uiControl: UiControlState
+    val selectedTab: Int,
+    val userLocation: Location?
   )
 }

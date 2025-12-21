@@ -2,6 +2,8 @@ package com.example.community_app.info.presentation.info_master
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.community_app.core.domain.location.Location
+import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.info.domain.usecase.FilterInfosUseCase
 import com.example.community_app.info.domain.usecase.ObserveInfosUseCase
@@ -10,50 +12,55 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class InfoMasterViewModel(
   private val observeInfos: ObserveInfosUseCase,
-  private val filterInfos: FilterInfosUseCase
+  private val filterInfos: FilterInfosUseCase,
+  private val fetchUserLocation: FetchUserLocationUseCase
 ) : ViewModel() {
   private val _searchQuery = MutableStateFlow("")
   private val _filterState = MutableStateFlow(InfoFilterState())
   private val _forceRefreshTrigger = MutableStateFlow(false)
   private val _isFilterSheetVisible = MutableStateFlow(false)
 
-  private val inputs = combine(
-    _searchQuery,
-    _filterState,
-    _forceRefreshTrigger,
-    _isFilterSheetVisible
-  ) { query, filter, forceRefresh, isFilterVisible ->
-    Inputs(query, filter, forceRefresh, isFilterVisible)
-  }
+  private val _userLocation = MutableStateFlow<Location?>(null)
+
+  init { refreshLocation() }
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  val state = inputs.flatMapLatest { inputs ->
-    observeInfos(forceRefresh = inputs.forceRefresh).map { result ->
-      val filteredInfos = filterInfos(
-        infos = result.infos,
-        query = inputs.query,
-        filter = inputs.filter
-      )
+  private val infoDataFlow = _forceRefreshTrigger.flatMapLatest { force ->
+    observeInfos(forceRefresh = force)
+  }
 
-      if (inputs.forceRefresh && !result.isLoading) {
-        _forceRefreshTrigger.value = false
-      }
-
-      InfoMasterState(
-        searchQuery = inputs.query,
-        filter = inputs.filter,
-        isFilterSheetVisible = inputs.isFilterVisible,
-        searchResults = filteredInfos,
-        isLoading = result.isLoading,
-        errorMessage = result.error?.toUiText()
-      )
+  val state = combine(
+    infoDataFlow,
+    _searchQuery,
+    _filterState,
+    _isFilterSheetVisible,
+    _userLocation
+  ) { dataResult, query, filter, isFilterVisible, location ->
+    if (_forceRefreshTrigger.value && !dataResult.isLoading) {
+      _forceRefreshTrigger.value = false
     }
+
+    val filteredInfos = filterInfos(
+      infos = dataResult.infos,
+      query = query,
+      filter = filter,
+      userLocation = location
+    )
+
+    InfoMasterState(
+      searchQuery = query,
+      filter = filter,
+      isFilterSheetVisible = isFilterVisible,
+      searchResults = filteredInfos,
+      isLoading = dataResult.isLoading,
+      errorMessage = dataResult.error?.toUiText()
+    )
   }.stateIn(
     viewModelScope,
     SharingStarted.WhileSubscribed(5000L),
@@ -115,6 +122,7 @@ class InfoMasterViewModel(
 
       is InfoMasterAction.OnRefresh -> {
         _forceRefreshTrigger.value = true
+        refreshLocation()
       }
 
       is InfoMasterAction.OnInfoClick -> {}
@@ -125,10 +133,14 @@ class InfoMasterViewModel(
     _filterState.update(update)
   }
 
-  private data class Inputs(
-    val query: String,
-    val filter: InfoFilterState,
-    val forceRefresh: Boolean,
-    val isFilterVisible: Boolean
-  )
+  private fun refreshLocation() {
+    viewModelScope.launch {
+      try {
+        val result = fetchUserLocation()
+        if (result.location != null) {
+          _userLocation.value = result.location
+        }
+      } catch (_: Exception) { }
+    }
+  }
 }

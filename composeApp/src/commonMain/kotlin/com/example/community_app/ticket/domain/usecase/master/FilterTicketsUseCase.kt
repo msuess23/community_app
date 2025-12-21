@@ -1,20 +1,18 @@
 package com.example.community_app.ticket.domain.usecase.master
 
 import com.example.community_app.core.domain.location.Location
-import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.core.util.GeoUtil
 import com.example.community_app.ticket.domain.TicketListItem
 import com.example.community_app.ticket.presentation.ticket_master.TicketFilterState
 import com.example.community_app.ticket.presentation.ticket_master.TicketSortOption
 
-class FilterTicketsUseCase(
-  private val fetchUserLocation: FetchUserLocationUseCase
-) {
-  suspend operator fun invoke(
+class FilterTicketsUseCase() {
+  operator fun invoke(
     items: List<TicketListItem>,
     query: String,
     filter: TicketFilterState,
-    isUserList: Boolean
+    isUserList: Boolean,
+    userLocation: Location?
   ): List<TicketListItem> {
     var result = items
 
@@ -50,8 +48,7 @@ class FilterTicketsUseCase(
       }
     }
 
-    val userLocation = fetchUserLocation().location
-    if (!isUserList && userLocation != null) {
+    if (!isUserList && userLocation != null && filter.distanceRadiusKm < 50f) {
       result = result.filter { item ->
         val address = when(item) {
           is TicketListItem.Remote -> item.ticket.address
