@@ -34,9 +34,11 @@ import com.example.community_app.office.presentation.office_detail.component.Com
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.filters_clear
 import community_app.composeapp.generated.resources.filters_label
+import community_app.composeapp.generated.resources.from
 import community_app.composeapp.generated.resources.sorting_label
 import community_app.composeapp.generated.resources.sorting_latest
 import community_app.composeapp.generated.resources.sorting_oldest
+import community_app.composeapp.generated.resources.until
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,7 +111,7 @@ fun AppointmentFilterSheet(
       HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
 
       DateFilterField(
-        label = "Von",
+        label = stringResource(Res.string.from),
         selectedDateMillis = filterState.startDate,
         onFieldClick = { showStartDatePicker = true },
         onClearClick = { onAction(AppointmentMasterAction.OnStartDateSelect(null)) }
@@ -118,7 +120,7 @@ fun AppointmentFilterSheet(
       Spacer(modifier = Modifier.height(Spacing.small))
 
       DateFilterField(
-        label = "Bis",
+        label = stringResource(Res.string.until),
         selectedDateMillis = filterState.endDate,
         onFieldClick = { showEndDatePicker = true },
         onClearClick = { onAction(AppointmentMasterAction.OnEndDateSelect(null)) }

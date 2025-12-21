@@ -21,6 +21,8 @@
     <string name="book">Buchen</string>
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
+    <string name="from">Von</string>
+    <string name="until">Bis</string>
 
     <!-- Info -->
     <string name="info_singular">Information</string>

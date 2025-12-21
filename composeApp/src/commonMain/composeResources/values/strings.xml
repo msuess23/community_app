@@ -21,6 +21,8 @@
     <string name="book">Book</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="from">From</string>
+    <string name="until">Until</string>
 
     <!-- Info -->
     <string name="info_singular">Information</string>

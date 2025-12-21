@@ -6,14 +6,11 @@ import com.example.community_app.appointment.domain.usecase.master.ObserveAppoin
 import com.example.community_app.appointment.domain.usecase.detail.ScheduleAppointmentRemindersUseCase
 import com.example.community_app.appointment.domain.usecase.master.FilterAppointmentsUseCase
 import com.example.community_app.core.presentation.helpers.toUiText
-import com.example.community_app.info.presentation.info_master.InfoFilterState
-import com.example.community_app.info.presentation.info_master.InfoMasterViewModel.Inputs
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -27,43 +24,39 @@ class AppointmentMasterViewModel(
   private val _isFilterSheetVisible = MutableStateFlow(false)
   private val _forceRefreshTrigger = MutableStateFlow(false)
 
-  private val inputs = combine(
-    _filterState,
-    _forceRefreshTrigger,
-    _isFilterSheetVisible
-  ) { filter, forceRefresh, isFilterVisible ->
-    Inputs(filter, forceRefresh, isFilterVisible)
-  }
+  init { viewModelScope.launch { scheduleAppointmentReminders() } }
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  val state = inputs.flatMapLatest { inputs ->
-    observeAppointments(forceRefresh = inputs.forceRefresh).map { result ->
-      val filtered = filterAppointments(
-        appointments = result.appointments,
-        filter = inputs.filter
-      )
+  private val appointmentDataFlow = _forceRefreshTrigger.flatMapLatest { force ->
+    observeAppointments(forceRefresh = force)
+  }
 
-      if (inputs.forceRefresh && !result.syncStatus.isLoading) {
-        _forceRefreshTrigger.value = false
-      }
-
-      AppointmentMasterState(
-        appointments = filtered,
-        isLoading = result.syncStatus.isLoading,
-        errorMessage = result.syncStatus.error?.toUiText(),
-        filter = inputs.filter,
-        isFilterSheetVisible = inputs.isFilterVisible
-      )
+  val state = combine(
+    appointmentDataFlow,
+    _filterState,
+    _isFilterSheetVisible,
+  ) { dataResult, filter, isFilterVisible ->
+    if (_forceRefreshTrigger.value && !dataResult.syncStatus.isLoading) {
+      _forceRefreshTrigger.value = false
     }
+
+    val filteredAppointments = filterAppointments(
+      appointments = dataResult.appointments,
+      filter = filter
+    )
+
+    AppointmentMasterState(
+      appointments = filteredAppointments,
+      isLoading = dataResult.syncStatus.isLoading,
+      errorMessage = dataResult.syncStatus.error?.toUiText(),
+      filter = filter,
+      isFilterSheetVisible = isFilterVisible
+    )
   }.stateIn(
     viewModelScope,
     SharingStarted.WhileSubscribed(5000L),
     AppointmentMasterState(isLoading = true)
   )
-
-  init {
-    viewModelScope.launch { scheduleAppointmentReminders() }
-  }
 
   fun onAction(action: AppointmentMasterAction) {
     when(action) {
@@ -76,10 +69,4 @@ class AppointmentMasterViewModel(
       else -> Unit
     }
   }
-
-  private data class Inputs(
-    val filter: AppointmentFilterState,
-    val forceRefresh: Boolean,
-    val isFilterVisible: Boolean
-  )
 }
