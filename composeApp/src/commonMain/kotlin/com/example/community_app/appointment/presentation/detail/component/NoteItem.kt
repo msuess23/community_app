@@ -61,19 +61,18 @@ fun NoteItem(
       .fillMaxWidth()
       .clickable(onClick = onEdit)
   ) {
-    Row(
+    Column(
       modifier = Modifier
         .padding(Spacing.medium)
-        .fillMaxWidth(),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.Top
+        .fillMaxWidth()
+        .animateContentSize()
     ) {
-      Column(
-        modifier = Modifier
-          .weight(1f)
-          .animateContentSize()
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
       ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.weight(1f)) {
           Text(
             text = note.text,
             style = MaterialTheme.typography.bodyLarge,
@@ -82,8 +81,7 @@ fun NoteItem(
             onTextLayout = { textLayoutResult ->
               if (textLayoutResult.lineCount > 2 || textLayoutResult.hasVisualOverflow) {
                 isExpandable = true
-              }
-            },
+            } },
             modifier = Modifier.fillMaxWidth()
           )
 
@@ -115,33 +113,33 @@ fun NoteItem(
           }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Column(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalAlignment = Alignment.End
+        IconButton(
+          onClick = onDelete,
+          modifier = Modifier.size(24.dp)
         ) {
-          val date = formatIsoDate(toIso8601(note.createdAt))
-          val time = formatIsoTime(toIso8601(note.createdAt))
-          val at = stringResource(Res.string.at)
-
-          Text(
-            text = "$date $at $time",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+          Icon(
+            imageVector = FeatherIcons.Delete,
+            contentDescription = "Delete",
+            tint = MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(20.dp)
           )
         }
       }
 
-      IconButton(
-        onClick = onDelete,
-        modifier = Modifier.size(24.dp)
+      Spacer(modifier = Modifier.height(4.dp))
+
+      Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.End
       ) {
-        Icon(
-          imageVector = FeatherIcons.Delete,
-          contentDescription = "Delete",
-          tint = MaterialTheme.colorScheme.error,
-          modifier = Modifier.size(20.dp)
+        val date = formatIsoDate(toIso8601(note.createdAt))
+        val time = formatIsoTime(toIso8601(note.createdAt))
+        val at = stringResource(Res.string.at)
+
+        Text(
+          text = "$date $at $time",
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant
         )
       }
     }
