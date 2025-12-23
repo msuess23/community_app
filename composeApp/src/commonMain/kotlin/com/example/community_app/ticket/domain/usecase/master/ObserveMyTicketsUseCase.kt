@@ -1,9 +1,8 @@
 package com.example.community_app.ticket.domain.usecase.master
 
-import com.example.community_app.profile.domain.UserRepository
-import com.example.community_app.profile.domain.getUserIdOrNull
-import com.example.community_app.ticket.domain.TicketListItem
-import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.profile.domain.repository.UserRepository
+import com.example.community_app.ticket.domain.model.TicketListItem
+import com.example.community_app.ticket.domain.repository.TicketRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine

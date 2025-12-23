@@ -1,7 +1,7 @@
 package com.example.community_app.ticket.presentation.ticket_edit
 
-import com.example.community_app.geocoding.domain.Address
-import com.example.community_app.office.domain.Office
+import com.example.community_app.geocoding.domain.model.Address
+import com.example.community_app.office.domain.model.Office
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
 

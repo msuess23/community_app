@@ -37,7 +37,7 @@ import com.example.community_app.core.presentation.components.detail.CommunityAd
 import com.example.community_app.core.presentation.components.detail.DetailScreenLayout
 import com.example.community_app.core.presentation.components.dialog.CommunityDialog
 import com.example.community_app.core.presentation.theme.Spacing
-import com.example.community_app.office.domain.Office
+import com.example.community_app.office.domain.model.Office
 import com.example.community_app.office.presentation.office_detail.component.CommunityDatePicker
 import com.example.community_app.office.presentation.office_detail.component.DateSelector
 import com.example.community_app.office.presentation.office_detail.component.SlotItem

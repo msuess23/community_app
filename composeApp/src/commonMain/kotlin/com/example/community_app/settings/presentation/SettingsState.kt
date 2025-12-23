@@ -1,6 +1,6 @@
 package com.example.community_app.settings.presentation
 
-import com.example.community_app.settings.domain.AppSettings
+import com.example.community_app.settings.domain.model.AppSettings
 import com.example.community_app.util.AppLanguage
 import com.example.community_app.util.AppTheme
 

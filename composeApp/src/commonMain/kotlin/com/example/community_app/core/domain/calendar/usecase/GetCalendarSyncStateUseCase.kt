@@ -2,7 +2,7 @@ package com.example.community_app.core.domain.calendar.usecase
 
 import com.example.community_app.core.domain.permission.CalendarPermissionService
 import com.example.community_app.core.domain.permission.PermissionStatus
-import com.example.community_app.settings.domain.SettingsRepository
+import com.example.community_app.settings.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
 
 data class CalendarSyncState(

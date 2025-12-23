@@ -6,8 +6,8 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.example.community_app.settings.domain.AppSettings
-import com.example.community_app.settings.domain.SettingsRepository
+import com.example.community_app.settings.domain.model.AppSettings
+import com.example.community_app.settings.domain.repository.SettingsRepository
 import com.example.community_app.util.AppLanguage
 import com.example.community_app.util.AppTheme
 import kotlinx.coroutines.flow.Flow

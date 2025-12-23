@@ -1,6 +1,6 @@
 package com.example.community_app.ticket.domain.usecase.detail
 
-import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.ticket.domain.repository.TicketRepository
 
 class ToggleTicketFavoriteUseCase(
   private val ticketRepository: TicketRepository

@@ -1,14 +1,14 @@
 package com.example.community_app.appointment.domain.usecase.detail
 
-import com.example.community_app.appointment.domain.AppointmentRepository
+import com.example.community_app.appointment.domain.repository.AppointmentRepository
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.calendar.CalendarManager
-import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.domain.model.Address
 import com.example.community_app.core.presentation.state.SyncStatus
 import com.example.community_app.core.util.parseIsoToMillis
-import com.example.community_app.office.domain.Office
-import com.example.community_app.office.domain.OfficeRepository
+import com.example.community_app.office.domain.model.Office
+import com.example.community_app.office.domain.repository.OfficeRepository
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.app_title
 import community_app.composeapp.generated.resources.appointment_calendar_desc

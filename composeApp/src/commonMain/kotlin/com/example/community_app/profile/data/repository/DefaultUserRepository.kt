@@ -7,8 +7,8 @@ import com.example.community_app.profile.data.local.UserDao
 import com.example.community_app.profile.data.mappers.toUser
 import com.example.community_app.profile.data.mappers.toEntity
 import com.example.community_app.profile.data.network.RemoteUserDataSource
-import com.example.community_app.profile.domain.User
-import com.example.community_app.profile.domain.UserRepository
+import com.example.community_app.profile.domain.model.User
+import com.example.community_app.profile.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map

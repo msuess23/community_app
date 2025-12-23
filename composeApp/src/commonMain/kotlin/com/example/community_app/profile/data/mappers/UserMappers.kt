@@ -3,7 +3,7 @@ package com.example.community_app.profile.data.mappers
 import com.example.community_app.dto.UserDto
 import com.example.community_app.profile.data.local.CURRENT_USER_ID
 import com.example.community_app.profile.data.local.UserEntity
-import com.example.community_app.profile.domain.User
+import com.example.community_app.profile.domain.model.User
 
 fun UserDto.toEntity(): UserEntity {
   return UserEntity(

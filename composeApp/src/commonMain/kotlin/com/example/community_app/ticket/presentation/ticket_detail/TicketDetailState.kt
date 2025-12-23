@@ -1,9 +1,9 @@
 package com.example.community_app.ticket.presentation.ticket_detail
 
 import com.example.community_app.core.presentation.helpers.UiText
-import com.example.community_app.ticket.domain.Ticket
-import com.example.community_app.ticket.domain.TicketDraft
-import com.example.community_app.ticket.domain.TicketStatusEntry
+import com.example.community_app.ticket.domain.model.Ticket
+import com.example.community_app.ticket.domain.model.TicketDraft
+import com.example.community_app.ticket.domain.model.TicketStatusEntry
 
 data class TicketDetailState(
   val isLoading: Boolean = false,

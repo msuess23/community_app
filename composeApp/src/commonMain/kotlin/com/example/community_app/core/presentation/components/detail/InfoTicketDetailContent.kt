@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.domain.model.Address
 import com.example.community_app.media.presentation.ImageGallery
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.draft_label_long

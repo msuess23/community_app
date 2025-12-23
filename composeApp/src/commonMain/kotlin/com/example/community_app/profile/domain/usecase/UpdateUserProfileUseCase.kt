@@ -2,7 +2,7 @@ package com.example.community_app.profile.domain.usecase
 
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
-import com.example.community_app.profile.domain.UserRepository
+import com.example.community_app.profile.domain.repository.UserRepository
 
 class UpdateUserProfileUseCase(
   private val userRepository: UserRepository

@@ -1,6 +1,6 @@
 package com.example.community_app.office.domain.usecase
 
-import com.example.community_app.appointment.domain.Slot
+import com.example.community_app.appointment.domain.model.Slot
 import com.example.community_app.core.util.addDays
 import com.example.community_app.core.util.parseIsoToMillis
 

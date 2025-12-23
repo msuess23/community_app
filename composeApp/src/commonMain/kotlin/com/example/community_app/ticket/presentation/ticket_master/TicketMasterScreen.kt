@@ -1,7 +1,6 @@
 package com.example.community_app.ticket.presentation.ticket_master
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,7 +34,7 @@ import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatIsoDate
 import com.example.community_app.core.util.formatMillisDate
-import com.example.community_app.ticket.domain.TicketListItem
+import com.example.community_app.ticket.domain.model.TicketListItem
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.create
 import community_app.composeapp.generated.resources.search_no_results

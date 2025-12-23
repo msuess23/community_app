@@ -23,7 +23,7 @@ import com.example.community_app.core.presentation.components.list.ScreenMessage
 import com.example.community_app.core.presentation.components.master.MasterScreenLayout
 import com.example.community_app.core.presentation.components.master.SingleTabHeader
 import com.example.community_app.core.presentation.theme.Spacing
-import com.example.community_app.office.domain.Office
+import com.example.community_app.office.domain.model.Office
 import com.example.community_app.office.presentation.office_master.component.OfficeFilterSheet
 import com.example.community_app.office.presentation.office_master.component.OfficeListItem
 import com.example.community_app.ticket.presentation.ticket_master.TicketMasterAction

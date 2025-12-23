@@ -12,9 +12,9 @@ import com.example.community_app.info.data.local.InfoDao
 import com.example.community_app.info.data.mappers.toEntity
 import com.example.community_app.info.data.mappers.toInfo
 import com.example.community_app.info.data.network.RemoteInfoDataSource
-import com.example.community_app.info.domain.Info
-import com.example.community_app.info.domain.InfoRepository
-import com.example.community_app.profile.domain.UserRepository
+import com.example.community_app.info.domain.model.Info
+import com.example.community_app.info.domain.repository.InfoRepository
+import com.example.community_app.profile.domain.repository.UserRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async

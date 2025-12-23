@@ -24,7 +24,7 @@ import com.example.community_app.core.presentation.components.master.SingleTabHe
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatIsoDate
-import com.example.community_app.info.domain.Info
+import com.example.community_app.info.domain.model.Info
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.info_plural
 import org.koin.compose.viewmodel.koinViewModel

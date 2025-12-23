@@ -1,10 +1,10 @@
 package com.example.community_app.appointment.domain.usecase.detail
 
-import com.example.community_app.appointment.domain.AppointmentRepository
+import com.example.community_app.appointment.domain.repository.AppointmentRepository
 import com.example.community_app.core.domain.notification.NotificationService
 import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.core.util.parseIsoToMillis
-import com.example.community_app.settings.domain.SettingsRepository
+import com.example.community_app.settings.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
 
 class ScheduleAppointmentRemindersUseCase(

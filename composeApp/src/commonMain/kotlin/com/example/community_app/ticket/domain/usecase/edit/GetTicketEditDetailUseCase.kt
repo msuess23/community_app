@@ -2,12 +2,12 @@ package com.example.community_app.ticket.domain.usecase.edit
 
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
-import com.example.community_app.media.domain.MediaRepository
-import com.example.community_app.office.domain.Office
-import com.example.community_app.office.domain.OfficeRepository
-import com.example.community_app.ticket.domain.EditableImage
-import com.example.community_app.ticket.domain.TicketEditDetails
-import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.media.domain.repository.MediaRepository
+import com.example.community_app.office.domain.model.Office
+import com.example.community_app.office.domain.repository.OfficeRepository
+import com.example.community_app.ticket.domain.model.EditableImage
+import com.example.community_app.ticket.domain.model.TicketEditDetails
+import com.example.community_app.ticket.domain.repository.TicketRepository
 import com.example.community_app.util.BASE_URL
 import com.example.community_app.util.MediaTargetType
 import com.example.community_app.util.TicketCategory

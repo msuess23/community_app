@@ -3,7 +3,7 @@ package com.example.community_app.geocoding.data.mappers
 import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.dto.AddressDto
 import com.example.community_app.geocoding.data.local.AddressEntity
-import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.domain.model.Address
 
 fun Address.toEntity(userId: Int, type: String?) = AddressEntity(
   userId = userId,

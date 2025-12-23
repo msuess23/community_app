@@ -2,7 +2,7 @@ package com.example.community_app.ticket.domain.usecase.master
 
 import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.util.GeoUtil
-import com.example.community_app.ticket.domain.TicketListItem
+import com.example.community_app.ticket.domain.model.TicketListItem
 import com.example.community_app.ticket.presentation.ticket_master.TicketFilterState
 import com.example.community_app.ticket.presentation.ticket_master.TicketSortOption
 

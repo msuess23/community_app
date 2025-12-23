@@ -2,7 +2,7 @@ package com.example.community_app.ticket.domain.usecase.detail
 
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
-import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.ticket.domain.repository.TicketRepository
 
 class VoteTicketUseCase(
   private val ticketRepository: TicketRepository

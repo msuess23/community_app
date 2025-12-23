@@ -1,11 +1,11 @@
 package com.example.community_app.office.domain.usecase
 
-import com.example.community_app.appointment.domain.Slot
+import com.example.community_app.appointment.domain.model.Slot
 import com.example.community_app.appointment.domain.usecase.detail.GetFreeSlotsUseCase
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.presentation.state.SyncStatus
-import com.example.community_app.office.domain.Office
-import com.example.community_app.office.domain.OfficeRepository
+import com.example.community_app.office.domain.model.Office
+import com.example.community_app.office.domain.repository.OfficeRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow

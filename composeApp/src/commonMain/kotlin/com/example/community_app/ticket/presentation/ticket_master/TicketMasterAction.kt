@@ -1,8 +1,8 @@
 package com.example.community_app.ticket.presentation.ticket_master
 
 import com.example.community_app.core.presentation.components.search.FilterSection
-import com.example.community_app.ticket.domain.Ticket
-import com.example.community_app.ticket.domain.TicketDraft
+import com.example.community_app.ticket.domain.model.Ticket
+import com.example.community_app.ticket.domain.model.TicketDraft
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketStatus
 

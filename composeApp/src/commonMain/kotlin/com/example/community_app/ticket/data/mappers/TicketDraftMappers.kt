@@ -1,10 +1,10 @@
 package com.example.community_app.ticket.data.mappers
 
-import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.domain.model.Address
 import com.example.community_app.ticket.data.local.draft.TicketDraftEntity
 import com.example.community_app.ticket.data.local.draft.TicketDraftWithImages
 import com.example.community_app.ticket.data.local.ticket.TicketAddressEntity
-import com.example.community_app.ticket.domain.TicketDraft
+import com.example.community_app.ticket.domain.model.TicketDraft
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
 

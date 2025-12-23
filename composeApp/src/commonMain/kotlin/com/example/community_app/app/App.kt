@@ -40,7 +40,7 @@ import com.example.community_app.info.presentation.info_master.InfoMasterScreenR
 import com.example.community_app.office.presentation.office_detail.OfficeDetailScreenRoot
 import com.example.community_app.office.presentation.office_master.OfficeMasterScreenRoot
 import com.example.community_app.profile.presentation.ProfileScreenRoot
-import com.example.community_app.settings.domain.SettingsRepository
+import com.example.community_app.settings.domain.repository.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsScreenRoot
 import com.example.community_app.ticket.presentation.ticket_detail.TicketDetailScreenRoot
 import com.example.community_app.ticket.presentation.ticket_edit.TicketEditScreenRoot

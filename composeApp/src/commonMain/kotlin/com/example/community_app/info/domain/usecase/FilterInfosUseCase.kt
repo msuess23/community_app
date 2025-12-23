@@ -2,7 +2,7 @@ package com.example.community_app.info.domain.usecase
 
 import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.util.GeoUtil
-import com.example.community_app.info.domain.Info
+import com.example.community_app.info.domain.model.Info
 import com.example.community_app.info.presentation.info_master.InfoFilterState
 import com.example.community_app.info.presentation.info_master.InfoSortOption
 

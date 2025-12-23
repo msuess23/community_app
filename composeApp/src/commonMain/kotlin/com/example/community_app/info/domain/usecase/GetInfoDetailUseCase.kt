@@ -4,8 +4,8 @@ import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.presentation.state.SyncStatus
 import com.example.community_app.dto.InfoStatusDto
-import com.example.community_app.info.domain.Info
-import com.example.community_app.info.domain.InfoRepository
+import com.example.community_app.info.domain.model.Info
+import com.example.community_app.info.domain.repository.InfoRepository
 import com.example.community_app.media.domain.usecase.GetImagesUseCase
 import com.example.community_app.util.InfoStatus
 import com.example.community_app.util.MediaTargetType

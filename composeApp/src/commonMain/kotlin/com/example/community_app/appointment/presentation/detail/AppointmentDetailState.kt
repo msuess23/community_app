@@ -1,8 +1,8 @@
 package com.example.community_app.appointment.presentation.detail
 
-import com.example.community_app.appointment.domain.Appointment
+import com.example.community_app.appointment.domain.model.Appointment
 import com.example.community_app.core.presentation.helpers.UiText
-import com.example.community_app.office.domain.Office
+import com.example.community_app.office.domain.model.Office
 
 data class AppointmentDetailState(
   val isLoading: Boolean = true,

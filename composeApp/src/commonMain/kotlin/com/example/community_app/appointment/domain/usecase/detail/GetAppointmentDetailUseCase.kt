@@ -1,11 +1,11 @@
 package com.example.community_app.appointment.domain.usecase.detail
 
-import com.example.community_app.appointment.domain.Appointment
-import com.example.community_app.appointment.domain.AppointmentRepository
+import com.example.community_app.appointment.domain.model.Appointment
+import com.example.community_app.appointment.domain.repository.AppointmentRepository
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
-import com.example.community_app.office.domain.Office
-import com.example.community_app.office.domain.OfficeRepository
+import com.example.community_app.office.domain.model.Office
+import com.example.community_app.office.domain.repository.OfficeRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest

@@ -1,10 +1,10 @@
 package com.example.community_app.info.data.mappers
 
-import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.domain.model.Address
 import com.example.community_app.dto.InfoDto
 import com.example.community_app.info.data.local.InfoAddressEntity
 import com.example.community_app.info.data.local.InfoEntity
-import com.example.community_app.info.domain.Info
+import com.example.community_app.info.domain.model.Info
 import com.example.community_app.util.BASE_URL
 import com.example.community_app.util.InfoCategory
 import com.example.community_app.util.InfoStatus

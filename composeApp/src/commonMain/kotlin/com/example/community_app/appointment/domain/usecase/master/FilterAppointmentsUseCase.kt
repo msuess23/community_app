@@ -1,6 +1,6 @@
 package com.example.community_app.appointment.domain.usecase.master
 
-import com.example.community_app.appointment.domain.Appointment
+import com.example.community_app.appointment.domain.model.Appointment
 import com.example.community_app.appointment.presentation.master.AppointmentFilterState
 import com.example.community_app.appointment.presentation.master.AppointmentSortOption
 import com.example.community_app.core.util.addDays

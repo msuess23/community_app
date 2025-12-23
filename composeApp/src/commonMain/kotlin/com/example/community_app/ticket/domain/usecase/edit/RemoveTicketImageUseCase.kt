@@ -2,8 +2,8 @@ package com.example.community_app.ticket.domain.usecase.edit
 
 import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.util.getFileNameFromPath
-import com.example.community_app.media.domain.MediaRepository
-import com.example.community_app.ticket.domain.EditableImage
+import com.example.community_app.media.domain.repository.MediaRepository
+import com.example.community_app.ticket.domain.model.EditableImage
 import com.example.community_app.util.MediaTargetType
 
 class RemoveTicketImageUseCase(

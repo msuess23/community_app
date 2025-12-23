@@ -1,6 +1,6 @@
 package com.example.community_app.geocoding.presentation
 
-import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.domain.model.Address
 
 enum class AddressSuggestionType {
   HISTORY,

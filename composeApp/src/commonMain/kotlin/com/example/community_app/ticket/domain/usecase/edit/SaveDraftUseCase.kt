@@ -2,9 +2,9 @@ package com.example.community_app.ticket.domain.usecase.edit
 
 import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.core.util.getFileNameFromPath
-import com.example.community_app.ticket.domain.TicketDraft
-import com.example.community_app.ticket.domain.TicketEditInput
-import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.ticket.domain.model.TicketDraft
+import com.example.community_app.ticket.domain.model.TicketEditInput
+import com.example.community_app.ticket.domain.repository.TicketRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

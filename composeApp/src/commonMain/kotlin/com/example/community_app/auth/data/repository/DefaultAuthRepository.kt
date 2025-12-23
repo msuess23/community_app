@@ -5,7 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.community_app.auth.data.network.RemoteAuthDataSource
-import com.example.community_app.auth.domain.AuthRepository
+import com.example.community_app.auth.domain.repository.AuthRepository
 import com.example.community_app.auth.domain.AuthState
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result

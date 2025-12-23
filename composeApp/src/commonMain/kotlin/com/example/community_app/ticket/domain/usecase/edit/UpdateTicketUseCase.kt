@@ -4,10 +4,10 @@ import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.util.getFileNameFromPath
-import com.example.community_app.media.domain.MediaRepository
-import com.example.community_app.ticket.domain.EditableImage
-import com.example.community_app.ticket.domain.TicketEditInput
-import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.media.domain.repository.MediaRepository
+import com.example.community_app.ticket.domain.model.EditableImage
+import com.example.community_app.ticket.domain.model.TicketEditInput
+import com.example.community_app.ticket.domain.repository.TicketRepository
 import com.example.community_app.util.MediaTargetType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

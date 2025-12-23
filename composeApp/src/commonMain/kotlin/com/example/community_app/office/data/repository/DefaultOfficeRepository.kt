@@ -7,8 +7,8 @@ import com.example.community_app.office.data.local.OfficeDao
 import com.example.community_app.office.data.mappers.toEntity
 import com.example.community_app.office.data.mappers.toOffice
 import com.example.community_app.office.data.network.RemoteOfficeDataSource
-import com.example.community_app.office.domain.Office
-import com.example.community_app.office.domain.OfficeRepository
+import com.example.community_app.office.domain.model.Office
+import com.example.community_app.office.domain.repository.OfficeRepository
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

@@ -1,10 +1,10 @@
 package com.example.community_app.office.data.mappers
 
-import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.domain.model.Address
 import com.example.community_app.dto.OfficeDto
 import com.example.community_app.office.data.local.OfficeAddressEntity
 import com.example.community_app.office.data.local.OfficeEntity
-import com.example.community_app.office.domain.Office
+import com.example.community_app.office.domain.model.Office
 
 fun OfficeDto.toEntity(): OfficeEntity {
   return OfficeEntity(

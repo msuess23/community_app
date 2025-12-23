@@ -1,6 +1,6 @@
 package com.example.community_app.ticket.data.repository
 
-import com.example.community_app.auth.domain.AuthRepository
+import com.example.community_app.auth.domain.repository.AuthRepository
 import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.data.local.favorite.FavoriteDao
 import com.example.community_app.core.data.local.favorite.FavoriteEntity
@@ -10,17 +10,17 @@ import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.dto.*
 import com.example.community_app.geocoding.data.mappers.toDto
-import com.example.community_app.geocoding.domain.Address
-import com.example.community_app.media.domain.MediaRepository
-import com.example.community_app.profile.domain.UserRepository
+import com.example.community_app.geocoding.domain.model.Address
+import com.example.community_app.media.domain.repository.MediaRepository
+import com.example.community_app.profile.domain.repository.UserRepository
 import com.example.community_app.ticket.data.local.draft.TicketDraftDao
 import com.example.community_app.ticket.data.local.ticket.TicketDao
 import com.example.community_app.ticket.data.mappers.*
 import com.example.community_app.ticket.data.network.RemoteTicketDataSource
-import com.example.community_app.ticket.domain.Ticket
-import com.example.community_app.ticket.domain.TicketDraft
-import com.example.community_app.ticket.domain.TicketRepository
-import com.example.community_app.ticket.domain.TicketStatusEntry
+import com.example.community_app.ticket.domain.model.Ticket
+import com.example.community_app.ticket.domain.model.TicketDraft
+import com.example.community_app.ticket.domain.repository.TicketRepository
+import com.example.community_app.ticket.domain.model.TicketStatusEntry
 import com.example.community_app.util.MediaTargetType
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility

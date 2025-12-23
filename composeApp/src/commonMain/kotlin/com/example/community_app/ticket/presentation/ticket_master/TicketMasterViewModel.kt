@@ -6,7 +6,7 @@ import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.presentation.state.UiControlState
-import com.example.community_app.ticket.domain.TicketListItem
+import com.example.community_app.ticket.domain.model.TicketListItem
 import com.example.community_app.ticket.domain.usecase.master.FilterTicketsUseCase
 import com.example.community_app.ticket.domain.usecase.master.ObserveTicketsUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi

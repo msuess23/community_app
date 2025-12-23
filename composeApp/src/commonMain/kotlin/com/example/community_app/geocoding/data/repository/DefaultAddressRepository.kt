@@ -7,9 +7,9 @@ import com.example.community_app.geocoding.data.local.AddressDao
 import com.example.community_app.geocoding.data.mappers.toAddress
 import com.example.community_app.geocoding.data.mappers.toEntity
 import com.example.community_app.geocoding.data.network.RemoteGeocodingDataSource
-import com.example.community_app.geocoding.domain.Address
-import com.example.community_app.geocoding.domain.AddressRepository
-import com.example.community_app.profile.domain.UserRepository
+import com.example.community_app.geocoding.domain.model.Address
+import com.example.community_app.geocoding.domain.repository.AddressRepository
+import com.example.community_app.profile.domain.repository.UserRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull

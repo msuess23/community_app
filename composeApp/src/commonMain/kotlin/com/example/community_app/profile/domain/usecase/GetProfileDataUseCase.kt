@@ -2,10 +2,10 @@ package com.example.community_app.profile.domain.usecase
 
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
-import com.example.community_app.geocoding.domain.Address
-import com.example.community_app.geocoding.domain.AddressRepository
-import com.example.community_app.profile.domain.User
-import com.example.community_app.profile.domain.UserRepository
+import com.example.community_app.geocoding.domain.model.Address
+import com.example.community_app.geocoding.domain.repository.AddressRepository
+import com.example.community_app.profile.domain.model.User
+import com.example.community_app.profile.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll

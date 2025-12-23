@@ -1,12 +1,12 @@
 package com.example.community_app.ticket.data.mappers
 
-import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.domain.model.Address
 import com.example.community_app.dto.TicketDto
 import com.example.community_app.dto.TicketStatusDto
-import com.example.community_app.ticket.domain.Ticket
+import com.example.community_app.ticket.domain.model.Ticket
 import com.example.community_app.ticket.data.local.ticket.TicketAddressEntity
 import com.example.community_app.ticket.data.local.ticket.TicketEntity
-import com.example.community_app.ticket.domain.TicketStatusEntry
+import com.example.community_app.ticket.domain.model.TicketStatusEntry
 import com.example.community_app.util.BASE_URL
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketStatus

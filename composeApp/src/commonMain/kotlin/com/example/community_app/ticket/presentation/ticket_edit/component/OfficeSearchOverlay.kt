@@ -21,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.example.community_app.office.domain.Office
+import com.example.community_app.office.domain.model.Office
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.search_hint
 import community_app.composeapp.generated.resources.search_no_results

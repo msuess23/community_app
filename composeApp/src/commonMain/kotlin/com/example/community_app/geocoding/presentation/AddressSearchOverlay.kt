@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.community_app.core.presentation.components.LocationGuard
-import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.domain.model.Address
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.search_address_current_location
 import community_app.composeapp.generated.resources.search_hint

@@ -3,8 +3,8 @@ package com.example.community_app.info.domain.usecase
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.presentation.state.SyncStatus
-import com.example.community_app.info.domain.Info
-import com.example.community_app.info.domain.InfoRepository
+import com.example.community_app.info.domain.model.Info
+import com.example.community_app.info.domain.repository.InfoRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow

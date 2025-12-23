@@ -8,13 +8,13 @@ import com.example.community_app.app.navigation.Route
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.core.presentation.helpers.toUiText
-import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.domain.model.Address
 import com.example.community_app.geocoding.domain.usecase.AddToAddressHistoryUseCase
 import com.example.community_app.geocoding.domain.usecase.GetAddressFromLocationUseCase
 import com.example.community_app.geocoding.domain.usecase.GetAddressSuggestionsUseCase
-import com.example.community_app.office.domain.Office
-import com.example.community_app.ticket.domain.EditableImage
-import com.example.community_app.ticket.domain.TicketEditInput
+import com.example.community_app.office.domain.model.Office
+import com.example.community_app.ticket.domain.model.EditableImage
+import com.example.community_app.ticket.domain.model.TicketEditInput
 import com.example.community_app.ticket.domain.usecase.edit.AddLocalImageUseCase
 import com.example.community_app.ticket.domain.usecase.edit.DeleteTicketDataUseCase
 import com.example.community_app.ticket.domain.usecase.edit.DiscardLocalImagesUseCase

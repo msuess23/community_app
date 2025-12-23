@@ -66,6 +66,10 @@
     <string name="ticket_uploaded_at">Hochgeladen am</string>
     <string name="draft_last_edited">Zuletzt bearbeitet</string>
 
+    <!-- Notifications -->
+    <string name="notification_title">Update: </string>
+    <string name="notification_desc">Neuer Status: </string>
+
 
     <!-- Office -->
     <string name="office_singular">Behörde</string>

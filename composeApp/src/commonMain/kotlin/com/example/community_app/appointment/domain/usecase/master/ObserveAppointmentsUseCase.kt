@@ -1,8 +1,8 @@
 package com.example.community_app.appointment.domain.usecase.master
 
-import com.example.community_app.appointment.domain.Appointment
-import com.example.community_app.appointment.domain.AppointmentRepository
-import com.example.community_app.auth.domain.AuthRepository
+import com.example.community_app.appointment.domain.model.Appointment
+import com.example.community_app.appointment.domain.repository.AppointmentRepository
+import com.example.community_app.auth.domain.repository.AuthRepository
 import com.example.community_app.auth.domain.AuthState
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.presentation.state.SyncStatus

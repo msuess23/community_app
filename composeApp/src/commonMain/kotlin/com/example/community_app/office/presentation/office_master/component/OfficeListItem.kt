@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.community_app.core.presentation.theme.Spacing
-import com.example.community_app.office.domain.Office
+import com.example.community_app.office.domain.model.Office
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Briefcase
 import compose.icons.feathericons.ChevronRight

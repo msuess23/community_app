@@ -19,10 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.community_app.auth.domain.AuthRepository
+import com.example.community_app.auth.domain.repository.AuthRepository
 import com.example.community_app.auth.domain.AuthState
-import com.example.community_app.profile.domain.User
-import com.example.community_app.profile.domain.UserRepository
+import com.example.community_app.profile.domain.model.User
+import com.example.community_app.profile.domain.repository.UserRepository
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.auth_guard_text
 import community_app.composeapp.generated.resources.auth_guard_title

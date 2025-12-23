@@ -1,7 +1,7 @@
 package com.example.community_app.ticket.domain.usecase.edit
 
 import com.example.community_app.core.data.local.FileStorage
-import com.example.community_app.ticket.domain.EditableImage
+import com.example.community_app.ticket.domain.model.EditableImage
 
 class AddLocalImageUseCase(
   private val fileStorage: FileStorage

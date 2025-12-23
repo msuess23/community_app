@@ -66,6 +66,10 @@
     <string name="ticket_uploaded_at">Uploaded at</string>
     <string name="draft_last_edited">Last edited</string>
 
+    <!-- Notifications -->
+    <string name="notification_title">Update: </string>
+    <string name="notification_desc">New status: </string>
+
     <!-- Office -->
     <string name="office_singular">Office</string>
     <string name="office_plural">Offices</string>

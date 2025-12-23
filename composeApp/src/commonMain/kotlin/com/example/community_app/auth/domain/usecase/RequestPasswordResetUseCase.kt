@@ -1,6 +1,6 @@
 package com.example.community_app.auth.domain.usecase
 
-import com.example.community_app.auth.domain.AuthRepository
+import com.example.community_app.auth.domain.repository.AuthRepository
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 

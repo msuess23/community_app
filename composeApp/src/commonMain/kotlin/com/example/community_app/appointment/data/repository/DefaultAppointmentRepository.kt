@@ -4,9 +4,9 @@ import com.example.community_app.appointment.data.local.AppointmentDao
 import com.example.community_app.appointment.data.mappers.toAppointment
 import com.example.community_app.appointment.data.mappers.toEntity
 import com.example.community_app.appointment.data.network.RemoteAppointmentDataSource
-import com.example.community_app.appointment.domain.Appointment
-import com.example.community_app.appointment.domain.AppointmentRepository
-import com.example.community_app.appointment.domain.Slot
+import com.example.community_app.appointment.domain.model.Appointment
+import com.example.community_app.appointment.domain.repository.AppointmentRepository
+import com.example.community_app.appointment.domain.model.Slot
 import com.example.community_app.core.data.sync.SyncManager
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result

@@ -2,9 +2,9 @@ package com.example.community_app.profile.presentation
 
 import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.presentation.helpers.UiText
-import com.example.community_app.geocoding.domain.Address
+import com.example.community_app.geocoding.domain.model.Address
 import com.example.community_app.geocoding.presentation.AddressSuggestion
-import com.example.community_app.profile.domain.User
+import com.example.community_app.profile.domain.model.User
 
 data class ProfileState(
   val isLoading: Boolean = false,

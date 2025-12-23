@@ -1,9 +1,9 @@
 package com.example.community_app.profile.domain.usecase
 
-import com.example.community_app.auth.domain.AuthRepository
-import com.example.community_app.geocoding.domain.AddressRepository
-import com.example.community_app.profile.domain.UserRepository
-import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.auth.domain.repository.AuthRepository
+import com.example.community_app.geocoding.domain.repository.AddressRepository
+import com.example.community_app.profile.domain.repository.UserRepository
+import com.example.community_app.ticket.domain.repository.TicketRepository
 
 class LogoutUserUseCase(
   private val authRepository: AuthRepository,
