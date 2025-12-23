@@ -9,6 +9,7 @@ import com.example.community_app.profile.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 
 data class ProfileData(
@@ -22,8 +23,12 @@ class GetProfileDataUseCase(
   private val addressRepository: AddressRepository
 ) {
   operator fun invoke(): Flow<Result<ProfileData, DataError>> = flow {
-    val refreshResult = userRepository.refreshUser()
-    val syncError = (refreshResult as? Result.Error)?.error
+    val currentUser = userRepository.getUser().firstOrNull()
+
+    val syncError = if (currentUser != null) {
+      val refreshResult = userRepository.refreshUser()
+      (refreshResult as? Result.Error)?.error
+    } else null
 
     emitAll(
       combine(
