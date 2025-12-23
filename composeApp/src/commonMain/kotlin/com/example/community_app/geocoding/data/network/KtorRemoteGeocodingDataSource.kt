@@ -1,5 +1,6 @@
 package com.example.community_app.geocoding.data.network
 
+import com.example.community_app.BuildKonfig
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import io.ktor.client.HttpClient
@@ -10,8 +11,8 @@ import io.ktor.client.request.parameter
 class KtorRemoteGeocodingDataSource(
   private val httpClient: HttpClient
 ) : RemoteGeocodingDataSource {
-  private val apiKey = "314d03f18ff44bf4ba888e23b034f097"
-  private val baseUrl = "https://api.geoapify.com/v1/geocode"
+  private val apiKey = BuildKonfig.GEOAPIFY_KEY
+  private val baseUrl = BuildKonfig.GEOAPIFY_URL
 
   override suspend fun search(query: String): Result<GeoapifyResponseDto, DataError.Remote> {
     return try {

@@ -1,7 +1,9 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
+import com.codingfeline.buildkonfig.compiler.FieldSpec
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -10,6 +12,31 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.buildkonfig)
+}
+
+buildkonfig {
+  packageName = "com.example.community_app"
+
+  val localProperties = Properties()
+  val localPropertiesFile = project.rootProject.file("local.properties")
+  if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+  }
+
+  defaultConfigs {
+    buildConfigField(
+      FieldSpec.Type.STRING,
+      "GEOAPIFY_KEY",
+      localProperties.getProperty("GEOAPIFY_KEY") ?: ""
+    )
+
+    buildConfigField(
+      FieldSpec.Type.STRING,
+      "GEOAPIFY_URL",
+      localProperties.getProperty("GEOAPIFY_URL") ?: ""
+    )
+  }
 }
 
 kotlin {
@@ -117,4 +144,3 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
     arg("room.incremental", "true")
 }
-
