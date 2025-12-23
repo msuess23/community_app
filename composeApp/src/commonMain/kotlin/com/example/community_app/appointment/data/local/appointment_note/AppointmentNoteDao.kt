@@ -24,5 +24,5 @@ interface AppointmentNoteDao {
   suspend fun deleteAllNotesForUser(userId: Int)
 
   @Query("DELETE FROM appointment_notes WHERE appointmentDate < :timestamp")
-  suspend fun deleteNotesOlderThan(timestamp: Long)
+  suspend fun deleteExpiredNotes(timestamp: Long)
 }

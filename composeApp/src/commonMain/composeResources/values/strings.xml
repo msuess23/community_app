@@ -26,6 +26,7 @@
     <string name="until">until</string>
     <string name="at">at</string>
     <string name="on">on</string>
+    <string name="loading">Loading</string>
 
     <!-- Info -->
     <string name="info_singular">Information</string>
@@ -91,6 +92,12 @@
     <!-- Calendar Appointment -->
     <string name="appointment_calendar_desc">Appointment at</string>
     <string name="appointment_calendar_info">Booked via</string>
+    <!-- Appointment Note -->
+    <string name="note_plural">Notes</string>
+    <string name="note_singular">Note</string>
+    <string name="note_none">You haven't taken any notes for this appointment yet.</string>
+    <string name="note_edit">Edit note</string>
+    <string name="note_create">Add note</string>
 
     <!-- Search -->
     <string name="search_hint">Search...</string>
@@ -219,6 +226,9 @@
     <string name="auth_validation_email_not_empty">Email must not be empty.</string>
     <string name="auth_validation_password_length">Password must have at least 8 characters.</string>
     <string name="auth_validation_password_not_matching">Passwords are not matching.</string>
+
+    <!-- Message -->
+    <string name="message_no_data">There is no data available. Please pull down to load.</string>
 
     <!-- Errors -->
     <string name="error_data_not_found">The data could not be found.</string>

@@ -5,11 +5,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
+import com.example.community_app.appointment.domain.model.AppointmentNote
 import com.example.community_app.appointment.domain.usecase.detail.CancelAppointmentUseCase
 import com.example.community_app.appointment.domain.usecase.detail.GetAppointmentDetailsUseCase
+import com.example.community_app.appointment.domain.usecase.note.AddAppointmentNoteUseCase
+import com.example.community_app.appointment.domain.usecase.note.DeleteAppointmentNoteUseCase
+import com.example.community_app.appointment.domain.usecase.note.GetAppointmentNotesUseCase
+import com.example.community_app.appointment.domain.usecase.note.UpdateAppointmentNoteUseCase
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.core.util.parseIsoToMillis
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -19,7 +25,11 @@ import kotlinx.coroutines.launch
 class AppointmentDetailViewModel(
   savedStateHandle: SavedStateHandle,
   private val getAppointmentDetails: GetAppointmentDetailsUseCase,
-  private val cancelAppointment: CancelAppointmentUseCase
+  private val cancelAppointment: CancelAppointmentUseCase,
+  private val getAppointmentNotes: GetAppointmentNotesUseCase,
+  private val addAppointmentNote: AddAppointmentNoteUseCase,
+  private val updateAppointmentNote: UpdateAppointmentNoteUseCase,
+  private val deleteAppointmentNote: DeleteAppointmentNoteUseCase
 ) : ViewModel() {
 
   private val appointmentId = savedStateHandle.toRoute<Route.AppointmentDetail>().id
@@ -28,12 +38,35 @@ class AppointmentDetailViewModel(
   private val _showCancelDialog = MutableStateFlow(false)
   private val _actionError = MutableStateFlow<UiText?>(null)
 
-  val state = combine(
-    getAppointmentDetails(appointmentId),
+  private val _isNoteDialogVisible = MutableStateFlow(false)
+  private val _editingNote = MutableStateFlow<AppointmentNote?>(null)
+
+  private val appointmentFlow = getAppointmentDetails(appointmentId)
+  private val notesFlow = getAppointmentNotes(appointmentId)
+
+  private data class UiState(
+    val isCancelling: Boolean,
+    val showCancelDialog: Boolean,
+    val actionError: UiText?,
+    val isNoteDialogVisible: Boolean,
+    val editingNote: AppointmentNote?
+  )
+
+  private val uiControlFlow = combine(
     _isCancelling,
     _showCancelDialog,
-    _actionError
-  ) { result, isCancelling, showCancelDialog, actionError ->
+    _actionError,
+    _isNoteDialogVisible,
+    _editingNote
+  ) { isCancelling, showCancelDialog, actionError, isNoteDialogVisible, editingNote ->
+    UiState(isCancelling, showCancelDialog, actionError, isNoteDialogVisible, editingNote)
+  }
+
+  val state = combine(
+    appointmentFlow,
+    notesFlow,
+    uiControlFlow
+  ) { result, notes, uiState ->
 
     val details = (result as? Result.Success)?.data
     val loadingError = (result as? Result.Error)?.error?.toUiText()
@@ -42,10 +75,13 @@ class AppointmentDetailViewModel(
       isLoading = result !is Result.Success && result !is Result.Error,
       appointment = details?.appointment,
       office = details?.office,
-      isCancelling = isCancelling,
-      isCancelled = result is Result.Error && details == null && !isCancelling,
-      showCancelDialog = showCancelDialog,
-      errorMessage = actionError ?: loadingError
+      notes = notes,
+      isNoteDialogVisible = uiState.isNoteDialogVisible,
+      editingNote = uiState.editingNote,
+      isCancelling = uiState.isCancelling,
+      isCancelled = result is Result.Error && details == null && !uiState.isCancelling,
+      showCancelDialog = uiState.showCancelDialog,
+      errorMessage = uiState.actionError ?: loadingError
     )
   }.stateIn(
     viewModelScope,
@@ -58,7 +94,52 @@ class AppointmentDetailViewModel(
       AppointmentDetailAction.OnCancelClick -> _showCancelDialog.value = true
       AppointmentDetailAction.OnDismissDialog -> _showCancelDialog.value = false
       AppointmentDetailAction.OnCancelConfirm -> cancel()
+
+      AppointmentDetailAction.OnAddNoteClick -> {
+        _editingNote.value = null
+        _isNoteDialogVisible.value = true
+      }
+      is AppointmentDetailAction.OnEditNoteClick -> {
+        _editingNote.value = action.note
+        _isNoteDialogVisible.value = true
+      }
+      is AppointmentDetailAction.OnDeleteNoteClick -> {
+        viewModelScope.launch {
+          deleteAppointmentNote(action.noteId)
+        }
+      }
+      AppointmentDetailAction.OnCloseNoteDialog -> {
+        _isNoteDialogVisible.value = false
+        _editingNote.value = null
+      }
+      is AppointmentDetailAction.OnSubmitNote -> submitNote(action.text)
+
       else -> Unit
+    }
+  }
+
+  private fun submitNote(text: String) {
+    viewModelScope.launch {
+      val currentEditingNote = _editingNote.value
+
+      if (currentEditingNote != null) {
+        updateAppointmentNote(currentEditingNote.id, text)
+      } else {
+        val currentDetails = (state.value.appointment)
+
+        if (currentDetails != null) {
+          val appointmentDate = parseIsoToMillis(currentDetails.endsAt)
+
+          addAppointmentNote(
+            appointmentId = appointmentId,
+            appointmentDate = appointmentDate,
+            text = text
+          )
+        }
+      }
+
+      _isNoteDialogVisible.value = false
+      _editingNote.value = null
     }
   }
 

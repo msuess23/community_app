@@ -48,6 +48,12 @@ import com.example.community_app.geocoding.domain.usecase.SetHomeAddressUseCase
 import com.example.community_app.appointment.data.local.appointment_note.AppointmentNoteDao
 import com.example.community_app.appointment.data.repository.DefaultAppointmentNoteRepository
 import com.example.community_app.appointment.domain.repository.AppointmentNoteRepository
+import com.example.community_app.appointment.domain.usecase.note.AddAppointmentNoteUseCase
+import com.example.community_app.appointment.domain.usecase.note.DeleteAppointmentNoteUseCase
+import com.example.community_app.appointment.domain.usecase.note.DeleteOutdatedNotesUseCase
+import com.example.community_app.appointment.domain.usecase.note.GetAppointmentNotesUseCase
+import com.example.community_app.appointment.domain.usecase.note.UpdateAppointmentNoteUseCase
+import com.example.community_app.core.data.sync.MaintenanceManager
 import com.example.community_app.info.data.local.InfoDao
 import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
 import com.example.community_app.info.data.network.RemoteInfoDataSource
@@ -185,6 +191,7 @@ val sharedModule = module {
   single<AddressDao> { get<AppDatabase>().addressHistoryDao() }
 
   singleOf(::SyncManager)
+  singleOf(::MaintenanceManager)
 
   singleOf(::DefaultAuthRepository).bind<AuthRepository>()
   singleOf(::DefaultSettingsRepository).bind<SettingsRepository>()
@@ -246,6 +253,12 @@ val sharedModule = module {
   factoryOf(::CheckStatusUpdatesUseCase)
   factoryOf(::ScheduleAppointmentRemindersUseCase)
   factoryOf(::FilterAppointmentsUseCase)
+
+  factoryOf(::AddAppointmentNoteUseCase)
+  factoryOf(::DeleteAppointmentNoteUseCase)
+  factoryOf(::DeleteOutdatedNotesUseCase)
+  factoryOf(::GetAppointmentNotesUseCase)
+  factoryOf(::UpdateAppointmentNoteUseCase)
 
   factoryOf(::GetAddressSuggestionsUseCase)
   factoryOf(::SearchAddressUseCase)

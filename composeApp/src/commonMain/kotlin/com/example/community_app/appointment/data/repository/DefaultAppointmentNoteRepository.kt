@@ -4,6 +4,7 @@ import com.example.community_app.appointment.data.local.appointment_note.Appoint
 import com.example.community_app.appointment.data.local.appointment_note.AppointmentNoteEntity
 import com.example.community_app.appointment.domain.model.AppointmentNote
 import com.example.community_app.appointment.domain.repository.AppointmentNoteRepository
+import com.example.community_app.core.util.addDays
 import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.profile.domain.repository.UserRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,12 +20,10 @@ class DefaultAppointmentNoteRepository(
 ) : AppointmentNoteRepository {
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  override fun getNotesForAppointment(appointmentId: String): Flow<List<AppointmentNote>> {
-    val appIdInt = appointmentId.toIntOrNull() ?: return flowOf(emptyList())
-
+  override fun getNotesForAppointment(appointmentId: Int): Flow<List<AppointmentNote>> {
     return userRepository.getUser().flatMapLatest { user ->
       if (user != null) {
-        dao.getNotes(appIdInt, user.id).map { entities ->
+        dao.getNotes(appointmentId, user.id).map { entities ->
           entities.map { AppointmentNote(it.id, it.text, it.createdAt) }
         }
       } else {
@@ -33,12 +32,11 @@ class DefaultAppointmentNoteRepository(
     }
   }
 
-  override suspend fun addNote(appointmentId: String, appointmentDate: Long, text: String) {
+  override suspend fun addNote(appointmentId: Int, appointmentDate: Long, text: String) {
     val user = userRepository.getUser().firstOrNull() ?: return
-    val appIdInt = appointmentId.toIntOrNull() ?: return
 
     val entity = AppointmentNoteEntity(
-      appointmentId = appIdInt,
+      appointmentId = appointmentId,
       userId = user.id,
       text = text,
       createdAt = getCurrentTimeMillis(),
@@ -61,8 +59,9 @@ class DefaultAppointmentNoteRepository(
   }
 
   override suspend fun deleteExpiredNotes() {
-    val thirtyDaysInMillis = 30L * 24 * 60 * 60 * 1000
-    val threshold = getCurrentTimeMillis() - thirtyDaysInMillis
-    dao.deleteNotesOlderThan(threshold)
+    val now = getCurrentTimeMillis()
+    val timestamp = addDays(now, -7)
+
+    dao.deleteExpiredNotes(timestamp)
   }
 }

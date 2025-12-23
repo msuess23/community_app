@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +31,8 @@ import com.example.community_app.core.presentation.components.search.SearchBar
 import com.example.community_app.core.presentation.theme.Spacing
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.filters_label
+import community_app.composeapp.generated.resources.loading
+import community_app.composeapp.generated.resources.message_no_data
 import community_app.composeapp.generated.resources.search_no_results
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Sliders
@@ -126,8 +127,30 @@ fun MasterScreenLayout(
             contentAlignment = Alignment.Center
           ) {
             if (isLoading && isEmpty) {
-              CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            } else if (isEmpty) {
+              Box(
+                modifier = Modifier
+                  .fillMaxSize()
+                  .verticalScroll(rememberScrollState()),
+                contentAlignment = Alignment.Center
+              ) {
+                ScreenMessage(
+                  text = stringResource(Res.string.loading) + "...",
+                  color = MaterialTheme.colorScheme.onSurface
+                )
+              }
+            } else if (isEmpty && searchQuery.isEmpty()) {
+              Box(
+                modifier = Modifier
+                  .fillMaxSize()
+                  .verticalScroll(rememberScrollState()),
+                contentAlignment = Alignment.Center
+              ) {
+                ScreenMessage(
+                  text = stringResource(Res.string.message_no_data),
+                  color = MaterialTheme.colorScheme.onSurface
+                )
+              }
+            } else if (isEmpty && searchQuery.isNotEmpty()) {
               Box(
                 modifier = Modifier
                   .fillMaxSize()

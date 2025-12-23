@@ -22,13 +22,16 @@ data class SyncDecision(
 
 class SyncManager(
   private val fetchUserLocation: FetchUserLocationUseCase,
-  private val dataStore: DataStore<Preferences>
+  private val dataStore: DataStore<Preferences>,
+  private val maintenanceManager: MaintenanceManager
 ) {
   suspend fun checkSyncStatus(
     featureKey: String,
     forceRefresh: Boolean,
     radiusKm: Double = SERVER_FILTER_RADIUS_KM
   ): SyncDecision {
+    maintenanceManager.tryRunDailyMaintenance()
+
     val fetchResult = withTimeoutOrNull(3000L) {
       try {
         fetchUserLocation()
