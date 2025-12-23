@@ -31,6 +31,7 @@ kotlinxCoroutines = "1.10.2"
 datastore = "1.2.0"
 playServicesLocation = "21.3.0"
 mokoPermissions = "0.18.0"
+buildKonfig = "0.15.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -113,6 +114,7 @@ ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp"}
+buildkonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildKonfig" }
 
 [bundles]
 koin = [
