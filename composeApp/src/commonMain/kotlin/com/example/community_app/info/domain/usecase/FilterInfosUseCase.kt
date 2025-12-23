@@ -2,11 +2,11 @@ package com.example.community_app.info.domain.usecase
 
 import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.util.GeoUtil
-import com.example.community_app.info.domain.Info
+import com.example.community_app.info.domain.model.Info
 import com.example.community_app.info.presentation.info_master.InfoFilterState
 import com.example.community_app.info.presentation.info_master.InfoSortOption
 
-class FilterInfosUseCase {
+class FilterInfosUseCase() {
   operator fun invoke(
     infos: List<Info>,
     query: String,
@@ -35,7 +35,7 @@ class FilterInfosUseCase {
       }
     }
 
-    if (userLocation != null) {
+    if (userLocation != null && filter.distanceRadiusKm < 50f) {
       result = result.filter { info ->
         val infoAddr = info.address
         if (infoAddr != null) {
@@ -50,6 +50,21 @@ class FilterInfosUseCase {
       InfoSortOption.DATE_DESC -> result.sortedByDescending { it.startsAt }
       InfoSortOption.DATE_ASC -> result.sortedBy { it.startsAt }
       InfoSortOption.ALPHABETICAL -> result.sortedBy { it.title }
+      InfoSortOption.FAVORITES -> result.sortedByDescending { it.isFavorite }
+      InfoSortOption.DISTANCE -> {
+        if (userLocation != null) {
+          result.sortedBy { info ->
+            if (info.address != null) {
+              val infoLoc = Location(info.address.latitude, info.address.longitude)
+              GeoUtil.calculateDistanceKm(userLocation, infoLoc)
+            } else {
+              Double.MAX_VALUE
+            }
+          }
+        } else {
+          result
+        }
+      }
     }
 
     return result

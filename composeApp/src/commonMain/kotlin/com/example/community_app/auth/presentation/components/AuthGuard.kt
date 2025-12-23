@@ -19,9 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.community_app.auth.domain.AuthRepository
+import com.example.community_app.auth.domain.repository.AuthRepository
 import com.example.community_app.auth.domain.AuthState
-import com.example.community_app.dto.UserDto
+import com.example.community_app.profile.domain.model.User
+import com.example.community_app.profile.domain.repository.UserRepository
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.auth_guard_text
 import community_app.composeapp.generated.resources.auth_guard_title
@@ -33,24 +34,19 @@ import org.koin.compose.koinInject
 
 @Composable
 fun AuthGuard(
-  onLoginClick: () -> Unit,
+  onLoginClick: () -> Unit = {},
   modifier: Modifier = Modifier,
   fallbackContent: (@Composable () -> Unit)? = null,
-  content: @Composable (UserDto) -> Unit
+  content: @Composable (User) -> Unit
 ) {
   val authRepo = koinInject<AuthRepository>()
-  val authState by authRepo.authState.collectAsStateWithLifecycle(initialValue = AuthState.Loading)
+  val userRepo = koinInject<UserRepository>()
 
-  when (val state = authState) {
-    is AuthState.Loading -> {
-      Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-      ) {
-        CircularProgressIndicator()
-      }
-    }
+  val authState by authRepo.authState.collectAsStateWithLifecycle(initialValue = AuthState.Loading)
+  val currentUser by userRepo.getUser().collectAsStateWithLifecycle(initialValue = null)
+
+  when (authState) {
+    is AuthState.Loading -> LoadingView()
     is AuthState.Unauthenticated -> {
       if (fallbackContent != null) {
         fallbackContent()
@@ -62,8 +58,25 @@ fun AuthGuard(
       }
     }
     is AuthState.Authenticated -> {
-      content(state.user)
+      if (currentUser != null) {
+        content(currentUser!!)
+      } else {
+        LoadingView()
+      }
     }
+  }
+}
+
+@Composable
+private fun LoadingView(
+  modifier: Modifier = Modifier
+) {
+  Column(
+    modifier = modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.Center,
+    horizontalAlignment = Alignment.CenterHorizontally
+  ) {
+    CircularProgressIndicator()
   }
 }
 

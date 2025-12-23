@@ -1,7 +1,11 @@
 package com.example.community_app.app.navigation
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DrawerState
@@ -23,6 +27,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -48,6 +54,8 @@ fun AppScaffold(
   val scope = rememberCoroutineScope()
   val navBackStackEntry by navController.currentBackStackEntryAsState()
   val currentDestination = navBackStackEntry?.destination
+
+  val focusManager = LocalFocusManager.current
 
   fun navigateTo(destination: TopLevelDestination) {
     navController.navigate(destination.route) {
@@ -103,7 +111,14 @@ fun AppScaffold(
       }
     ) { paddingValues ->
       Box(modifier = Modifier
+        .fillMaxSize()
         .padding(bottom = paddingValues.calculateBottomPadding())
+        .consumeWindowInsets(
+          PaddingValues(bottom = paddingValues.calculateBottomPadding())
+        )
+        .pointerInput(Unit) {
+          detectTapGestures(onTap = { focusManager.clearFocus() })
+        }
       ) {
         content()
       }

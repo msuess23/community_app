@@ -1,15 +1,22 @@
 package com.example.community_app.ticket.presentation.ticket_edit
 
+import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.presentation.helpers.UiText
+import com.example.community_app.geocoding.domain.model.Address
+import com.example.community_app.geocoding.presentation.AddressSuggestion
+import com.example.community_app.office.domain.model.Office
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
 
 data class TicketEditState(
+  // Status Flags & Error
   val isLoading: Boolean = false,
   val isSaving: Boolean = false,
+  val isUploadSuccess: Boolean = false,
+  val isDeleteSuccess: Boolean = false,
   val errorMessage: UiText? = null,
 
-  // Modus
+  // Mode
   val isDraft: Boolean = true,
   val ticketId: Int? = null,
   val draftId: Long? = null,
@@ -20,7 +27,18 @@ data class TicketEditState(
   val category: TicketCategory = TicketCategory.OTHER,
   val visibility: TicketVisibility = TicketVisibility.PRIVATE,
   val officeId: Int? = null,
-  val useCurrentLocation: Boolean = true,
+
+  val selectedAddress: Address? = null,
+  val isAddressSearchActive: Boolean = false,
+  val addressSearchQuery: String = "",
+  val addressSuggestions: List<AddressSuggestion> = emptyList(),
+  val currentLocation: Location? = null,
+
+  // Office Selection
+  val availableOffices: List<Office> = emptyList(),
+  val officeSearchQuery: String = "",
+  val isOfficeSearchActive: Boolean = false,
+  val selectedOffice: Office? = null,
 
   // Images
   val images: List<TicketImageState> = emptyList(),
@@ -29,16 +47,18 @@ data class TicketEditState(
   // Dialogs
   val showDeleteDialog: Boolean = false,
   val showUploadDialog: Boolean = false,
-  val showImageSourceDialog: Boolean = false,
-
-  // Permissions
-  val cameraPermissionGranted: Boolean = false,
-  val storagePermissionGranted: Boolean = false,
-  val locationPermissionGranted: Boolean = false,
-
-  val isUploadSuccess: Boolean = false,
-  val isDeleteSuccess: Boolean = false
-)
+  val showImageSourceDialog: Boolean = false
+) {
+  val filteredOffices: List<Office>
+    get() = if (officeSearchQuery.isBlank()) {
+      availableOffices
+    } else {
+      availableOffices.filter {
+        it.name.contains(officeSearchQuery, ignoreCase = true)
+            || (it.services?.contains(officeSearchQuery, ignoreCase = true) == true)
+      }
+    }
+}
 
 data class TicketImageState(
   val uri: String,

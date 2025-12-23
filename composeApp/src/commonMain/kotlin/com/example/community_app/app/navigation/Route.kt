@@ -27,4 +27,6 @@ sealed interface Route {
   @Serializable data class AppointmentDetail(val id: Int): Route
 
   @Serializable data object Settings : Route
+
+  @Serializable data object Profile : Route
 }

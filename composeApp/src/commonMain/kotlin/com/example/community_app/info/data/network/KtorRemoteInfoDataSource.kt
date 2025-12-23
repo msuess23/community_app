@@ -1,6 +1,6 @@
 package com.example.community_app.info.data.network
 
-import com.example.community_app.core.data.safeCall
+import com.example.community_app.core.data.http_client.safeCall
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.dto.InfoDto

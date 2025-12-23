@@ -107,7 +107,7 @@ private fun LoginScreen(
         value = state.password,
         onValueChange = { onAction(LoginAction.OnPasswordChange(it)) },
         isPasswordVisible = state.isPasswordVisible,
-        onTogglePasswordVisibility = { onAction(LoginAction.OnTogglePasswordVisibility) },
+        onTogglePasswordVisibility = { onAction(LoginAction.OnTogglePasswordVisibility) }
       )
 
       Spacer(modifier = Modifier.height(Spacing.small))

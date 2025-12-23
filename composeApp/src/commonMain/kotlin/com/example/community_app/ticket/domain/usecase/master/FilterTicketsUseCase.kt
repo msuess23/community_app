@@ -2,17 +2,17 @@ package com.example.community_app.ticket.domain.usecase.master
 
 import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.util.GeoUtil
-import com.example.community_app.ticket.domain.TicketListItem
+import com.example.community_app.ticket.domain.model.TicketListItem
 import com.example.community_app.ticket.presentation.ticket_master.TicketFilterState
 import com.example.community_app.ticket.presentation.ticket_master.TicketSortOption
 
-class FilterTicketsUseCase {
+class FilterTicketsUseCase() {
   operator fun invoke(
     items: List<TicketListItem>,
     query: String,
     filter: TicketFilterState,
-    userLocation: Location?,
-    isUserList: Boolean
+    isUserList: Boolean,
+    userLocation: Location?
   ): List<TicketListItem> {
     var result = items
 
@@ -48,7 +48,7 @@ class FilterTicketsUseCase {
       }
     }
 
-    if (!isUserList && userLocation != null) {
+    if (!isUserList && userLocation != null && filter.distanceRadiusKm < 50f) {
       result = result.filter { item ->
         val address = when(item) {
           is TicketListItem.Remote -> item.ticket.address
@@ -70,6 +70,28 @@ class FilterTicketsUseCase {
       TicketSortOption.DATE_DESC -> result.sortedByDescending { getSortDate(it) }
       TicketSortOption.DATE_ASC -> result.sortedBy { getSortDate(it) }
       TicketSortOption.ALPHABETICAL -> result.sortedBy { getTitle(it) }
+      TicketSortOption.FAVORITES -> result.sortedByDescending { item ->
+        (item as? TicketListItem.Remote)?.ticket?.isFavorite == true
+      }
+      TicketSortOption.DISTANCE -> {
+        if (userLocation != null) {
+          result.sortedBy { item ->
+            val address = when(item) {
+              is TicketListItem.Remote -> item.ticket.address
+              is TicketListItem.Local -> item.draft.address
+            }
+
+            if (address != null) {
+              val itemLoc = Location(address.latitude, address.longitude)
+              GeoUtil.calculateDistanceKm(userLocation, itemLoc)
+            } else {
+              Double.MAX_VALUE
+            }
+          }
+        } else {
+          result
+        }
+      }
     }
 
     return result

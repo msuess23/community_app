@@ -1,0 +1,57 @@
+package com.example.community_app.appointment.domain.usecase.master
+
+import com.example.community_app.appointment.domain.model.Appointment
+import com.example.community_app.appointment.domain.repository.AppointmentRepository
+import com.example.community_app.auth.domain.repository.AuthRepository
+import com.example.community_app.auth.domain.AuthState
+import com.example.community_app.core.domain.Result
+import com.example.community_app.core.presentation.state.SyncStatus
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+
+data class AppointmentDataResult(
+  val appointments: List<Appointment>,
+  val syncStatus: SyncStatus
+)
+
+class ObserveAppointmentsUseCase(
+  private val appointmentRepository: AppointmentRepository,
+  private val authRepository: AuthRepository
+) {
+  @OptIn(ExperimentalCoroutinesApi::class)
+  operator fun invoke(forceRefresh: Boolean): Flow<AppointmentDataResult> {
+    return authRepository.authState.flatMapLatest { authState ->
+      if (authState is AuthState.Authenticated) {
+        val syncFlow = flow {
+          emit(SyncStatus(isLoading = true))
+
+          val result = appointmentRepository.refreshAppointments(force = forceRefresh)
+
+          val error = (result as? Result.Error)?.error
+          emit(SyncStatus(isLoading = false, error = error))
+        }
+
+        combine(
+          appointmentRepository.getAppointments(),
+          syncFlow
+        ) { appointments, status ->
+          AppointmentDataResult(
+            appointments = appointments,
+            syncStatus = status
+          )
+        }
+      } else {
+        flowOf(
+          AppointmentDataResult(
+            appointments = emptyList(),
+            syncStatus = SyncStatus(isLoading = false)
+          )
+        )
+      }
+    }
+  }
+}

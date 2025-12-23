@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TicketDraftDao {
   @Transaction
-  @Query("SELECT * FROM ticket_drafts")
-  fun getDrafts(): Flow<List<TicketDraftWithImages>>
+  @Query("SELECT * FROM ticket_drafts WHERE userId = :userId ORDER BY lastModified DESC")
+  fun getDrafts(userId: Int): Flow<List<TicketDraftWithImages>>
 
   @Transaction
-  @Query("SELECT * FROM ticket_drafts WHERE id = :id")
-  suspend fun getDraftById(id: Long): TicketDraftWithImages?
+  @Query("SELECT * FROM ticket_drafts WHERE id = :id AND userId = :userId")
+  suspend fun getDraftById(id: Long, userId: Int): TicketDraftWithImages?
 
   @Upsert
   suspend fun upsertDraftBase(draft: TicketDraftEntity): Long
@@ -46,6 +46,6 @@ interface TicketDraftDao {
   @Query("DELETE FROM ticket_drafts WHERE id = :id")
   suspend fun deleteDraft(id: Long)
 
-  @Query("DELETE FROM ticket_drafts")
-  suspend fun clearAll()
+  @Query("DELETE FROM ticket_drafts WHERE userId = :userId")
+  suspend fun deleteDraftsForUser(userId: Int)
 }

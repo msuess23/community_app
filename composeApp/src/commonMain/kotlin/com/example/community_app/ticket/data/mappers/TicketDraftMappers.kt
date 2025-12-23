@@ -1,14 +1,14 @@
 package com.example.community_app.ticket.data.mappers
 
-import com.example.community_app.core.domain.model.Address
+import com.example.community_app.geocoding.domain.model.Address
 import com.example.community_app.ticket.data.local.draft.TicketDraftEntity
 import com.example.community_app.ticket.data.local.draft.TicketDraftWithImages
 import com.example.community_app.ticket.data.local.ticket.TicketAddressEntity
-import com.example.community_app.ticket.domain.TicketDraft
+import com.example.community_app.ticket.domain.model.TicketDraft
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketVisibility
 
-fun TicketDraft.toEntity(): TicketDraftEntity {
+fun TicketDraft.toEntity(userId: Int): TicketDraftEntity {
   return TicketDraftEntity(
     id = id,
     title = title,
@@ -26,7 +26,8 @@ fun TicketDraft.toEntity(): TicketDraftEntity {
       )
     },
     visibility = visibility.name,
-    lastModified = lastModified
+    lastModified = lastModified,
+    userId = userId
   )
 }
 

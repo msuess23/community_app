@@ -3,18 +3,18 @@ package com.example.community_app.core.presentation.components.detail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
@@ -25,16 +25,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.community_app.core.domain.model.Address
+import com.example.community_app.geocoding.domain.model.Address
 import com.example.community_app.media.presentation.ImageGallery
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.draft_label_long
 import community_app.composeapp.generated.resources.label_status
 import community_app.composeapp.generated.resources.label_status_history
 import community_app.composeapp.generated.resources.ticket_mine_label
+import community_app.composeapp.generated.resources.ticket_votes_label
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Activity
 import compose.icons.feathericons.Star
+import compose.icons.feathericons.ThumbsUp
 import compose.icons.feathericons.User
 import org.jetbrains.compose.resources.stringResource
 
@@ -52,12 +54,20 @@ fun InfoTicketDetailContent(
   isDraft: Boolean = false,
   isOwner: Boolean = false,
   isFavorite: Boolean = false,
-  onToggleFavorite: () -> Unit
+  isInfo: Boolean = false,
+  isVoted: Boolean = false,
+  isDescExpanded: Boolean = false,
+  votesCount: Int = 0,
+  onToggleFavorite: () -> Unit = {},
+  onVote: () -> Unit = {},
+  onToggleDescription: () -> Unit
 ) {
+  val scrollState = rememberScrollState()
+
   Column(
     modifier = Modifier
       .fillMaxSize()
-      .verticalScroll(rememberScrollState())
+      .verticalScroll(scrollState)
   ) {
     if (images.isNotEmpty()) {
       ImageGallery(
@@ -73,6 +83,13 @@ fun InfoTicketDetailContent(
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       Column {
+        Text(
+          text = title,
+          style = MaterialTheme.typography.headlineMedium,
+          fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.onSurface
+        )
+
         if (isDraft) {
           SuggestionChip(
             onClick = {},
@@ -91,13 +108,78 @@ fun InfoTicketDetailContent(
             modifier = Modifier.padding(bottom = 8.dp)
           )
         }
+      }
 
-        Text(
-          text = title,
-          style = MaterialTheme.typography.headlineMedium,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.onSurface
+      if (startDate != null) {
+        DetailTimeSection(
+          startDate = startDate,
+          endDate = endDate,
+          isInfo = isInfo,
+          isDraft = isDraft
         )
+      }
+
+      description?.let { desc ->
+        CommunityExpandableDescription(
+          text = desc,
+          isExpanded = isDescExpanded,
+          onToggle = onToggleDescription
+        )
+      }
+
+      if (!isDraft && !isInfo) {
+        Card(
+          colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+          ),
+          shape = RoundedCornerShape(12.dp),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Row(
+            modifier = Modifier
+              .padding(8.dp)
+              .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+          ) {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+              IconToggleButton(
+                checked = isVoted,
+                onCheckedChange = { onVote() }
+              ) {
+                Icon(
+                  imageVector = FeatherIcons.ThumbsUp,
+                  contentDescription = null,
+                  tint = if (isVoted) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.size(28.dp)
+                )
+              }
+
+              Text(
+                text = "$votesCount " + stringResource(Res.string.ticket_votes_label),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+              )
+            }
+
+            if (!isOwner) {
+              IconToggleButton(
+                checked = isFavorite,
+                onCheckedChange = { onToggleFavorite() }
+              ) {
+                Icon(
+                  imageVector = FeatherIcons.Star,
+                  contentDescription = null,
+                  tint = if (isFavorite) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.size(28.dp)
+                )
+              }
+            }
+          }
+        }
       }
 
       if (!isDraft && statusText != null) {
@@ -133,31 +215,11 @@ fun InfoTicketDetailContent(
         }
       }
 
-      description?.let { desc ->
-        Text(
-          text = desc,
-          style = MaterialTheme.typography.bodyLarge,
-          color = MaterialTheme.colorScheme.onSurface
-        )
-      }
-
-      if (!isDraft && !isOwner) {
-        IconButton(onClick = onToggleFavorite) {
-          val tint = if (isFavorite) Color(0xFFFFD700) else MaterialTheme.colorScheme.onPrimary
-
-          Icon(
-            imageVector = FeatherIcons.Star,
-            contentDescription = null,
-            tint = tint
-          )
-        }
-      }
-
       if (address != null) {
         CommunityAddressCard(address = address)
-        Spacer(modifier = Modifier.height(16.dp))
-        MapPlaceholder()
       }
     }
   }
 }
+
+

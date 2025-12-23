@@ -1,9 +1,8 @@
 package com.example.community_app.ticket.domain.usecase.master
 
-import com.example.community_app.auth.domain.AuthRepository
-import com.example.community_app.auth.domain.AuthState
-import com.example.community_app.ticket.domain.TicketListItem
-import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.profile.domain.repository.UserRepository
+import com.example.community_app.ticket.domain.model.TicketListItem
+import com.example.community_app.ticket.domain.repository.TicketRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -12,14 +11,14 @@ import kotlinx.coroutines.flow.flowOf
 
 class ObserveMyTicketsUseCase(
   private val ticketRepository: TicketRepository,
-  private val authRepository: AuthRepository
+  private val userRepository: UserRepository
 ) {
   @OptIn(ExperimentalCoroutinesApi::class)
   operator fun invoke(): Flow<List<TicketListItem>> {
-    return authRepository.authState.flatMapLatest { authState ->
-      if (authState is AuthState.Authenticated) {
+    return userRepository.getUser().flatMapLatest { user ->
+      if (user != null) {
         combine(
-          ticketRepository.getUserTickets(authState.user.id),
+          ticketRepository.getUserTickets(user.id),
           ticketRepository.getDrafts()
         ) { tickets, drafts ->
           val remote = tickets.map { TicketListItem.Remote(it) }

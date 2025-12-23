@@ -1,5 +1,6 @@
 package com.example.community_app.core.presentation.theme
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.unit.dp
 
 object Spacing {
@@ -14,6 +15,8 @@ object Spacing {
   val listContentPadding = medium
   val itemSpacing = medium
   val blockSpacing = large
+
+  val listPadding = PaddingValues(top = Spacing.medium, bottom = Spacing.large)
 }
 
 object Size {

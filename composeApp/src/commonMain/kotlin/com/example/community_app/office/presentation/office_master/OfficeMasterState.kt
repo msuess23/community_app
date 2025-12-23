@@ -3,7 +3,7 @@ package com.example.community_app.office.presentation.office_master
 import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.presentation.components.search.FilterSection
 import com.example.community_app.core.presentation.helpers.UiText
-import com.example.community_app.office.domain.Office
+import com.example.community_app.office.domain.model.Office
 
 data class OfficeMasterState(
   val searchQuery: String = "",
@@ -14,8 +14,6 @@ data class OfficeMasterState(
 
   val isLoading: Boolean = false,
   val errorMessage: UiText? = null,
-  val userLocation: Location? = null,
-  val locationPermissionGranted: Boolean = false
 )
 
 data class OfficeFilterState(

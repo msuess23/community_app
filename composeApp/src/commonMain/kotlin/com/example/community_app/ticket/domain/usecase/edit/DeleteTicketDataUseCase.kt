@@ -4,8 +4,8 @@ import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.core.util.getFileNameFromPath
-import com.example.community_app.ticket.domain.EditableImage
-import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.ticket.domain.model.EditableImage
+import com.example.community_app.ticket.domain.repository.TicketRepository
 
 class DeleteTicketDataUseCase(
   private val ticketRepository: TicketRepository,
@@ -26,7 +26,12 @@ class DeleteTicketDataUseCase(
       Result.Success(Unit)
     } else if (ticketId != null) {
       val result = ticketRepository.deleteTicket(ticketId)
-      if (result is Result.Error) Result.Error(result.error) else Result.Success(Unit)
+
+      if (result is Result.Error) {
+        Result.Error(result.error)
+      } else {
+        Result.Success(Unit)
+      }
     } else {
       Result.Success(Unit)
     }

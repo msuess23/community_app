@@ -2,7 +2,7 @@ package com.example.community_app.auth.presentation.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.community_app.auth.domain.AuthRepository
+import com.example.community_app.auth.domain.repository.AuthRepository
 import com.example.community_app.core.domain.onError
 import com.example.community_app.core.domain.onSuccess
 import com.example.community_app.core.presentation.helpers.toUiText

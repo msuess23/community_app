@@ -5,85 +5,98 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.community_app.app.navigation.Route
-import com.example.community_app.appointment.domain.AppointmentRepository
-import com.example.community_app.appointment.domain.Slot
-import com.example.community_app.appointment.domain.usecase.BookAppointmentUseCase
-import com.example.community_app.appointment.domain.usecase.GetFreeSlotsUseCase
+import com.example.community_app.appointment.domain.model.Slot
+import com.example.community_app.appointment.domain.usecase.detail.BookAppointmentUseCase
 import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
-import com.example.community_app.core.domain.Result
-import com.example.community_app.core.domain.permission.CalendarPermissionService
-import com.example.community_app.core.domain.permission.PermissionStatus
+import com.example.community_app.core.domain.DataError
+import com.example.community_app.core.domain.calendar.usecase.GetCalendarSyncStateUseCase
 import com.example.community_app.core.presentation.helpers.UiText
 import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.core.presentation.state.SyncStatus
 import com.example.community_app.core.util.addDays
-import com.example.community_app.core.util.formatIsoDate
-import com.example.community_app.core.util.formatMillisDate
 import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.core.util.getStartOfDay
-import com.example.community_app.core.util.parseIsoToMillis
-import com.example.community_app.core.util.toIso8601
-import com.example.community_app.office.domain.OfficeRepository
-import com.example.community_app.settings.domain.SettingsRepository
+import com.example.community_app.office.domain.usecase.FilterSlotsUseCase
+import com.example.community_app.office.domain.usecase.GetOfficeDetailUseCase
+import community_app.composeapp.generated.resources.Res
+import community_app.composeapp.generated.resources.slot_booking_error
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.math.max
 
 class OfficeDetailViewModel(
   savedStateHandle: SavedStateHandle,
-  private val officeRepository: OfficeRepository,
-  private val appointmentRepository: AppointmentRepository,
-  private val settingsRepository: SettingsRepository,
-  private val calendarPermissionService: CalendarPermissionService,
-  private val getFreeSlotsUseCase: GetFreeSlotsUseCase,
-  private val isUserLoggedInUseCase: IsUserLoggedInUseCase,
+  private val getOfficeDetail: GetOfficeDetailUseCase,
+  private val filterSlots: FilterSlotsUseCase,
+  private val getCalendarSyncState: GetCalendarSyncStateUseCase,
+  private val isUserLoggedIn: IsUserLoggedInUseCase,
   private val bookAppointmentUseCase: BookAppointmentUseCase
 ) : ViewModel() {
   private val officeId = savedStateHandle.toRoute<Route.OfficeDetail>().id
 
-  private val daysInFuture = 90
-
   // State-Inputs
   private val _selectedDate = MutableStateFlow(getStartOfDay(getCurrentTimeMillis()))
-  private val _allSlots = MutableStateFlow<List<Slot>>(emptyList())
   private val _uiState = MutableStateFlow(UiState())
+  private val _bookedSlotIds = MutableStateFlow<Set<Int>>(emptySet())
+  private val _bookingStatus = MutableStateFlow(SyncStatus(isLoading = false))
+
+  private val detailFlow = getOfficeDetail(officeId)
+
+  private data class LocalViewState(
+    val selectedDate: Long,
+    val ui: UiState,
+    val bookingStatus: SyncStatus,
+    val bookedIds: Set<Int>
+  )
+
+  private val localStateFlow = combine(
+    _selectedDate,
+    _uiState,
+    _bookingStatus,
+    _bookedSlotIds
+  ) { selectedDate, ui, bookingStatus, bookedIds ->
+    LocalViewState(selectedDate, ui, bookingStatus, bookedIds)
+  }
 
   val state = combine(
-    officeRepository.getOffice(officeId),
-    _selectedDate,
-    _allSlots,
-    _uiState,
-    isUserLoggedInUseCase()
-  ) { office, selectedDate, allSlots, ui, isLoggedIn ->
-    val nextDay = addDays(selectedDate, 1)
+    detailFlow,
+    localStateFlow,
+    isUserLoggedIn()
+  ) { result, local, isLoggedIn ->
+    val (selectedDate, ui, bookingStatus, bookedIds) = local
+
+    val filteredSlots = filterSlots(
+      allSlots = result.allSlots,
+      selectedDateMillis = local.selectedDate
+    ).filter { it.id !in bookedIds }
 
     val today = getStartOfDay(getCurrentTimeMillis())
-    val maxDate = addDays(today, daysInFuture)
+    val maxDate = addDays(today, 90)
 
-    val filteredSlots = allSlots.filter { slot ->
-      val slotStart = parseIsoToMillis(slot.startIso)
-      slotStart in selectedDate until nextDay
-    }.sortedBy { it.startIso }
+    val displayError = bookingStatus.error?.toUiText()
+      ?: result.officeSyncStatus.error?.toUiText()
+      ?: ui.errorMessage
 
     OfficeDetailState(
-      isLoading = ui.isLoadingOffice,
-      office = office,
-      selectedDateMillis = selectedDate,
+      isLoading = result.officeSyncStatus.isLoading,
+      office = result.office,
+      selectedDateMillis = local.selectedDate,
       selectableDateRange = today..maxDate,
       visibleSlots = filteredSlots,
-      isLoadingSlots = ui.isLoadingSlots,
-      selectedSlot = ui.selectedSlot,
-      isBooking = ui.isBooking,
-      bookingSuccess = ui.bookingSuccess,
-      errorMessage = ui.errorMessage,
+      isLoadingSlots = result.slotsSyncStatus.isLoading,
+      selectedSlot = local.ui.selectedSlot,
+      isBooking = bookingStatus.isLoading,
+      bookingSuccess = local.ui.bookingSuccess,
+      errorMessage = displayError,
+      infoMessage = result.slotsSyncStatus.error?.toUiText(),
+      showDatePicker = local.ui.showDatePicker,
+      hasCalendarPermission = local.ui.hasCalendarPermission,
+      shouldAddToCalendar = local.ui.shouldAddToCalendar,
       isUserLoggedIn = isLoggedIn,
-      showDatePicker = ui.showDatePicker,
-      hasCalendarPermission = ui.hasCalendarPermission,
-      shouldAddToCalendar = ui.shouldAddToCalendar
+      isDescriptionExpanded = local.ui.isDescriptionExpanded
     )
   }.stateIn(
     viewModelScope,
@@ -92,9 +105,7 @@ class OfficeDetailViewModel(
   )
 
   init {
-    loadOffice()
-    loadAllSlots()
-    checkCalendarSettings()
+    checkCalendarStatus()
   }
 
   fun onAction(action: OfficeDetailAction) {
@@ -116,8 +127,8 @@ class OfficeDetailViewModel(
       is OfficeDetailAction.OnSlotClick -> {
         if (!state.value.isUserLoggedIn) {
           _uiState.update { it.copy(
-            errorMessage = UiText.DynamicString("Bitte melde Dich an, um einen Termin zu buchen."))
-          } // TODO: Localize
+            errorMessage = UiText.StringResourceId(Res.string.slot_booking_error)
+          ) }
         } else {
           _uiState.update { it.copy(selectedSlot = action.slot) }
         }
@@ -130,6 +141,12 @@ class OfficeDetailViewModel(
       OfficeDetailAction.OnDismissBookingDialog -> _uiState.update { it.copy(selectedSlot = null) }
 
       OfficeDetailAction.OnConfirmBooking -> performBooking()
+
+      OfficeDetailAction.OnToggleDescription -> {
+        _uiState.update {
+          it.copy(isDescriptionExpanded = !it.isDescriptionExpanded)
+        }
+      }
 
       else -> Unit
     }
@@ -150,31 +167,13 @@ class OfficeDetailViewModel(
     }
   }
 
-  private fun loadOffice() {
+  private fun checkCalendarStatus() {
     viewModelScope.launch {
-      _uiState.update { it.copy(isLoadingOffice = true) }
-      officeRepository.refreshOffice(officeId)
-      _uiState.update { it.copy(isLoadingOffice = false) }
-    }
-  }
-
-  private fun loadAllSlots() {
-    viewModelScope.launch {
-      _uiState.update { it.copy(isLoadingSlots = true) }
-
-      val nowMillis = getCurrentTimeMillis()
-      val endDateMillis = addDays(nowMillis, daysInFuture)
-
-      val from = toIso8601(nowMillis)
-      val to = toIso8601(endDateMillis)
-
-      val result = getFreeSlotsUseCase(officeId, from, to)
-
-      if (result is Result.Success) {
-        _allSlots.value = result.data
-      }
-
-      _uiState.update { it.copy(isLoadingSlots = false) }
+      val status = getCalendarSyncState()
+      _uiState.update { it.copy(
+        hasCalendarPermission = status.hasPermission,
+        shouldAddToCalendar = status.shouldAutoAdd
+      )}
     }
   }
 
@@ -183,45 +182,40 @@ class OfficeDetailViewModel(
     val addToCalendar = _uiState.value.shouldAddToCalendar
 
     viewModelScope.launch {
-      _uiState.update { it.copy(isBooking = true) }
-      val result = bookAppointmentUseCase(officeId, slot.id, addToCalendar)
+      bookAppointmentUseCase(
+        officeId = officeId,
+        slotId = slot.id,
+        addToCalendar = addToCalendar
+      ).collect { status ->
+        _bookingStatus.value = status
 
-      if (result is Result.Success) {
-        _allSlots.update { currentList ->
-          currentList.filter { it.id != slot.id }
+        if (!status.isLoading) {
+          _uiState.update {
+            it.copy(
+              bookingSuccess = true,
+              selectedSlot = null
+            )
+          }
+
+          if (status.error == null || status.error == DataError.Local.CALENDAR_EXPORT_FAILED) {
+            _bookedSlotIds.update { it + slot.id }
+          }
         }
-
-        _uiState.update { it.copy(isBooking = false, bookingSuccess = true, selectedSlot = null) }
-      } else {
-        val error = (result as Result.Error).error
-        _uiState.update { it.copy(isBooking = false, errorMessage = error.toUiText()) }
       }
-    }
-  }
-
-  private fun checkCalendarSettings() {
-    viewModelScope.launch {
-      val settings = settingsRepository.settings.first()
-      val permission = calendarPermissionService.checkPermission()
-
-      val hasPermission = permission == PermissionStatus.GRANTED
-
-      _uiState.update { it.copy(
-        hasCalendarPermission = hasPermission,
-        shouldAddToCalendar = hasPermission && settings.calendarSyncEnabled
-      ) }
     }
   }
 
   private data class UiState(
     val isLoadingOffice: Boolean = false,
     val isLoadingSlots: Boolean = false,
+    val selectedDate: Long = getStartOfDay(getCurrentTimeMillis()),
     val selectedSlot: Slot? = null,
     val isBooking: Boolean = false,
     val bookingSuccess: Boolean = false,
     val showDatePicker: Boolean = false,
     val hasCalendarPermission: Boolean = false,
     val shouldAddToCalendar: Boolean = false,
-    val errorMessage: UiText? = null
+    val errorMessage: UiText? = null,
+    val isDescriptionExpanded: Boolean = false
   )
 }

@@ -1,8 +1,8 @@
 package com.example.community_app.office.presentation.office_detail
 
-import com.example.community_app.appointment.domain.Slot
+import com.example.community_app.appointment.domain.model.Slot
 import com.example.community_app.core.presentation.helpers.UiText
-import com.example.community_app.office.domain.Office
+import com.example.community_app.office.domain.model.Office
 
 data class OfficeDetailState(
   val isLoading: Boolean = false,
@@ -22,5 +22,8 @@ data class OfficeDetailState(
   val isUserLoggedIn: Boolean = false,
   val showDatePicker: Boolean = false,
 
-  val errorMessage: UiText? = null
+  val infoMessage: UiText? = null,
+  val errorMessage: UiText? = null,
+
+  val isDescriptionExpanded: Boolean = false
 )

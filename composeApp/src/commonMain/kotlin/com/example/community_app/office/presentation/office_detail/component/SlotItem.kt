@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.community_app.appointment.domain.Slot
+import com.example.community_app.appointment.domain.model.Slot
 import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatMillisTime
 import com.example.community_app.core.util.parseIsoToMillis

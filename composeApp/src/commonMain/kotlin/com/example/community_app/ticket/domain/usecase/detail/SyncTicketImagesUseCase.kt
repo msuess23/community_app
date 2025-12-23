@@ -3,7 +3,7 @@ package com.example.community_app.ticket.domain.usecase.detail
 import com.example.community_app.core.data.local.FileStorage
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
-import com.example.community_app.media.domain.MediaRepository
+import com.example.community_app.media.domain.repository.MediaRepository
 import com.example.community_app.util.BASE_URL
 import com.example.community_app.util.MediaTargetType
 

@@ -31,9 +31,10 @@ import com.example.community_app.core.presentation.components.list.InfoTicketLis
 import com.example.community_app.core.presentation.components.list.ScreenMessage
 import com.example.community_app.core.presentation.components.master.MasterScreenLayout
 import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatIsoDate
 import com.example.community_app.core.util.formatMillisDate
-import com.example.community_app.ticket.domain.TicketListItem
+import com.example.community_app.ticket.domain.model.TicketListItem
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.create
 import community_app.composeapp.generated.resources.search_no_results
@@ -108,7 +109,9 @@ private fun TicketMasterScreen(
     onOpenDrawer = onOpenDrawer,
     onToggleFilterSheet = { onAction(TicketMasterAction.OnToggleFilterSheet) },
     floatingActionButton = {
-      if (state.isUserLoggedIn) {
+      AuthGuard(
+        fallbackContent = {}
+      ) {
         FloatingActionButton(
           onClick = { onAction(TicketMasterAction.OnCreateTicketClick) },
           containerColor = MaterialTheme.colorScheme.primary,
@@ -145,27 +148,27 @@ private fun TicketMasterScreen(
       }
     },
     emptyStateContent = {
-      if (state.selectedTabIndex == 1 && !state.isUserLoggedIn) {
+      if (state.selectedTabIndex == 1) {
         AuthGuard(
-          onLoginClick = { onAction(TicketMasterAction.OnLoginClick) },
-          content = { }
-        )
-      } else {
-        ScreenMessage(
-          text = stringResource(Res.string.search_no_results),
-          color = MaterialTheme.colorScheme.onSurface
-        )
+          onLoginClick = { onAction(TicketMasterAction.OnLoginClick) }
+        ) {
+          ScreenMessage(
+            text = stringResource(Res.string.search_no_results),
+            color = MaterialTheme.colorScheme.onSurface
+          )
+        }
       }
     }
   ) {
     LazyColumn(
       modifier = Modifier.fillMaxSize(),
+      contentPadding = Spacing.listPadding,
       state = lazyListState,
       verticalArrangement = Arrangement.spacedBy(12.dp),
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
       items(currentList) { item ->
-        val (title, subtitle, date, image, isDraft, isFavorite) = when (item) {
+        val (title, subtitle, date, image, isDraft, isFavorite, isVoted) = when (item) {
           is TicketListItem.Remote -> {
             val cat = item.ticket.category.toUiText().asString()
             val status = item.ticket.currentStatus?.toUiText()?.asString()
@@ -176,7 +179,8 @@ private fun TicketMasterScreen(
               date = formatIsoDate(item.ticket.createdAt),
               image = item.ticket.imageUrl,
               isDraft = false,
-              isFavorite = item.ticket.isFavorite
+              isFavorite = item.ticket.isFavorite,
+              isVoted = item.ticket.userVoted == true
             )
           }
 
@@ -194,7 +198,8 @@ private fun TicketMasterScreen(
               date = dateStr,
               image = item.draft.images.firstOrNull(),
               isDraft = true,
-              isFavorite = false
+              isFavorite = false,
+              isVoted = false
             )
           }
         }
@@ -206,6 +211,7 @@ private fun TicketMasterScreen(
           imageUrl = image,
           isDraft = isDraft,
           isFavorite = isFavorite,
+          isVoted = isVoted,
           onClick = {
             when (item) {
               is TicketListItem.Remote -> onAction(TicketMasterAction.OnTicketClick(item.ticket))
@@ -235,5 +241,6 @@ private data class TicketItemData(
   val date: String,
   val image: String?,
   val isDraft: Boolean,
-  val isFavorite: Boolean
+  val isFavorite: Boolean,
+  val isVoted: Boolean
 )

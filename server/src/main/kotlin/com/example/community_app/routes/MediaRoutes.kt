@@ -32,12 +32,14 @@ fun Route.mediaRoutes(
   route("/media") {
 
     // Public/Authed list (Policy im Service)
-    get("/{type}/{targetId}") {
-      val type = call.parameters["type"]!!.uppercase()
-      val targetId = call.parameters["targetId"]!!.toInt()
-      val principal = call.principal<JWTPrincipal>() // optional
-      val items = service.list(MediaTargetType.valueOf(type), targetId, principal)
-      call.respond(items)
+    authenticate("auth-jwt", optional = true) {
+      get("/{type}/{targetId}") {
+        val type = call.parameters["type"]!!.uppercase()
+        val targetId = call.parameters["targetId"]!!.toInt()
+        val principal = call.principal<JWTPrincipal>()
+        val items = service.list(MediaTargetType.valueOf(type), targetId, principal)
+        call.respond(items)
+      }
     }
 
     authenticate("auth-jwt") {
@@ -100,16 +102,22 @@ fun Route.mediaRoutes(
   }
 
   // Eigenständige Binary-Route (damit es keine Kollision mit /media/{type}/... gibt)
-  get("/media/{mediaId}") {
-    val mediaId = call.parameters["mediaId"]!!.toInt()
-    val principal = call.principal<JWTPrincipal>() // optional
-    val bin = service.getBinary(mediaId, principal)
-    call.response.header(HttpHeaders.ContentType, bin.mimeType)
-    call.response.header(
-      HttpHeaders.ContentDisposition,
-      ContentDisposition.Inline.withParameter(ContentDisposition.Parameters.FileName, bin.filename).toString()
-    )
-    call.respondFile(bin.file)
+  authenticate("auth-jwt", optional = true) {
+    get("/media/{mediaId}") {
+      val mediaId = call.parameters["mediaId"]!!.toInt()
+      val principal = call.principal<JWTPrincipal>() // Jetzt korrekt befüllt
+      val bin = service.getBinary(mediaId, principal)
+
+      call.response.header(HttpHeaders.ContentType, bin.mimeType)
+      call.response.header(
+        HttpHeaders.ContentDisposition,
+        ContentDisposition.Inline.withParameter(
+          ContentDisposition.Parameters.FileName,
+          bin.filename
+        ).toString()
+      )
+      call.respondFile(bin.file)
+    }
   }
 
   // ---------- Compatibility Ticket aliases ----------
@@ -117,11 +125,13 @@ fun Route.mediaRoutes(
 
   route("/ticket/{ticketId}/media") {
     // list
-    get {
-      val ticketId = call.parameters["ticketId"]!!.toInt()
-      val principal = call.principal<JWTPrincipal>()
-      val items = service.list(MediaTargetType.TICKET, ticketId, principal)
-      call.respond(items)
+    authenticate("auth-jwt", optional = true) {
+      get {
+        val ticketId = call.parameters["ticketId"]!!.toInt()
+        val principal = call.principal<JWTPrincipal>()
+        val items = service.list(MediaTargetType.TICKET, ticketId, principal)
+        call.respond(items)
+      }
     }
     // upload/delete
     authenticate("auth-jwt") {

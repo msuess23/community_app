@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.community_app.auth.presentation.components.AuthHeadline
@@ -76,6 +77,7 @@ private fun RegisterScreen(
   onAction: (RegisterAction) -> Unit
 ) {
   val snackbarHostState = remember { SnackbarHostState() }
+  val focusManager = LocalFocusManager.current
 
   ObserveErrorMessage(
     errorMessage = state.errorMessage,

@@ -1,6 +1,6 @@
 package com.example.community_app.auth.data.network
 
-import com.example.community_app.core.data.safeCall
+import com.example.community_app.core.data.http_client.safeCall
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
 import com.example.community_app.dto.ForgotPasswordRequest
@@ -29,6 +29,12 @@ class KtorRemoteAuthDataSource(
       httpClient.post("$BASE_URL/api/auth/register") {
         setBody(request)
       }
+    }
+  }
+
+  override suspend fun logout(): Result<Unit, DataError.Remote> {
+    return safeCall {
+      httpClient.post("$BASE_URL/api/auth/logout")
     }
   }
 

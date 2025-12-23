@@ -6,4 +6,6 @@ sealed interface TicketDetailAction {
   data object OnShowStatusHistory : TicketDetailAction
   data object OnDismissStatusHistory : TicketDetailAction
   data object OnToggleFavorite : TicketDetailAction
+  data object OnVote : TicketDetailAction
+  data object OnToggleDescription : TicketDetailAction
 }

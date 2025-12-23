@@ -16,11 +16,17 @@
     <string name="camera">Camera</string>
     <string name="gallery">Gallery</string>
     <string name="point_in_time">Time</string>
+    <string name="date">Date</string>
     <string name="distance">Distance</string>
     <string name="okay">OK</string>
     <string name="book">Book</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="from">from</string>
+    <string name="until">until</string>
+    <string name="at">at</string>
+    <string name="on">on</string>
+    <string name="loading">Loading</string>
 
     <!-- Info -->
     <string name="info_singular">Information</string>
@@ -54,6 +60,16 @@
     <string name="images_label">Images</string>
     <string name="ticket_delete_dialog_text">Are you sure you want to delete this concern?</string>
     <string name="ticket_upload_dialog_text">Are you sure you want to upload this concern?</string>
+    <string name="ticket_responsible_office_label">Select responsible office</string>
+    <string name="ticket_empty_address_info">Select location</string>
+    <string name="ticket_add_image">Add image</string>
+    <!-- DateTime -->
+    <string name="ticket_uploaded_at">Uploaded at</string>
+    <string name="draft_last_edited">Last edited</string>
+
+    <!-- Notifications -->
+    <string name="notification_title">Update: </string>
+    <string name="notification_desc">New status: </string>
 
     <!-- Office -->
     <string name="office_singular">Office</string>
@@ -65,6 +81,7 @@
     <string name="slot_book_title">Would you like to make a binding reservation for this date?</string>
     <string name="slot_book_export">Export to calendar</string>
     <string name="slot_none">No appointments available on this day.</string>
+    <string name="slot_booking_error">Please log in to book an appointment</string>
 
     <!-- Appointment -->
     <string name="appointment_singular">Appointment</string>
@@ -75,6 +92,12 @@
     <!-- Calendar Appointment -->
     <string name="appointment_calendar_desc">Appointment at</string>
     <string name="appointment_calendar_info">Booked via</string>
+    <!-- Appointment Note -->
+    <string name="note_plural">Notes</string>
+    <string name="note_singular">Note</string>
+    <string name="note_none">You haven't taken any notes for this appointment yet.</string>
+    <string name="note_edit">Edit note</string>
+    <string name="note_create">Add note</string>
 
     <!-- Search -->
     <string name="search_hint">Search...</string>
@@ -88,6 +111,7 @@
     <string name="sorting_latest">Latest first</string>
     <string name="sorting_oldest">Oldest first</string>
     <string name="sorting_alphabetical">Alphabetical (A-Z)</string>
+    <string name="sorting_favorites">Favourites first</string>
 
     <!-- Category -->
     <string name="category_singular">Category</string>
@@ -156,6 +180,12 @@
     <!-- Radius -->
     <string name="settings_radius_label">Search radius</string>
     <string name="settings_radius_helper">Filters based on your current location (requires GPS).</string>
+    <!-- Address -->
+    <string name="search_address_current_location">use current location</string>
+
+    <!-- Profile -->
+    <string name="profile_label">Profile</string>
+    <string name="profile_address_empty_info">Select location</string>
 
     <!-- Authentication -->
     <string name="auth_logout_label">Log out</string>
@@ -179,6 +209,8 @@
     <string name="auth_reset_password_label">Change password</string>
     <string name="auth_reset_password_dialog_title">Password changed</string>
     <string name="auth_reset_password_dialog_text">Your password has been successfully changed.</string>
+    <!-- Logout -->
+    <string name="auth_logout_delete_data">Delete local data</string>
     <!-- Guard -->
     <string name="auth_guard_title">This area requires an account.</string>
     <string name="auth_guard_text">Please log in or register a new account.</string>
@@ -195,9 +227,13 @@
     <string name="auth_validation_password_length">Password must have at least 8 characters.</string>
     <string name="auth_validation_password_not_matching">Passwords are not matching.</string>
 
+    <!-- Message -->
+    <string name="message_no_data">There is no data available. Please pull down to load.</string>
+
     <!-- Errors -->
     <string name="error_data_not_found">The data could not be found.</string>
     <string name="error_disk_full">Oops, it seems like your disk is full.</string>
+    <string name="error_calendar_export_failed">The appointment was booked, but the calendar export failed.</string>
     <string name="error_unknown">Oops, something went wrong.</string>
     <string name="error_request_timeout">The request timed out.</string>
     <string name="error_no_internet">Couldn't reach server. Please check your internet connection.</string>

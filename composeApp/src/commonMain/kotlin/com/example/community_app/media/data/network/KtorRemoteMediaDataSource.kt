@@ -1,9 +1,8 @@
 package com.example.community_app.media.data.network
 
-import com.example.community_app.core.data.safeCall
+import com.example.community_app.core.data.http_client.safeCall
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
-import com.example.community_app.core.domain.map
 import com.example.community_app.dto.MediaDto
 import com.example.community_app.util.BASE_URL
 import com.example.community_app.util.MediaTargetType

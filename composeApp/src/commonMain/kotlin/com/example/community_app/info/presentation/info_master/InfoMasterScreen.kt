@@ -1,6 +1,7 @@
 package com.example.community_app.info.presentation.info_master
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,8 +22,9 @@ import com.example.community_app.core.presentation.components.list.InfoTicketLis
 import com.example.community_app.core.presentation.components.master.MasterScreenLayout
 import com.example.community_app.core.presentation.components.master.SingleTabHeader
 import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.core.presentation.theme.Spacing
 import com.example.community_app.core.util.formatIsoDate
-import com.example.community_app.info.domain.Info
+import com.example.community_app.info.domain.model.Info
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.info_plural
 import org.koin.compose.viewmodel.koinViewModel
@@ -82,6 +84,7 @@ private fun InfoMasterScreen(
   ) {
     LazyColumn(
       modifier = Modifier.fillMaxSize(),
+      contentPadding = Spacing.listPadding,
       state = lazyListState,
       verticalArrangement = Arrangement.spacedBy(12.dp),
       horizontalAlignment = Alignment.CenterHorizontally

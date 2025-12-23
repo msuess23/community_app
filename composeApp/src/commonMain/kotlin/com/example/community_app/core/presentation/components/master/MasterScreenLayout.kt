@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +17,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,6 +31,8 @@ import com.example.community_app.core.presentation.components.search.SearchBar
 import com.example.community_app.core.presentation.theme.Spacing
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.filters_label
+import community_app.composeapp.generated.resources.loading
+import community_app.composeapp.generated.resources.message_no_data
 import community_app.composeapp.generated.resources.search_no_results
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Sliders
@@ -51,6 +52,7 @@ fun MasterScreenLayout(
   onToggleFilterSheet: () -> Unit,
 
   modifier: Modifier = Modifier,
+  hasSearchBar: Boolean = true,
   floatingActionButton: @Composable () -> Unit = {},
   tabsContent: @Composable (ColumnScope.() -> Unit)? = null,
   emptyStateContent: @Composable () -> Unit = { DefaultEmptyState() },
@@ -63,12 +65,14 @@ fun MasterScreenLayout(
     topBar = {
       CommunityTopAppBar(
         titleContent = {
-          SearchBar(
-            searchQuery = searchQuery,
-            onSearchQueryChange = onSearchQueryChange,
-            onImeSearch = { keyboardController?.hide() },
-            modifier = Modifier.fillMaxWidth()
-          )
+          if (hasSearchBar) {
+            SearchBar(
+              searchQuery = searchQuery,
+              onSearchQueryChange = onSearchQueryChange,
+              onImeSearch = { keyboardController?.hide() },
+              modifier = Modifier.fillMaxWidth()
+            )
+          } else Text("")
         },
         navigationType = TopBarNavigationType.Drawer,
         onNavigationClick = onOpenDrawer,
@@ -96,7 +100,7 @@ fun MasterScreenLayout(
         .fillMaxSize()
         .padding(padding)
         .background(MaterialTheme.colorScheme.primary)
-        .statusBarsPadding()
+        .padding(top = Spacing.small)
     ) {
       Surface(
         modifier = Modifier
@@ -110,7 +114,7 @@ fun MasterScreenLayout(
             Column(
               modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = Spacing.medium, top = Spacing.extraSmall)
+                .padding(top = Spacing.extraSmall)
             ) {
               tabsContent()
             }
@@ -123,8 +127,30 @@ fun MasterScreenLayout(
             contentAlignment = Alignment.Center
           ) {
             if (isLoading && isEmpty) {
-              CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            } else if (isEmpty) {
+              Box(
+                modifier = Modifier
+                  .fillMaxSize()
+                  .verticalScroll(rememberScrollState()),
+                contentAlignment = Alignment.Center
+              ) {
+                ScreenMessage(
+                  text = stringResource(Res.string.loading) + "...",
+                  color = MaterialTheme.colorScheme.onSurface
+                )
+              }
+            } else if (isEmpty && searchQuery.isEmpty()) {
+              Box(
+                modifier = Modifier
+                  .fillMaxSize()
+                  .verticalScroll(rememberScrollState()),
+                contentAlignment = Alignment.Center
+              ) {
+                ScreenMessage(
+                  text = stringResource(Res.string.message_no_data),
+                  color = MaterialTheme.colorScheme.onSurface
+                )
+              }
+            } else if (isEmpty && searchQuery.isNotEmpty()) {
               Box(
                 modifier = Modifier
                   .fillMaxSize()

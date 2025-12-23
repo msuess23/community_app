@@ -1,8 +1,9 @@
 package com.example.community_app.ticket.presentation.ticket_detail
 
-import com.example.community_app.dto.TicketStatusDto
-import com.example.community_app.ticket.domain.Ticket
-import com.example.community_app.ticket.domain.TicketDraft
+import com.example.community_app.core.presentation.helpers.UiText
+import com.example.community_app.ticket.domain.model.Ticket
+import com.example.community_app.ticket.domain.model.TicketDraft
+import com.example.community_app.ticket.domain.model.TicketStatusEntry
 
 data class TicketDetailState(
   val isLoading: Boolean = false,
@@ -12,5 +13,7 @@ data class TicketDetailState(
   val isOwner: Boolean = false,
   val imageUrls: List<String> = emptyList(),
   val showStatusHistory: Boolean = false,
-  val statusHistory: List<TicketStatusDto> = emptyList()
+  val statusHistory: List<TicketStatusEntry> = emptyList(),
+  val errorMessage: UiText? = null,
+  val isDescriptionExpanded: Boolean = false
 )

@@ -1,35 +1,23 @@
 package com.example.community_app.office.data.repository
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.longPreferencesKey
+import com.example.community_app.core.data.sync.SyncManager
 import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
-import com.example.community_app.core.domain.location.LocationService
-import com.example.community_app.core.util.GeoUtil
-import com.example.community_app.core.util.getCurrentTimeMillis
 import com.example.community_app.office.data.local.OfficeDao
 import com.example.community_app.office.data.mappers.toEntity
 import com.example.community_app.office.data.mappers.toOffice
 import com.example.community_app.office.data.network.RemoteOfficeDataSource
-import com.example.community_app.office.domain.Office
-import com.example.community_app.office.domain.OfficeRepository
-import com.example.community_app.util.SERVER_FETCH_INTERVAL_MS
-import com.example.community_app.util.SERVER_FETCH_RADIUS_KM
+import com.example.community_app.office.domain.model.Office
+import com.example.community_app.office.domain.repository.OfficeRepository
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class DefaultOfficeRepository(
   private val remoteOfficeDataSource: RemoteOfficeDataSource,
   private val officeDao: OfficeDao,
-  private val dataStore: DataStore<Preferences>,
-  private val locationService: LocationService
+  private val syncManager: SyncManager
 ) : OfficeRepository {
-
-  private val keyLastSync = longPreferencesKey("office_last_sync_timestamp")
-
   override fun getOffices(): Flow<List<Office>> {
     return officeDao.getOffices().map { entities ->
       entities.map { it.toOffice() }
@@ -40,32 +28,26 @@ class DefaultOfficeRepository(
     return officeDao.getOfficeById(id).map { it?.toOffice() }
   }
 
-  override suspend fun syncOffices(): Result<Unit, DataError.Remote> {
-    val prefs = dataStore.data.first()
-    val lastSync = prefs[keyLastSync] ?: 0L
-    val now = getCurrentTimeMillis()
+  override suspend fun refreshOffices(force: Boolean): Result<Unit, DataError.Remote> = coroutineScope {
+    val decision = syncManager.checkSyncStatus(
+      featureKey = "office",
+      forceRefresh = force
+    )
 
-    if (now - lastSync < SERVER_FETCH_INTERVAL_MS) {
-      return Result.Success(Unit)
+    if (!decision.shouldFetch) {
+      return@coroutineScope Result.Success(Unit)
     }
-    return refreshOffices()
-  }
 
-  override suspend fun refreshOffices(): Result<Unit, DataError.Remote> {
-    val currentLocation = locationService.getCurrentLocation()
-
-    val bboxString = if (currentLocation != null) {
-      val bbox = GeoUtil.calculateBBox(currentLocation, SERVER_FETCH_RADIUS_KM)
-      GeoUtil.toBBoxString(bbox)
-    } else null
-
-    return when (val result = remoteOfficeDataSource.getOffices(bboxString)) {
+    when(val result = remoteOfficeDataSource.getOffices(bbox = decision.bboxString)) {
       is Result.Success -> {
-        officeDao.replaceAll(result.data.map { it.toEntity() })
-        dataStore.edit { it[keyLastSync] = getCurrentTimeMillis() }
+        val entities = result.data.map { it.toEntity() }
+        officeDao.replaceAll(entities)
+        syncManager.updateSyncSuccess("office", decision.currentLocation)
         Result.Success(Unit)
       }
-      is Result.Error -> Result.Error(result.error)
+      is Result.Error -> {
+        Result.Error(result.error)
+      }
     }
   }
 

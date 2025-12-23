@@ -13,14 +13,15 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun CommunityDialog(
   title: StringResource,
-  text: StringResource,
+  text: StringResource? = null,
   onDismissRequest: () -> Unit,
   confirmButtonText: StringResource,
   onConfirm: () -> Unit,
   modifier: Modifier = Modifier,
   dismissButtonText: StringResource? = null,
   onDismiss: (() -> Unit)? = null,
-  icon: ImageVector? = null
+  icon: ImageVector? = null,
+  content: @Composable (() -> Unit)? = null
 ) {
   AlertDialog(
     onDismissRequest = onDismissRequest,
@@ -28,8 +29,14 @@ fun CommunityDialog(
       imageVector = it,
       contentDescription = null
     ) } },
-    title = { Text(stringResource(title)) },
-    text = { Text(stringResource(text)) },
+    title = { stringResource(title) },
+    text = {
+      if (content != null) {
+        content()
+      } else if (text != null) {
+        Text(stringResource(text))
+      }
+    },
     modifier = modifier,
     confirmButton = {
       TextButton(onClick = onConfirm) {

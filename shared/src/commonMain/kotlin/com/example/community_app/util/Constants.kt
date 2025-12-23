@@ -5,9 +5,10 @@ const val SERVER_PORT = 8080
 
 const val BASE_URL = "http://$IP_ADDR:$SERVER_PORT"
 
-const val SERVER_FETCH_RADIUS_KM = 50.0
-
 const val SERVER_FETCH_INTERVAL_MS = 24 * 60 * 60 * 1000L
+const val SERVER_FETCH_RADIUS_KM = 5.0
+
+const val SERVER_FILTER_RADIUS_KM = 50.0
 
 // Used for db seeding (server)
 // Hof University of Applied Sciences, Alfons-Goppel-Platz 1, 95028 Hof, Germany

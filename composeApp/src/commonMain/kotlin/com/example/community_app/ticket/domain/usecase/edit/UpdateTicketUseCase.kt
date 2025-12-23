@@ -1,77 +1,84 @@
 package com.example.community_app.ticket.domain.usecase.edit
 
 import com.example.community_app.core.data.local.FileStorage
-import com.example.community_app.core.domain.DataError
 import com.example.community_app.core.domain.Result
+import com.example.community_app.core.presentation.helpers.toUiText
 import com.example.community_app.core.util.getFileNameFromPath
-import com.example.community_app.media.domain.MediaRepository
-import com.example.community_app.ticket.domain.EditableImage
-import com.example.community_app.ticket.domain.TicketRepository
+import com.example.community_app.media.domain.repository.MediaRepository
+import com.example.community_app.ticket.domain.model.EditableImage
+import com.example.community_app.ticket.domain.model.TicketEditInput
+import com.example.community_app.ticket.domain.repository.TicketRepository
 import com.example.community_app.util.MediaTargetType
-import com.example.community_app.util.TicketCategory
-import com.example.community_app.util.TicketVisibility
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 class UpdateTicketUseCase(
   private val ticketRepository: TicketRepository,
   private val mediaRepository: MediaRepository,
   private val fileStorage: FileStorage
 ) {
-  data class Params(
-    val ticketId: Int,
-    val title: String,
-    val description: String,
-    val category: TicketCategory,
-    val visibility: TicketVisibility,
-    val officeId: Int?,
-    val images: List<EditableImage>,
-    val coverImageUri: String?
-  )
+  operator fun invoke(
+    ticketId: Int,
+    input: TicketEditInput,
+    imagesToDelete: Set<EditableImage>,
+    coverImageUri: String?
+  ): Flow<OperationResult> = flow {
+    emit(OperationResult.Loading)
 
-  suspend operator fun invoke(params: Params): Result<Unit, DataError> {
+    imagesToDelete.forEach { img ->
+      if (img.isLocal) {
+        fileStorage.deleteImage(getFileNameFromPath(img.uri))
+      } else {
+        mediaRepository.deleteMedia(
+          targetType = MediaTargetType.TICKET,
+          targetId = ticketId,
+          mediaId = img.id.toInt()
+        )
+      }
+    }
+
     val updateResult = ticketRepository.updateTicket(
-      id = params.ticketId,
-      title = params.title,
-      description = params.description,
-      category = params.category,
-      officeId = params.officeId,
-      address = null,
-      visibility = params.visibility
+      id = ticketId,
+      title = input.title,
+      description = input.description,
+      category = input.category,
+      officeId = input.officeId,
+      address = input.address,
+      visibility = input.visibility
     )
 
     if (updateResult is Result.Error) {
-      return Result.Error(updateResult.error)
+      emit(OperationResult.Error(updateResult.error.toUiText()))
+      return@flow
     }
 
-    val localImages = params.images.filter { it.isLocal }
-    var uploadError: DataError? = null
-
+    val localImages = input.images.filter { it.isLocal }
     for (img in localImages) {
       val fileName = getFileNameFromPath(img.uri)
-
       val uploadResult = mediaRepository.uploadMedia(
         targetType = MediaTargetType.TICKET,
-        targetId = params.ticketId,
+        targetId = ticketId,
         fileName = fileName
       )
 
       if (uploadResult is Result.Success) {
         fileStorage.deleteImage(fileName)
-
-        if (img.uri == params.coverImageUri) {
+        if (img.uri == coverImageUri) {
           mediaRepository.setCover(uploadResult.data.id)
         }
       } else {
-        uploadError = (uploadResult as Result.Error).error
+        emit(OperationResult.Error((uploadResult as Result.Error).error.toUiText()))
+        return@flow
       }
     }
 
-    val remoteCover = params.images.find {
-      it.uri == params.coverImageUri && !it.isLocal
-    }
+    val remoteCover = input.images.find { it.uri == coverImageUri && !it.isLocal }
     if (remoteCover != null) {
       mediaRepository.setCover(remoteCover.id.toInt())
     }
 
-    return if (uploadError != null) Result.Error(uploadError) else Result.Success(Unit)
+    ticketRepository.refreshTicket(ticketId)
+
+    emit(OperationResult.Success)
   }
 }

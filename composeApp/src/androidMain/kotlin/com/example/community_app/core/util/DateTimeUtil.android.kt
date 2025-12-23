@@ -73,10 +73,16 @@ private fun formatInstant(
   val currentTag = localeManager.getCurrentLocaleTag()
   val locale = Locale.forLanguageTag(currentTag)
 
-  return formatter
+  val formattedString = formatter
     .withLocale(locale)
     .withZone(ZoneId.systemDefault())
     .format(instant)
+
+  if (currentTag.startsWith("de") && dateStyle == null) {
+    return "$formattedString Uhr"
+  }
+
+  return formattedString
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

@@ -12,6 +12,7 @@ import com.example.community_app.ticket.data.local.ticket.TicketAddressEntity
 data class TicketDraftEntity(
   @PrimaryKey(autoGenerate = true)
   val id: Long,
+  val userId: Int,
   val title: String,
   val description: String?,
   val category: String?,
@@ -36,6 +37,7 @@ data class TicketDraftEntity(
   ],
   indices = [Index("draftId")]
 )
+
 data class TicketDraftImageEntity(
   @PrimaryKey(autoGenerate = true)
   val id: Long = 0,

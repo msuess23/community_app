@@ -1,7 +1,7 @@
 package com.example.community_app.office.presentation.office_master
 
 import com.example.community_app.core.presentation.components.search.FilterSection
-import com.example.community_app.office.domain.Office
+import com.example.community_app.office.domain.model.Office
 
 sealed interface OfficeMasterAction {
   data class OnSearchQueryChange(val query: String) : OfficeMasterAction

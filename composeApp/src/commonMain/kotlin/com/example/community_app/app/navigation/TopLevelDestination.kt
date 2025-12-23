@@ -5,6 +5,7 @@ import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.appointment_plural
 import community_app.composeapp.generated.resources.info_plural
 import community_app.composeapp.generated.resources.office_plural
+import community_app.composeapp.generated.resources.profile_label
 import community_app.composeapp.generated.resources.settings_label
 import community_app.composeapp.generated.resources.ticket_plural
 import compose.icons.FeatherIcons
@@ -12,6 +13,7 @@ import compose.icons.feathericons.Briefcase
 import compose.icons.feathericons.Calendar
 import compose.icons.feathericons.Info
 import compose.icons.feathericons.Settings
+import compose.icons.feathericons.User
 import compose.icons.feathericons.Users
 import org.jetbrains.compose.resources.StringResource
 
@@ -52,6 +54,14 @@ enum class TopLevelDestination(
     label = Res.string.settings_label,
     selectedIcon = FeatherIcons.Settings,
     unselectedIcon = FeatherIcons.Settings,
+    showInBottomBar = false,
+    showInDrawer = true
+  ),
+  PROFILE(
+    route = Route.Profile,
+    label = Res.string.profile_label,
+    selectedIcon = FeatherIcons.User,
+    unselectedIcon = FeatherIcons.User,
     showInBottomBar = false,
     showInDrawer = true
   )

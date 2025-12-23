@@ -1,73 +1,120 @@
 package com.example.community_app.di
 
-import com.example.community_app.appointment.data.local.AppointmentDao
+import com.example.community_app.appointment.data.local.appointment.AppointmentDao
 import com.example.community_app.appointment.data.network.KtorRemoteAppointmentDataSource
 import com.example.community_app.appointment.data.network.RemoteAppointmentDataSource
 import com.example.community_app.appointment.data.repository.DefaultAppointmentRepository
-import com.example.community_app.appointment.domain.AppointmentRepository
-import com.example.community_app.appointment.domain.usecase.BookAppointmentUseCase
-import com.example.community_app.appointment.domain.usecase.CancelAppointmentUseCase
-import com.example.community_app.appointment.domain.usecase.GetAppointmentDetailsUseCase
-import com.example.community_app.appointment.domain.usecase.GetFreeSlotsUseCase
-import com.example.community_app.appointment.domain.usecase.ObserveAppointmentsUseCase
-import com.example.community_app.appointment.domain.usecase.ScheduleAppointmentRemindersUseCase
+import com.example.community_app.appointment.domain.repository.AppointmentRepository
+import com.example.community_app.appointment.domain.usecase.detail.BookAppointmentUseCase
+import com.example.community_app.appointment.domain.usecase.detail.CancelAppointmentUseCase
+import com.example.community_app.appointment.domain.usecase.detail.GetAppointmentDetailsUseCase
+import com.example.community_app.appointment.domain.usecase.detail.GetFreeSlotsUseCase
+import com.example.community_app.appointment.domain.usecase.master.ObserveAppointmentsUseCase
+import com.example.community_app.appointment.domain.usecase.detail.ScheduleAppointmentRemindersUseCase
+import com.example.community_app.appointment.domain.usecase.master.FilterAppointmentsUseCase
 import com.example.community_app.appointment.presentation.detail.AppointmentDetailViewModel
 import com.example.community_app.appointment.presentation.master.AppointmentMasterViewModel
 import com.example.community_app.auth.data.network.KtorRemoteAuthDataSource
 import com.example.community_app.auth.data.network.RemoteAuthDataSource
 import com.example.community_app.auth.data.repository.DefaultAuthRepository
-import com.example.community_app.auth.domain.AuthRepository
+import com.example.community_app.auth.domain.repository.AuthRepository
 import com.example.community_app.auth.presentation.forgot_password.ForgotPasswordViewModel
 import com.example.community_app.auth.presentation.login.LoginViewModel
 import com.example.community_app.auth.presentation.register.RegisterViewModel
 import com.example.community_app.auth.presentation.reset_password.ResetPasswordViewModel
-import com.example.community_app.core.data.HttpClientFactory
+import com.example.community_app.core.data.http_client.HttpClientFactory
 import com.example.community_app.core.data.local.AppDatabase
 import com.example.community_app.core.data.permission.MokoPermissionService
 import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.core.domain.usecase.FetchUserLocationUseCase
 import com.example.community_app.auth.domain.usecase.IsUserLoggedInUseCase
+import com.example.community_app.auth.domain.usecase.RequestPasswordResetUseCase
 import com.example.community_app.core.data.local.favorite.FavoriteDao
+import com.example.community_app.core.data.sync.SyncManager
+import com.example.community_app.core.domain.calendar.usecase.GetCalendarSyncStateUseCase
 import com.example.community_app.core.domain.usecase.CheckStatusUpdatesUseCase
-import com.example.community_app.core.domain.usecase.ToggleFavoriteUseCase
+import com.example.community_app.geocoding.data.local.AddressDao
+import com.example.community_app.geocoding.data.network.KtorRemoteGeocodingDataSource
+import com.example.community_app.geocoding.data.network.RemoteGeocodingDataSource
+import com.example.community_app.geocoding.data.repository.DefaultAddressRepository
+import com.example.community_app.geocoding.domain.repository.AddressRepository
+import com.example.community_app.geocoding.domain.usecase.AddToAddressHistoryUseCase
+import com.example.community_app.geocoding.domain.usecase.GetAddressFromLocationUseCase
+import com.example.community_app.geocoding.domain.usecase.GetAddressHistoryUseCase
+import com.example.community_app.geocoding.domain.usecase.GetAddressSuggestionsUseCase
+import com.example.community_app.geocoding.domain.usecase.GetHomeAddressUseCase
+import com.example.community_app.geocoding.domain.usecase.SearchAddressUseCase
+import com.example.community_app.geocoding.domain.usecase.SetHomeAddressUseCase
+import com.example.community_app.appointment.data.local.appointment_note.AppointmentNoteDao
+import com.example.community_app.appointment.data.repository.DefaultAppointmentNoteRepository
+import com.example.community_app.appointment.domain.repository.AppointmentNoteRepository
+import com.example.community_app.appointment.domain.usecase.note.AddAppointmentNoteUseCase
+import com.example.community_app.appointment.domain.usecase.note.DeleteAppointmentNoteUseCase
+import com.example.community_app.appointment.domain.usecase.note.DeleteOutdatedNotesUseCase
+import com.example.community_app.appointment.domain.usecase.note.GetAppointmentNotesUseCase
+import com.example.community_app.appointment.domain.usecase.note.UpdateAppointmentNoteUseCase
+import com.example.community_app.core.data.sync.MaintenanceManager
 import com.example.community_app.info.data.local.InfoDao
 import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
 import com.example.community_app.info.data.network.RemoteInfoDataSource
 import com.example.community_app.info.data.repository.DefaultInfoRepository
-import com.example.community_app.info.domain.InfoRepository
+import com.example.community_app.info.domain.repository.InfoRepository
 import com.example.community_app.info.domain.usecase.FilterInfosUseCase
+import com.example.community_app.info.domain.usecase.GetInfoDetailUseCase
+import com.example.community_app.info.domain.usecase.ObserveInfosUseCase
+import com.example.community_app.info.domain.usecase.ToggleInfoFavoriteUseCase
 import com.example.community_app.info.presentation.info_detail.InfoDetailViewModel
 import com.example.community_app.info.presentation.info_master.InfoMasterViewModel
 import com.example.community_app.media.data.network.KtorRemoteMediaDataSource
 import com.example.community_app.media.data.network.RemoteMediaDataSource
 import com.example.community_app.media.data.repository.DefaultMediaRepository
-import com.example.community_app.media.domain.MediaRepository
+import com.example.community_app.media.domain.repository.MediaRepository
+import com.example.community_app.media.domain.usecase.GetImagesUseCase
 import com.example.community_app.office.data.local.OfficeDao
 import com.example.community_app.office.data.network.KtorRemoteOfficeDataSource
 import com.example.community_app.office.data.network.RemoteOfficeDataSource
 import com.example.community_app.office.data.repository.DefaultOfficeRepository
-import com.example.community_app.office.domain.OfficeRepository
+import com.example.community_app.office.domain.repository.OfficeRepository
 import com.example.community_app.office.domain.usecase.FilterOfficesUseCase
+import com.example.community_app.office.domain.usecase.FilterSlotsUseCase
+import com.example.community_app.office.domain.usecase.GetOfficeDetailUseCase
+import com.example.community_app.office.domain.usecase.ObserveOfficesUseCase
 import com.example.community_app.office.presentation.office_detail.OfficeDetailViewModel
 import com.example.community_app.office.presentation.office_master.OfficeMasterViewModel
+import com.example.community_app.profile.data.local.UserDao
+import com.example.community_app.profile.data.network.KtorRemoteUserDataSource
+import com.example.community_app.profile.data.network.RemoteUserDataSource
+import com.example.community_app.profile.data.repository.DefaultUserRepository
+import com.example.community_app.profile.domain.repository.UserRepository
+import com.example.community_app.profile.domain.usecase.GetProfileDataUseCase
+import com.example.community_app.profile.domain.usecase.LogoutUserUseCase
+import com.example.community_app.profile.domain.usecase.UpdateUserProfileUseCase
+import com.example.community_app.profile.presentation.ProfileViewModel
 import com.example.community_app.settings.data.DefaultSettingsRepository
-import com.example.community_app.settings.domain.SettingsRepository
+import com.example.community_app.settings.domain.repository.SettingsRepository
 import com.example.community_app.settings.presentation.SettingsViewModel
 import com.example.community_app.ticket.data.local.draft.TicketDraftDao
 import com.example.community_app.ticket.data.local.ticket.TicketDao
 import com.example.community_app.ticket.data.network.KtorRemoteTicketDataSource
 import com.example.community_app.ticket.data.network.RemoteTicketDataSource
 import com.example.community_app.ticket.data.repository.DefaultTicketRepository
-import com.example.community_app.ticket.domain.TicketRepository
-import com.example.community_app.ticket.domain.usecase.VoteTicketUseCase
+import com.example.community_app.ticket.domain.repository.TicketRepository
+import com.example.community_app.ticket.domain.usecase.detail.ObserveTicketDetailUseCase
 import com.example.community_app.ticket.domain.usecase.detail.SyncTicketImagesUseCase
+import com.example.community_app.ticket.domain.usecase.detail.ToggleTicketFavoriteUseCase
+import com.example.community_app.ticket.domain.usecase.detail.VoteTicketUseCase
 import com.example.community_app.ticket.domain.usecase.edit.AddLocalImageUseCase
 import com.example.community_app.ticket.domain.usecase.edit.DeleteTicketDataUseCase
+import com.example.community_app.ticket.domain.usecase.edit.DiscardLocalImagesUseCase
 import com.example.community_app.ticket.domain.usecase.edit.GetTicketEditDetailsUseCase
+import com.example.community_app.ticket.domain.usecase.edit.RemoveTicketImageUseCase
+import com.example.community_app.ticket.domain.usecase.edit.SaveDraftUseCase
 import com.example.community_app.ticket.domain.usecase.edit.UpdateTicketUseCase
+import com.example.community_app.ticket.domain.usecase.edit.UploadDraftUseCase
 import com.example.community_app.ticket.domain.usecase.master.FilterTicketsUseCase
 import com.example.community_app.ticket.domain.usecase.master.ObserveCommunityTicketsUseCase
 import com.example.community_app.ticket.domain.usecase.master.ObserveMyTicketsUseCase
+import com.example.community_app.ticket.domain.usecase.master.ObserveTicketsUseCase
 import com.example.community_app.ticket.presentation.ticket_detail.TicketDetailViewModel
 import com.example.community_app.ticket.presentation.ticket_edit.TicketEditViewModel
 import com.example.community_app.ticket.presentation.ticket_master.TicketMasterViewModel
@@ -123,6 +170,13 @@ val sharedModule = module {
   single<RemoteAppointmentDataSource> {
     KtorRemoteAppointmentDataSource(httpClient = get(named("authClient")))
   }
+  single<RemoteUserDataSource> {
+    KtorRemoteUserDataSource(httpClient = get(named("authClient")))
+  }
+
+  single<RemoteGeocodingDataSource> {
+    KtorRemoteGeocodingDataSource(httpClient = get(named("publicClient")))
+  }
 
 
   // --- REPOSITORIES ---
@@ -131,7 +185,13 @@ val sharedModule = module {
   single<TicketDraftDao> { get<AppDatabase>().ticketDraftDao() }
   single<OfficeDao> { get<AppDatabase>().officeDao() }
   single<AppointmentDao> { get<AppDatabase>().appointmentDao() }
+  single<AppointmentNoteDao> { get<AppDatabase>().appointmentNoteDao() }
   single<FavoriteDao> { get<AppDatabase>().favoriteDao() }
+  single<UserDao> { get<AppDatabase>().userDao() }
+  single<AddressDao> { get<AppDatabase>().addressHistoryDao() }
+
+  singleOf(::SyncManager)
+  singleOf(::MaintenanceManager)
 
   singleOf(::DefaultAuthRepository).bind<AuthRepository>()
   singleOf(::DefaultSettingsRepository).bind<SettingsRepository>()
@@ -140,22 +200,51 @@ val sharedModule = module {
   singleOf(::DefaultMediaRepository).bind<MediaRepository>()
   singleOf(::DefaultOfficeRepository).bind<OfficeRepository>()
   singleOf(::DefaultAppointmentRepository).bind<AppointmentRepository>()
+  singleOf(::DefaultAppointmentNoteRepository).bind<AppointmentNoteRepository>()
+  singleOf(::DefaultUserRepository).bind<UserRepository>()
+  singleOf(::DefaultAddressRepository).bind<AddressRepository>()
 
   // --- USE CASES ---
   factoryOf(::IsUserLoggedInUseCase)
+  factoryOf(::RequestPasswordResetUseCase)
+
+  factoryOf(::LogoutUserUseCase)
+  factoryOf(::GetProfileDataUseCase)
+  factoryOf(::UpdateUserProfileUseCase)
+
   factoryOf(::FetchUserLocationUseCase)
+  factoryOf(::GetCalendarSyncStateUseCase)
+  factoryOf(::GetImagesUseCase)
+
+  factoryOf(::ObserveInfosUseCase)
   factoryOf(::FilterInfosUseCase)
-  factoryOf(::FilterTicketsUseCase)
+  factoryOf(::GetInfoDetailUseCase)
+  factoryOf(::ToggleInfoFavoriteUseCase)
+
+  factoryOf(::ObserveTicketsUseCase)
   factoryOf(::ObserveCommunityTicketsUseCase)
   factoryOf(::ObserveMyTicketsUseCase)
+  factoryOf(::FilterTicketsUseCase)
+
+  factoryOf(::ObserveTicketDetailUseCase)
   factoryOf(::SyncTicketImagesUseCase)
+  factoryOf(::VoteTicketUseCase)
+  factoryOf(::ToggleTicketFavoriteUseCase)
+
+  factoryOf(::GetTicketEditDetailsUseCase)
   factoryOf(::AddLocalImageUseCase)
   factoryOf(::DeleteTicketDataUseCase)
-  factoryOf(::GetTicketEditDetailsUseCase)
   factoryOf(::UpdateTicketUseCase)
-  factoryOf(::VoteTicketUseCase)
-  factoryOf(::ToggleFavoriteUseCase)
+  factoryOf(::DiscardLocalImagesUseCase)
+  factoryOf(::SaveDraftUseCase)
+  factoryOf(::UploadDraftUseCase)
+  factoryOf(::RemoveTicketImageUseCase)
+
+  factoryOf(::ObserveOfficesUseCase)
   factoryOf(::FilterOfficesUseCase)
+  factoryOf(::GetOfficeDetailUseCase)
+  factoryOf(::FilterSlotsUseCase)
+
   factoryOf(::GetFreeSlotsUseCase)
   factoryOf(::BookAppointmentUseCase)
   factoryOf(::ObserveAppointmentsUseCase)
@@ -163,6 +252,21 @@ val sharedModule = module {
   factoryOf(::CancelAppointmentUseCase)
   factoryOf(::CheckStatusUpdatesUseCase)
   factoryOf(::ScheduleAppointmentRemindersUseCase)
+  factoryOf(::FilterAppointmentsUseCase)
+
+  factoryOf(::AddAppointmentNoteUseCase)
+  factoryOf(::DeleteAppointmentNoteUseCase)
+  factoryOf(::DeleteOutdatedNotesUseCase)
+  factoryOf(::GetAppointmentNotesUseCase)
+  factoryOf(::UpdateAppointmentNoteUseCase)
+
+  factoryOf(::GetAddressSuggestionsUseCase)
+  factoryOf(::SearchAddressUseCase)
+  factoryOf(::GetAddressFromLocationUseCase)
+  factoryOf(::GetHomeAddressUseCase)
+  factoryOf(::SetHomeAddressUseCase)
+  factoryOf(::GetAddressHistoryUseCase)
+  factoryOf(::AddToAddressHistoryUseCase)
 
   // --- VIEW MODELS ---
   viewModelOf(::LoginViewModel)
@@ -179,4 +283,5 @@ val sharedModule = module {
   viewModelOf(::OfficeDetailViewModel)
   viewModelOf(::AppointmentMasterViewModel)
   viewModelOf(::AppointmentDetailViewModel)
+  viewModelOf(::ProfileViewModel)
 }

@@ -1,10 +1,9 @@
 package com.example.community_app.ticket.presentation.ticket_master
 
-import com.example.community_app.core.domain.location.Location
 import com.example.community_app.core.presentation.components.search.FilterSection
 import com.example.community_app.core.presentation.helpers.UiText
-import com.example.community_app.ticket.domain.Ticket
-import com.example.community_app.ticket.domain.TicketListItem
+import com.example.community_app.ticket.domain.model.Ticket
+import com.example.community_app.ticket.domain.model.TicketListItem
 import com.example.community_app.util.TicketCategory
 import com.example.community_app.util.TicketStatus
 
@@ -18,10 +17,7 @@ data class TicketMasterState(
   val communitySearchResults: List<TicketListItem> = emptyList(),
   val userSearchResults: List<TicketListItem> = emptyList(),
   val isLoading: Boolean = false,
-  val errorMessage: UiText? = null,
-  val userLocation: Location? = null,
-  val locationPermissionGranted: Boolean = false,
-  val isUserLoggedIn: Boolean = false
+  val errorMessage: UiText? = null
 )
 
 data class TicketFilterState(
@@ -33,6 +29,10 @@ data class TicketFilterState(
   val expandedSections: Set<FilterSection> = setOf(FilterSection.CATEGORY)
 )
 
-enum class TicketSortOption {
-  DATE_DESC, DATE_ASC, ALPHABETICAL
+enum class TicketSortOption(val requiresLocation: Boolean = false) {
+  DATE_DESC,
+  DATE_ASC,
+  ALPHABETICAL,
+  FAVORITES,
+  DISTANCE(requiresLocation = true)
 }

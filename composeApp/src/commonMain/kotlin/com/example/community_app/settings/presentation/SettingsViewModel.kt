@@ -2,16 +2,12 @@ package com.example.community_app.settings.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.community_app.appointment.domain.usecase.ScheduleAppointmentRemindersUseCase
-import com.example.community_app.auth.domain.AuthRepository
-import com.example.community_app.auth.domain.AuthState
-import com.example.community_app.core.domain.onError
-import com.example.community_app.core.domain.onSuccess
+import com.example.community_app.appointment.domain.usecase.detail.ScheduleAppointmentRemindersUseCase
 import com.example.community_app.core.domain.permission.AppPermissionService
 import com.example.community_app.core.domain.permission.CalendarPermissionService
 import com.example.community_app.core.domain.permission.PermissionStatus
 import com.example.community_app.core.util.restartApp
-import com.example.community_app.settings.domain.SettingsRepository
+import com.example.community_app.settings.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
@@ -24,7 +20,6 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(
   private val settingsRepository: SettingsRepository,
-  private val authRepository: AuthRepository,
   private val permissionService: AppPermissionService,
   private val calendarPermissionService: CalendarPermissionService,
   private val scheduleReminders: ScheduleAppointmentRemindersUseCase
@@ -34,10 +29,7 @@ class SettingsViewModel(
   private var pendingSyncEnable = false
 
   val state = _state
-    .onStart {
-      observeSettings()
-      observeAuth()
-    }
+    .onStart { observeSettings() }
     .stateIn(
       viewModelScope,
       SharingStarted.WhileSubscribed(5000L),
@@ -88,28 +80,6 @@ class SettingsViewModel(
         _state.update { it.copy(showCalendarPermissionRationale = false) }
       }
 
-      // Logout
-      is SettingsAction.OnLogoutClick -> {
-        _state.update { it.copy(showLogoutDialog = true) }
-      }
-      is SettingsAction.OnLogoutCancel -> {
-        _state.update { it.copy(showLogoutDialog = false) }
-      }
-      is SettingsAction.OnLogoutConfirm -> {
-        performLogout()
-      }
-
-      // Change PW
-      is SettingsAction.OnChangePasswordClick -> {
-        performPasswordResetTrigger()
-      }
-      is SettingsAction.OnChangePasswordDismiss -> {
-        _state.update { it.copy(showPasswordResetDialog = false) }
-      }
-      is SettingsAction.OnChangePasswordConfirm -> {
-        _state.update { it.copy(showPasswordResetDialog = false) }
-      }
-
       // Notifications
       is SettingsAction.OnToggleNotifications -> {
         viewModelScope.launch {
@@ -136,19 +106,7 @@ class SettingsViewModel(
           scheduleReminders()
         }
       }
-
-      else -> Unit
     }
-  }
-
-  private fun observeAuth() {
-    authRepository.authState.onEach { authState ->
-      if (authState is AuthState.Authenticated) {
-        _state.update { it.copy(currentUserEmail = authState.user.email) }
-      } else {
-        _state.update { it.copy(currentUserEmail = null) }
-      }
-    }.launchIn(viewModelScope)
   }
 
   private fun observeSettings() {
@@ -206,37 +164,6 @@ class SettingsViewModel(
         settingsRepository.setCalendarSyncEnabled(true)
         pendingSyncEnable = false
       }
-    }
-  }
-
-  private fun performLogout() {
-    viewModelScope.launch {
-      _state.update { it.copy(
-        showLogoutDialog = false,
-        isLoading = true
-      ) }
-
-      authRepository.logout()
-      _state.update { it.copy(isLoading = false) }
-    }
-  }
-
-  private fun performPasswordResetTrigger() {
-    val email = _state.value.currentUserEmail ?: return
-
-    viewModelScope.launch {
-      _state.update { it.copy(isLoading = true) }
-
-      authRepository.forgotPassword(email)
-        .onSuccess {
-          _state.update { it.copy(
-            isLoading = false,
-            showPasswordResetDialog = true
-          ) }
-        }
-        .onError {
-          _state.update { it.copy(isLoading = false) }
-        }
     }
   }
 }

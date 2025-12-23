@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.community_app.core.presentation.components.LocationGuard
 import com.example.community_app.core.presentation.components.input.CommunityDropdownMenu
 import com.example.community_app.core.presentation.components.input.CommunitySlider
 import com.example.community_app.core.presentation.theme.Spacing
@@ -126,12 +127,10 @@ fun <T_Sort, T_Cat, T_Status> CommunityFilterSheet(
         )
       }
 
-      HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
-
       // Extra Content Slot (e.g. Draft Switch)
       if (extraContent != null) {
-        extraContent()
         HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
+        extraContent()
       }
 
       // Category
@@ -156,7 +155,6 @@ fun <T_Sort, T_Cat, T_Status> CommunityFilterSheet(
             }
           }
         }
-        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
       }
 
       // Status
@@ -181,43 +179,44 @@ fun <T_Sort, T_Cat, T_Status> CommunityFilterSheet(
             }
           }
         }
-        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.medium))
       }
 
       // Distance (optional)
       if (showDistance) {
-        CollapsibleFilterSection(
-          title = Res.string.settings_radius_label,
-          isExpanded = expandedSections.contains(FilterSection.DISTANCE),
-          onToggle = { onToggleSection(FilterSection.DISTANCE) }
-        ) {
-          Column(
-            modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.small),
-            horizontalAlignment = Alignment.CenterHorizontally
+        LocationGuard {
+          CollapsibleFilterSection(
+            title = Res.string.settings_radius_label,
+            isExpanded = expandedSections.contains(FilterSection.DISTANCE),
+            onToggle = { onToggleSection(FilterSection.DISTANCE) }
           ) {
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(12.dp),
-              verticalAlignment = Alignment.CenterVertically
+            Column(
+              modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.small),
+              horizontalAlignment = Alignment.CenterHorizontally
             ) {
-              CommunitySlider(
-                value = distanceKm,
-                onValueChange = onDistanceChange,
-                valueRange = 1f..50f,
-                steps = 49,
-                modifier = Modifier.weight(1f)
-              )
+              Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+              ) {
+                CommunitySlider(
+                  value = distanceKm,
+                  onValueChange = onDistanceChange,
+                  valueRange = 1f..50f,
+                  steps = 49,
+                  modifier = Modifier.weight(1f)
+                )
+                Text(
+                  text = "${distanceKm.roundToInt()} km",
+                  style = MaterialTheme.typography.titleMedium,
+                  color = MaterialTheme.colorScheme.onSurface
+                )
+              }
               Text(
-                text = "${distanceKm.roundToInt()} km",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                text = stringResource(Res.string.settings_radius_helper),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
               )
             }
-            Text(
-              text = stringResource(Res.string.settings_radius_helper),
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
           }
         }
       }

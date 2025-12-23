@@ -4,14 +4,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.community_app.core.presentation.components.ObserveErrorMessage
 import com.example.community_app.core.presentation.components.detail.DetailScreenLayout
 import com.example.community_app.core.presentation.components.detail.InfoTicketDetailContent
 import com.example.community_app.core.presentation.components.detail.StatusHistoryUiItem
 import com.example.community_app.core.presentation.helpers.toUiText
+import com.example.community_app.core.util.toIso8601
 import com.example.community_app.util.TicketStatus
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.draft_label
@@ -57,7 +61,11 @@ private fun TicketDetailScreen(
   state: TicketDetailState,
   onAction: (TicketDetailAction) -> Unit
 ) {
-  val category = if (state.isDraft) state.draft?.category?.toUiText().toString() else state.ticket?.category?.toUiText()?.asString()
+  val category = if (state.isDraft) {
+    state.draft?.category?.toUiText()?.asString()
+  } else {
+    state.ticket?.category?.toUiText()?.asString()
+  }
   val titleRes = if (state.isDraft) Res.string.draft_label else Res.string.ticket_singular
 
   val displayTitle = state.ticket?.title ?: state.draft?.title
@@ -65,6 +73,11 @@ private fun TicketDetailScreen(
     ?: state.draft?.category?.toUiText()?.asString() ?: "-"
   val displayDesc = state.ticket?.description ?: state.draft?.description
   val displayStatus = state.ticket?.currentStatus?.toUiText()?.asString()
+  val displayDate = if (state.isDraft) {
+     toIso8601(state.draft?.lastModified?.toLong() ?: 0)
+  } else {
+    state.ticket?.createdAt
+  }
 
   val historyUiItems = state.statusHistory.map { dto ->
     StatusHistoryUiItem(
@@ -73,6 +86,14 @@ private fun TicketDetailScreen(
       createdAt = dto.createdAt
     )
   }
+
+  val snackbarHostState = remember { SnackbarHostState() }
+
+  ObserveErrorMessage(
+    errorMessage = state.errorMessage,
+    snackbarHostState = snackbarHostState,
+    isLoading = (state.isLoading && (state.ticket == null && state.draft == null))
+  )
 
   DetailScreenLayout(
     title = category ?: stringResource(titleRes),
@@ -92,7 +113,8 @@ private fun TicketDetailScreen(
           )
         }
       }
-    }
+    },
+    snackbarHostState = snackbarHostState
   ) {
     InfoTicketDetailContent(
       title = displayTitle ?: "",
@@ -100,14 +122,19 @@ private fun TicketDetailScreen(
       description = displayDesc,
       images = state.imageUrls,
       statusText = displayStatus,
-      startDate = null,
+      startDate = displayDate,
       endDate = null,
       onStatusClick = { onAction(TicketDetailAction.OnShowStatusHistory) },
       address = state.ticket?.address,
       isDraft = state.isDraft,
       isOwner = state.isOwner,
       isFavorite = state.ticket?.isFavorite ?: false,
-      onToggleFavorite = { onAction(TicketDetailAction.OnToggleFavorite) }
+      isVoted = state.ticket?.userVoted ?: false,
+      isDescExpanded = state.isDescriptionExpanded,
+      votesCount = state.ticket?.votesCount ?: 0,
+      onToggleFavorite = { onAction(TicketDetailAction.OnToggleFavorite) },
+      onVote = { onAction(TicketDetailAction.OnVote) },
+      onToggleDescription = { onAction(TicketDetailAction.OnToggleDescription) }
     )
   }
 }

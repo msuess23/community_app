@@ -1,6 +1,6 @@
 package com.example.community_app.office.presentation.office_detail
 
-import com.example.community_app.appointment.domain.Slot
+import com.example.community_app.appointment.domain.model.Slot
 
 sealed interface OfficeDetailAction {
   data object OnNavigateBack : OfficeDetailAction
@@ -16,4 +16,6 @@ sealed interface OfficeDetailAction {
   data object OnConfirmBooking : OfficeDetailAction
   data class OnToggleCalendarExport(val enabled: Boolean) : OfficeDetailAction
   data object OnLoginRedirect : OfficeDetailAction
+
+  data object OnToggleDescription : OfficeDetailAction
 }

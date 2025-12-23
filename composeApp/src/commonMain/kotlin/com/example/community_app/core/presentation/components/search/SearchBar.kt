@@ -24,6 +24,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
@@ -44,9 +45,10 @@ fun SearchBar(
   searchQuery: String,
   onSearchQueryChange: (String) -> Unit,
   onImeSearch: () -> Unit,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
+  interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
 ) {
-  val interactionSource = remember { MutableInteractionSource() }
+  val focusManager = LocalFocusManager.current
 
   val colors = OutlinedTextFieldDefaults.colors(
     cursorColor = MaterialTheme.colorScheme.primary,
@@ -85,7 +87,10 @@ fun SearchBar(
         imeAction = ImeAction.Search
       ),
       keyboardActions = KeyboardActions(
-        onSearch = { onImeSearch() }
+        onSearch = {
+          onImeSearch()
+          focusManager.clearFocus()
+        }
       ),
       singleLine = true,
       interactionSource = interactionSource,

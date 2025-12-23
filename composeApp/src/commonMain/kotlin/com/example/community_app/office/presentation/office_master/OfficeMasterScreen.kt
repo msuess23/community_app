@@ -1,11 +1,13 @@
 package com.example.community_app.office.presentation.office_master
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,14 +17,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.community_app.auth.presentation.components.AuthGuard
 import com.example.community_app.core.presentation.components.ObserveErrorMessage
+import com.example.community_app.core.presentation.components.list.ScreenMessage
 import com.example.community_app.core.presentation.components.master.MasterScreenLayout
 import com.example.community_app.core.presentation.components.master.SingleTabHeader
-import com.example.community_app.office.domain.Office
+import com.example.community_app.core.presentation.theme.Spacing
+import com.example.community_app.office.domain.model.Office
 import com.example.community_app.office.presentation.office_master.component.OfficeFilterSheet
 import com.example.community_app.office.presentation.office_master.component.OfficeListItem
+import com.example.community_app.ticket.presentation.ticket_master.TicketMasterAction
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.office_plural
+import community_app.composeapp.generated.resources.search_no_results
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -75,10 +83,17 @@ private fun OfficeMasterScreen(
     onRefresh = { onAction(OfficeMasterAction.OnRefresh) },
     onOpenDrawer = onOpenDrawer,
     onToggleFilterSheet = { onAction(OfficeMasterAction.OnToggleFilterSheet) },
-    tabsContent = { SingleTabHeader(Res.string.office_plural) }
+    tabsContent = { SingleTabHeader(Res.string.office_plural) },
+    emptyStateContent = {
+      ScreenMessage(
+        text = stringResource(Res.string.search_no_results),
+        color = MaterialTheme.colorScheme.onSurface
+      )
+    }
   ) {
     LazyColumn(
       modifier = Modifier.fillMaxSize(),
+      contentPadding = Spacing.listPadding,
       state = lazyListState,
       verticalArrangement = Arrangement.spacedBy(12.dp),
       horizontalAlignment = Alignment.CenterHorizontally
