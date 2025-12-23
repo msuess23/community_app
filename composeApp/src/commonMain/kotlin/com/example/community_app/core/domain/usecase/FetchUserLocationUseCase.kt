@@ -13,8 +13,17 @@ class FetchUserLocationUseCase(
   private val locationService: LocationService,
   private val permissionService: AppPermissionService
 ) {
-  suspend operator fun invoke(): LocationResult {
-    val hasPermission = permissionService.requestLocationPermission()
+  suspend operator fun invoke(silent: Boolean = false): LocationResult {
+    val isGranted = permissionService.isLocationPermissionGranted()
+
+    val hasPermission = if (isGranted) {
+      true
+    } else if (silent) {
+      false
+    } else {
+      permissionService.requestLocationPermission()
+    }
+
     val location = if (hasPermission) {
       locationService.getCurrentLocation()
     } else {

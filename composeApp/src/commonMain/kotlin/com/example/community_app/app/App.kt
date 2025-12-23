@@ -10,6 +10,10 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
@@ -75,9 +79,27 @@ fun App() {
     BindEffect(permissionsController)
 
     val fetchUserLocation = koinInject<FetchUserLocationUseCase>()
-    val locationState by produceState<Location?>(initialValue = null) {
-      val result = fetchUserLocation()
-      value = result.location
+
+    var locationState by remember { mutableStateOf<Location?>(null) }
+    val scope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(Unit) {
+      val result = fetchUserLocation(silent = false)
+      locationState = result.location
+    }
+
+    DisposableEffect(lifecycleOwner) {
+      val observer = LifecycleEventObserver { _, event ->
+        if (event == Lifecycle.Event.ON_RESUME) {
+          scope.launch {
+            val result = fetchUserLocation(silent = true)
+            locationState = result.location
+          }
+        }
+      }
+      lifecycleOwner.lifecycle.addObserver(observer)
+      onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     val settingsRepo = koinInject<SettingsRepository>()
