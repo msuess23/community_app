@@ -109,7 +109,9 @@ private fun InfoDetailScreen(
         address = info.address,
         isFavorite = info.isFavorite,
         isInfo = true,
-        onToggleFavorite = { onAction(InfoDetailAction.OnToggleFavorite) }
+        isDescExpanded = state.isDescriptionExpanded,
+        onToggleFavorite = { onAction(InfoDetailAction.OnToggleFavorite) },
+        onToggleDescription = { onAction(InfoDetailAction.OnToggleDescription) }
       )
     }
   }

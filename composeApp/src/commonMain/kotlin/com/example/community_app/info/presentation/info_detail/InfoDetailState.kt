@@ -10,5 +10,6 @@ data class InfoDetailState(
   val imageUrls: List<String> = emptyList(),
   val showStatusHistory: Boolean = false,
   val statusHistory: List<InfoStatusDto> = emptyList(),
-  val errorMessage: UiText? = null
+  val errorMessage: UiText? = null,
+  val isDescriptionExpanded: Boolean = false
 )

@@ -130,9 +130,11 @@ private fun TicketDetailScreen(
       isOwner = state.isOwner,
       isFavorite = state.ticket?.isFavorite ?: false,
       isVoted = state.ticket?.userVoted ?: false,
+      isDescExpanded = state.isDescriptionExpanded,
       votesCount = state.ticket?.votesCount ?: 0,
       onToggleFavorite = { onAction(TicketDetailAction.OnToggleFavorite) },
-      onVote = { onAction(TicketDetailAction.OnVote) }
+      onVote = { onAction(TicketDetailAction.OnVote) },
+      onToggleDescription = { onAction(TicketDetailAction.OnToggleDescription) }
     )
   }
 }

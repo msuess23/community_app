@@ -5,4 +5,5 @@ sealed interface InfoDetailAction {
   data object OnShowStatusHistory : InfoDetailAction
   data object OnDismissStatusHistory : InfoDetailAction
   data object OnToggleFavorite : InfoDetailAction
+  data object OnToggleDescription : InfoDetailAction
 }

@@ -69,7 +69,9 @@ fun DetailTimeSection(
         imageVector = icon,
         contentDescription = null,
         tint = iconTint,
-        modifier = Modifier.size(32.dp).padding(top = 2.dp)
+        modifier = Modifier
+          .size(28.dp)
+          .padding(top = 2.dp)
       )
       Spacer(modifier = Modifier.width(16.dp))
       if (isInfo) {

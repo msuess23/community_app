@@ -56,9 +56,11 @@ fun InfoTicketDetailContent(
   isFavorite: Boolean = false,
   isInfo: Boolean = false,
   isVoted: Boolean = false,
+  isDescExpanded: Boolean = false,
   votesCount: Int = 0,
   onToggleFavorite: () -> Unit = {},
-  onVote: () -> Unit = {}
+  onVote: () -> Unit = {},
+  onToggleDescription: () -> Unit
 ) {
   val scrollState = rememberScrollState()
 
@@ -118,10 +120,10 @@ fun InfoTicketDetailContent(
       }
 
       description?.let { desc ->
-        Text(
+        CommunityExpandableDescription(
           text = desc,
-          style = MaterialTheme.typography.bodyLarge,
-          color = MaterialTheme.colorScheme.onSurface
+          isExpanded = isDescExpanded,
+          onToggle = onToggleDescription
         )
       }
 

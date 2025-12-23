@@ -22,13 +22,15 @@ class InfoDetailViewModel(
   private val infoId = savedStateHandle.toRoute<Route.InfoDetail>().id
 
   private val _showStatusHistory = MutableStateFlow(false)
+  private val _descriptionExpanded = MutableStateFlow(false)
 
   private val infoFlow = getInfoDetail(infoId)
 
   val state = combine(
     infoFlow,
-    _showStatusHistory
-  ) { result, showHistory ->
+    _showStatusHistory,
+    _descriptionExpanded
+  ) { result, showHistory, expanded ->
     val finalImages = result.imageUrls.ifEmpty {
       listOfNotNull(result.info?.imageUrl)
     }
@@ -39,7 +41,8 @@ class InfoDetailViewModel(
       imageUrls = finalImages,
       showStatusHistory = showHistory,
       statusHistory = result.statusHistory,
-      errorMessage = result.syncStatus.error?.toUiText()
+      errorMessage = result.syncStatus.error?.toUiText(),
+      isDescriptionExpanded = expanded
     )
   }.stateIn(
     viewModelScope,
@@ -52,6 +55,7 @@ class InfoDetailViewModel(
       InfoDetailAction.OnShowStatusHistory -> _showStatusHistory.value = true
       InfoDetailAction.OnDismissStatusHistory -> _showStatusHistory.value = false
       InfoDetailAction.OnToggleFavorite -> toggleFavorite()
+      InfoDetailAction.OnToggleDescription -> _descriptionExpanded.value = !_descriptionExpanded.value
       else -> Unit
     }
   }

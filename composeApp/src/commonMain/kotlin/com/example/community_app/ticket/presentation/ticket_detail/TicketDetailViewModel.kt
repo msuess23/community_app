@@ -24,13 +24,15 @@ class TicketDetailViewModel(
   private val args = savedStateHandle.toRoute<Route.TicketDetail>()
 
   private val _showStatusHistory = MutableStateFlow(false)
+  private val _descriptionExpanded = MutableStateFlow(false)
 
   private val detailFlow = observeTicketDetail(args.id, args.isDraft)
 
   val state = combine(
     detailFlow,
-    _showStatusHistory
-  ) { result, showHistory ->
+    _showStatusHistory,
+    _descriptionExpanded
+  ) { result, showHistory, expanded ->
     val fallbackImage = result.ticket?.imageUrl
     val finalImages = result.images.ifEmpty { listOfNotNull(fallbackImage) }
 
@@ -43,7 +45,8 @@ class TicketDetailViewModel(
       imageUrls = finalImages,
       showStatusHistory = showHistory,
       statusHistory = result.history,
-      errorMessage = result.syncStatus.error?.toUiText()
+      errorMessage = result.syncStatus.error?.toUiText(),
+      isDescriptionExpanded = expanded
     )
   }.stateIn(
     viewModelScope,
@@ -57,6 +60,7 @@ class TicketDetailViewModel(
       TicketDetailAction.OnDismissStatusHistory -> _showStatusHistory.value = false
       TicketDetailAction.OnToggleFavorite -> toggleFavorite()
       TicketDetailAction.OnVote -> toggleVote()
+      TicketDetailAction.OnToggleDescription -> _descriptionExpanded.value = !_descriptionExpanded.value
       else -> Unit
     }
   }

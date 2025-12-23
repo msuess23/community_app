@@ -14,5 +14,6 @@ data class TicketDetailState(
   val imageUrls: List<String> = emptyList(),
   val showStatusHistory: Boolean = false,
   val statusHistory: List<TicketStatusEntry> = emptyList(),
-  val errorMessage: UiText? = null
+  val errorMessage: UiText? = null,
+  val isDescriptionExpanded: Boolean = false
 )
