@@ -9,6 +9,7 @@ import com.example.community_app.core.presentation.state.SyncStatus
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -24,7 +25,9 @@ class ObserveAppointmentsUseCase(
 ) {
   @OptIn(ExperimentalCoroutinesApi::class)
   operator fun invoke(forceRefresh: Boolean): Flow<AppointmentDataResult> {
-    return authRepository.authState.flatMapLatest { authState ->
+    return authRepository.authState
+      .distinctUntilChanged()
+      .flatMapLatest { authState ->
       if (authState is AuthState.Authenticated) {
         val syncFlow = flow {
           emit(SyncStatus(isLoading = true))
