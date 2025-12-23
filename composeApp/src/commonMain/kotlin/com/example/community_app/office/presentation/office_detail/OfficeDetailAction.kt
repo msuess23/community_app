@@ -16,4 +16,6 @@ sealed interface OfficeDetailAction {
   data object OnConfirmBooking : OfficeDetailAction
   data class OnToggleCalendarExport(val enabled: Boolean) : OfficeDetailAction
   data object OnLoginRedirect : OfficeDetailAction
+
+  data object OnToggleDescription : OfficeDetailAction
 }

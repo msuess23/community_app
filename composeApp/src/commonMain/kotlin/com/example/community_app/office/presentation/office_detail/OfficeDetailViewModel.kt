@@ -95,7 +95,8 @@ class OfficeDetailViewModel(
       showDatePicker = local.ui.showDatePicker,
       hasCalendarPermission = local.ui.hasCalendarPermission,
       shouldAddToCalendar = local.ui.shouldAddToCalendar,
-      isUserLoggedIn = isLoggedIn
+      isUserLoggedIn = isLoggedIn,
+      isDescriptionExpanded = local.ui.isDescriptionExpanded
     )
   }.stateIn(
     viewModelScope,
@@ -140,6 +141,12 @@ class OfficeDetailViewModel(
       OfficeDetailAction.OnDismissBookingDialog -> _uiState.update { it.copy(selectedSlot = null) }
 
       OfficeDetailAction.OnConfirmBooking -> performBooking()
+
+      OfficeDetailAction.OnToggleDescription -> {
+        _uiState.update {
+          it.copy(isDescriptionExpanded = !it.isDescriptionExpanded)
+        }
+      }
 
       else -> Unit
     }
@@ -208,6 +215,7 @@ class OfficeDetailViewModel(
     val showDatePicker: Boolean = false,
     val hasCalendarPermission: Boolean = false,
     val shouldAddToCalendar: Boolean = false,
-    val errorMessage: UiText? = null
+    val errorMessage: UiText? = null,
+    val isDescriptionExpanded: Boolean = false
   )
 }

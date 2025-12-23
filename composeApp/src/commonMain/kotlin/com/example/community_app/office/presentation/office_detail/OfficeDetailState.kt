@@ -23,5 +23,7 @@ data class OfficeDetailState(
   val showDatePicker: Boolean = false,
 
   val infoMessage: UiText? = null,
-  val errorMessage: UiText? = null
+  val errorMessage: UiText? = null,
+
+  val isDescriptionExpanded: Boolean = false
 )
