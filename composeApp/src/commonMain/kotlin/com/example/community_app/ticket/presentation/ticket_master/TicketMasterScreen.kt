@@ -38,6 +38,7 @@ import com.example.community_app.ticket.domain.model.TicketListItem
 import community_app.composeapp.generated.resources.Res
 import community_app.composeapp.generated.resources.create
 import community_app.composeapp.generated.resources.search_no_results
+import community_app.composeapp.generated.resources.ticket_no_own_yet
 import community_app.composeapp.generated.resources.ticket_ownership_community
 import community_app.composeapp.generated.resources.ticket_ownership_user
 import compose.icons.FeatherIcons
@@ -148,6 +149,18 @@ private fun TicketMasterScreen(
       }
     },
     emptyStateContent = {
+      if (state.selectedTabIndex == 1) {
+        AuthGuard(
+          onLoginClick = { onAction(TicketMasterAction.OnLoginClick) }
+        ) {
+          ScreenMessage(
+            text = stringResource(Res.string.ticket_no_own_yet),
+            color = MaterialTheme.colorScheme.onSurface
+          )
+        }
+      }
+    },
+    emptySearchContent = {
       if (state.selectedTabIndex == 1) {
         AuthGuard(
           onLoginClick = { onAction(TicketMasterAction.OnLoginClick) }

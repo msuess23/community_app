@@ -29,13 +29,13 @@ class LogoutUserUseCase(
     userRepository.clearUser()
     authRepository.logout()
 
-    try {
-      infoRepository.refreshInfos(force = true)
-      ticketRepository.refreshTickets(force = true)
-      officeRepository.refreshOffices(force = true)
-      appointmentRepository.refreshAppointments(force = true)
-    } catch (e: Exception) {
-      e.printStackTrace()
-    }
+//    try {
+//      infoRepository.refreshInfos(force = true)
+//      ticketRepository.refreshTickets(force = true)
+//      officeRepository.refreshOffices(force = true)
+//      appointmentRepository.refreshAppointments(force = true)
+//    } catch (e: Exception) {
+//      e.printStackTrace()
+//    }
   }
 }

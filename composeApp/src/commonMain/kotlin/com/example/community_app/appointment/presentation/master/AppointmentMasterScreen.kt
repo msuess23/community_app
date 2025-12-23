@@ -89,6 +89,16 @@ private fun AppointmentMasterScreen(
           color = MaterialTheme.colorScheme.onSurface
         )
       }
+    },
+    emptySearchContent = {
+      AuthGuard(
+        onLoginClick = { onAction(AppointmentMasterAction.OnLoginClick) }
+      ) {
+        ScreenMessage(
+          text = stringResource(Res.string.search_no_results),
+          color = MaterialTheme.colorScheme.onSurface
+        )
+      }
     }
   ) {
     LazyColumn(

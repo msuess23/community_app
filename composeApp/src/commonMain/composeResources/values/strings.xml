@@ -36,6 +36,7 @@
     <string name="ticket_singular">Concern</string>
     <string name="ticket_plural">Concerns</string>
     <string name="ticket_mine_label">My concern</string>
+    <string name="ticket_no_own_yet">You can create your first concern with "+".</string>
     <!-- Visibility (Enum) -->
     <string name="ticket_visibility_label">Visibility</string>
     <string name="ticket_visibility_info_text">The responsible office can always see your concerns.</string>

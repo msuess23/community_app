@@ -36,6 +36,7 @@
     <string name="ticket_singular">Anliegen</string>
     <string name="ticket_plural">Anliegen</string>
     <string name="ticket_mine_label">Mein Anliegen</string>
+    <string name="ticket_no_own_yet">Du kannst Dein erstes Anliegen mit "+" erstellen.</string>
     <!-- Visibility (Enum) -->
     <string name="ticket_visibility_label">Sichtbarkeit</string>
     <string name="ticket_visibility_info_text">Die zuständige Behörde kann dein Anliegen immer sehen.</string>
