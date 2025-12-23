@@ -1,6 +1,6 @@
 package com.example.community_app.appointment.data.repository
 
-import com.example.community_app.appointment.data.local.AppointmentDao
+import com.example.community_app.appointment.data.local.appointment.AppointmentDao
 import com.example.community_app.appointment.data.mappers.toAppointment
 import com.example.community_app.appointment.data.mappers.toEntity
 import com.example.community_app.appointment.data.network.RemoteAppointmentDataSource

@@ -1,5 +1,6 @@
 package com.example.community_app.profile.domain.usecase
 
+import com.example.community_app.appointment.domain.repository.AppointmentNoteRepository
 import com.example.community_app.auth.domain.repository.AuthRepository
 import com.example.community_app.geocoding.domain.repository.AddressRepository
 import com.example.community_app.profile.domain.repository.UserRepository
@@ -9,12 +10,14 @@ class LogoutUserUseCase(
   private val authRepository: AuthRepository,
   private val userRepository: UserRepository,
   private val addressRepository: AddressRepository,
-  private val ticketRepository: TicketRepository
+  private val ticketRepository: TicketRepository,
+  private val appointmentNoteRepository: AppointmentNoteRepository
 ) {
   suspend operator fun invoke(clearData: Boolean) {
     if (clearData) {
       addressRepository.clearAllForUser()
       ticketRepository.clearUserData()
+      appointmentNoteRepository.clearUserData()
     }
 
     userRepository.clearUser()

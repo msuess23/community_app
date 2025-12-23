@@ -1,4 +1,4 @@
-package com.example.community_app.appointment.data.local
+package com.example.community_app.appointment.data.local.appointment
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

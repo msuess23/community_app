@@ -1,8 +1,6 @@
 package com.example.community_app.profile.presentation
 
 import com.example.community_app.geocoding.domain.model.Address
-import com.example.community_app.office.domain.model.Office
-import com.example.community_app.ticket.presentation.ticket_edit.TicketEditAction
 
 sealed interface ProfileAction {
   data object OnToggleEditMode : ProfileAction

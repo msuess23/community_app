@@ -1,6 +1,6 @@
 package com.example.community_app.di
 
-import com.example.community_app.appointment.data.local.AppointmentDao
+import com.example.community_app.appointment.data.local.appointment.AppointmentDao
 import com.example.community_app.appointment.data.network.KtorRemoteAppointmentDataSource
 import com.example.community_app.appointment.data.network.RemoteAppointmentDataSource
 import com.example.community_app.appointment.data.repository.DefaultAppointmentRepository
@@ -37,9 +37,7 @@ import com.example.community_app.geocoding.data.local.AddressDao
 import com.example.community_app.geocoding.data.network.KtorRemoteGeocodingDataSource
 import com.example.community_app.geocoding.data.network.RemoteGeocodingDataSource
 import com.example.community_app.geocoding.data.repository.DefaultAddressRepository
-import com.example.community_app.geocoding.data.repository.DefaultGeocodingRepository
 import com.example.community_app.geocoding.domain.repository.AddressRepository
-import com.example.community_app.geocoding.domain.repository.GeocodingRepository
 import com.example.community_app.geocoding.domain.usecase.AddToAddressHistoryUseCase
 import com.example.community_app.geocoding.domain.usecase.GetAddressFromLocationUseCase
 import com.example.community_app.geocoding.domain.usecase.GetAddressHistoryUseCase
@@ -47,6 +45,9 @@ import com.example.community_app.geocoding.domain.usecase.GetAddressSuggestionsU
 import com.example.community_app.geocoding.domain.usecase.GetHomeAddressUseCase
 import com.example.community_app.geocoding.domain.usecase.SearchAddressUseCase
 import com.example.community_app.geocoding.domain.usecase.SetHomeAddressUseCase
+import com.example.community_app.appointment.data.local.appointment_note.AppointmentNoteDao
+import com.example.community_app.appointment.data.repository.DefaultAppointmentNoteRepository
+import com.example.community_app.appointment.domain.repository.AppointmentNoteRepository
 import com.example.community_app.info.data.local.InfoDao
 import com.example.community_app.info.data.network.KtorRemoteInfoDataSource
 import com.example.community_app.info.data.network.RemoteInfoDataSource
@@ -178,6 +179,7 @@ val sharedModule = module {
   single<TicketDraftDao> { get<AppDatabase>().ticketDraftDao() }
   single<OfficeDao> { get<AppDatabase>().officeDao() }
   single<AppointmentDao> { get<AppDatabase>().appointmentDao() }
+  single<AppointmentNoteDao> { get<AppDatabase>().appointmentNoteDao() }
   single<FavoriteDao> { get<AppDatabase>().favoriteDao() }
   single<UserDao> { get<AppDatabase>().userDao() }
   single<AddressDao> { get<AppDatabase>().addressHistoryDao() }
@@ -191,8 +193,8 @@ val sharedModule = module {
   singleOf(::DefaultMediaRepository).bind<MediaRepository>()
   singleOf(::DefaultOfficeRepository).bind<OfficeRepository>()
   singleOf(::DefaultAppointmentRepository).bind<AppointmentRepository>()
+  singleOf(::DefaultAppointmentNoteRepository).bind<AppointmentNoteRepository>()
   singleOf(::DefaultUserRepository).bind<UserRepository>()
-  singleOf(::DefaultGeocodingRepository).bind<GeocodingRepository>()
   singleOf(::DefaultAddressRepository).bind<AddressRepository>()
 
   // --- USE CASES ---

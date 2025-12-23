@@ -1,6 +1,6 @@
 package com.example.community_app.appointment.data.mappers
 
-import com.example.community_app.appointment.data.local.AppointmentEntity
+import com.example.community_app.appointment.data.local.appointment.AppointmentEntity
 import com.example.community_app.appointment.domain.model.Appointment
 import com.example.community_app.dto.AppointmentDto
 
