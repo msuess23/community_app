@@ -9,5 +9,18 @@
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
+  
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>Die App benötigt Ihren Standort, um Behörden und Angebote in Ihrer Nähe anzuzeigen.</string>
+
+  <key>NSCalendarsUsageDescription</key>
+  <string>Die App benötigt Zugriff auf Ihren Kalender, um gebuchte Termine direkt speichern zu können.</string>
+  <key>NSCalendarsFullAccessUsageDescription</key>
+  <string>Die App benötigt Zugriff auf Ihren Kalender, um gebuchte Termine direkt speichern zu können.</string>
+
+  <key>NSCameraUsageDescription</key>
+  <string>Die App benötigt Zugriff auf die Kamera, damit Sie Fotos für Ihre Anliegen aufnehmen können.</string>
+  <key>NSPhotoLibraryUsageDescription</key>
+  <string>Die App benötigt Zugriff auf Ihre Fotos, damit Sie Bilder zu Ihren Anliegen hinzufügen können.</string>
 </dict>
 </plist>
