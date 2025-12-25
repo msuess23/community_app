@@ -56,6 +56,7 @@ fun MasterScreenLayout(
   floatingActionButton: @Composable () -> Unit = {},
   tabsContent: @Composable (ColumnScope.() -> Unit)? = null,
   emptyStateContent: @Composable () -> Unit = { DefaultEmptyState() },
+  emptySearchContent: @Composable () -> Unit = { DefaultEmptySearch() },
   listContent: @Composable () -> Unit
 ) {
   val keyboardController = LocalSoftwareKeyboardController.current
@@ -145,10 +146,7 @@ fun MasterScreenLayout(
                   .verticalScroll(rememberScrollState()),
                 contentAlignment = Alignment.Center
               ) {
-                ScreenMessage(
-                  text = stringResource(Res.string.message_no_data),
-                  color = MaterialTheme.colorScheme.onSurface
-                )
+                emptySearchContent()
               }
             } else if (isEmpty && searchQuery.isNotEmpty()) {
               Box(
@@ -177,6 +175,19 @@ private fun DefaultEmptyState() {
   ) {
     ScreenMessage(
       text = stringResource(Res.string.search_no_results),
+      color = MaterialTheme.colorScheme.onSurface
+    )
+  }
+}
+
+@Composable
+private fun DefaultEmptySearch() {
+  Box(
+    modifier = Modifier.fillMaxSize(),
+    contentAlignment = Alignment.Center
+  ) {
+    ScreenMessage(
+      text = stringResource(Res.string.message_no_data),
       color = MaterialTheme.colorScheme.onSurface
     )
   }

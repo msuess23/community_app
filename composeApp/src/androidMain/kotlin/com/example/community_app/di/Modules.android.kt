@@ -22,6 +22,8 @@ import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
+private var dataStore: DataStore<Preferences>? = null
+
 actual val platformModule = module {
   single<HttpClientEngine> { OkHttp.create() }
 
@@ -41,7 +43,10 @@ actual val platformModule = module {
   }
 
   single<DataStore<Preferences>> {
-    createDataStore(context = androidContext())
+    if (dataStore == null) {
+      dataStore = createDataStore(context = androidContext())
+    }
+    dataStore!!
   }
 
   single<LocationService> {

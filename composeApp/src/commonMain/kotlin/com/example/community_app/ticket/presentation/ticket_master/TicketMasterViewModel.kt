@@ -55,10 +55,6 @@ class TicketMasterViewModel(
   ) { dataResult, inputs, uiState, forceRefresh ->
     val (query, filter, tabIndex, location) = inputs
 
-    if (forceRefresh && !dataResult.syncStatus.isLoading) {
-      _forceRefreshTrigger.value = false
-    }
-
     val filteredCommunity = filterTickets(
       items = dataResult.communityTickets.map { TicketListItem.Remote(it) },
       query = inputs.query,
@@ -152,6 +148,7 @@ class TicketMasterViewModel(
       }
 
       TicketMasterAction.OnRefresh -> {
+        _forceRefreshTrigger.value = false
         _forceRefreshTrigger.value = true
         refreshLocation()
       }

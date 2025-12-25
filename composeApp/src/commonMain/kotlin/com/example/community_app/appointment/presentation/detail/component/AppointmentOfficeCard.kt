@@ -29,12 +29,15 @@ import compose.icons.feathericons.Phone
 
 @Composable
 fun AppointmentOfficeCard(
-  office: Office
+  office: Office,
+  onClick: () -> Unit
 ) {
   val uriHandler = LocalUriHandler.current
 
   Card(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = Modifier
+      .fillMaxWidth()
+      .clickable(onClick = onClick),
     colors = CardDefaults.cardColors(
       containerColor = MaterialTheme.colorScheme.surfaceContainer
     )

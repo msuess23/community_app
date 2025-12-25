@@ -16,6 +16,7 @@ import com.example.community_app.core.domain.notification.NotificationService
 import com.example.community_app.core.domain.permission.CalendarPermissionService
 import com.example.community_app.core.domain.permission.IosCalendarPermissionService
 import dev.icerock.moko.permissions.ios.PermissionsController
+import dev.icerock.moko.permissions.ios.PermissionsControllerProtocol
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.darwin.Darwin
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -54,7 +55,7 @@ actual val platformModule = module {
 
   single<LocationService> { IosLocationService() }
 
-  single { PermissionsController() }
+  single<PermissionsControllerProtocol> { PermissionsController() }
 
   single { FileStorage() }
 

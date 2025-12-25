@@ -44,7 +44,6 @@ class DefaultTicketRepository(
   private val ticketDraftDao: TicketDraftDao,
   private val favoriteDao: FavoriteDao,
   private val syncManager: SyncManager,
-  private val authRepository: AuthRepository,
   private val userRepository: UserRepository,
   private val fileStorage: FileStorage
 ): TicketRepository {
@@ -96,8 +95,8 @@ class DefaultTicketRepository(
 
     val communityDeferred = async { remoteTicketDataSource.getTickets(decision.bboxString) }
 
-    val token = authRepository.getAccessToken()
-    val userDeferred = if (token != null) {
+    val currentUser = userRepository.getUser().firstOrNull()
+    val userDeferred = if (currentUser != null) {
       async { remoteTicketDataSource.getUserTickets() }
     } else null
 
