@@ -62,22 +62,22 @@ object DatabaseSeeder {
         address = addr1
       }
 
-      val (o2Lat, o2Lon) = loc(-2.2, 0.0)
+      val (o2Lat, o2Lon) = loc(0.170, 0.195)
       val addr2 = AddressEntity.new {
-        street = "Marienplatz"
+        street = "Unterer Graben"
         houseNumber = "1"
-        zipCode = "80331"
-        city = "München"
+        zipCode = "08523"
+        city = "Plauen"
         longitude = o2Lon
         latitude = o2Lat
       }
       val office2 = OfficeEntity.new {
-        name = "Landeshauptstadt München"
-        description = "Referat für Ordnung"
-        services = "Großstadtverwaltung"
-        openingHours = "Mo-Do 9-17"
-        contactEmail = "info@muenchen.local"
-        phone = "+49-89-123456"
+        name = "Stadtverwaltung Plauen"
+        description = "Bürgerbüro der Stadt Plauen. Zuständig für Meldeangelegenheiten, Pässe und gewerbliche Anliegen im Vogtlandkreis."
+        services = "Einwohnermeldeamt, Gewerbeamt, Fundbüro"
+        openingHours = "Mo 09-15, Do 09-18 Uhr"
+        contactEmail = "buergerbuero@plauen.de"
+        phone = "+49-3741-2910"
         address = addr2
       }
       Pair(office1.id.value, office2.id.value)
@@ -160,55 +160,55 @@ object DatabaseSeeder {
     val infoRepo = DefaultInfoRepository
     val statusService = StatusService.default()
 
-    val (i1Lat, i1Lon) = loc(-0.3, 0.05)
+    val (i1aLat, i1aLon) = loc(0.015, -0.015)
     val info1a = infoRepo.create(InfoCreateData(
-      title = "Festspiele Bayreuth (Mittel)",
-      description = "Kulturveranstaltung (Mittelstrecke ~35km)",
+      title = "Konzert in der Freiheitshalle",
+      description = "Großes Benefizkonzert der Hofer Symphoniker. Einlass ab 18 Uhr.",
       category = InfoCategory.EVENT,
       officeId = office1Id,
-      address = AddressDto(street = "Hügel", longitude = i1Lon, latitude = i1Lat),
-      startsAt = now.plus(5, ChronoUnit.DAYS),
-      endsAt = now.plus(5, ChronoUnit.DAYS).plus(6, ChronoUnit.HOURS)
+      address = AddressDto(street = "Kulmbacher Str.", houseNumber = "4", zipCode = "95030", city = "Hof", longitude = i1aLon, latitude = i1aLat),
+      startsAt = now.plus(7, ChronoUnit.DAYS).plus(19, ChronoUnit.HOURS),
+      endsAt = now.plus(7, ChronoUnit.DAYS).plus(23, ChronoUnit.HOURS)
     ))
 
-    val (i2Lat, i2Lon) = loc(0.004, 0.002)
+    val (i1bLat, i1bLon) = loc(-0.005, 0.005)
     val info1b = infoRepo.create(InfoCreateData(
-      title = "Baustelle Hauptstraße (Nah)",
-      description = "Einschränkungen direkt im Ort (sehr nah, ~500m)",
+      title = "Kanalarbeiten Ernst-Reuter-Str.",
+      description = "Vollsperrung wegen Erneuerung der Wasserleitungen. Umleitung über Wunsiedler Straße.",
       category = InfoCategory.CONSTRUCTION,
       officeId = office1Id,
-      address = AddressDto(street = "Hauptstraße", longitude = i2Lon, latitude = i2Lat),
+      address = AddressDto(street = "Ernst-Reuter-Str.", houseNumber = "15", zipCode = "95028", city = "Hof", longitude = i1bLon, latitude = i1bLat),
       startsAt = now,
-      endsAt = now.plus(20, ChronoUnit.DAYS)
-    ))
-
-    val (i3Lat, i3Lon) = loc(-2.2, 0.0)
-    val info2a = infoRepo.create(InfoCreateData(
-      title = "Bürgerdialog München (Fern)",
-      description = "Weit entfernt (>200km), sollte nicht geladen werden",
-      category = InfoCategory.ANNOUNCEMENT,
-      officeId = office2Id,
-      address = AddressDto(street = "Odeonsplatz", longitude = i3Lon, latitude = i3Lat),
-      startsAt = now.plus(2, ChronoUnit.DAYS),
-      endsAt = now.plus(2, ChronoUnit.DAYS).plus(2, ChronoUnit.HOURS)
-    ))
-
-    val (i4Lat, i4Lon) = loc(0.01, 0.01)
-    val info2b = infoRepo.create(InfoCreateData(
-      title = "Parksanierung",
-      description = "Neugestaltung des Stadtparks",
-      category = InfoCategory.MAINTENANCE,
-      officeId = office2Id,
-      address = AddressDto(street = "Englischer Garten", longitude = i4Lon, latitude = i4Lat),
-      startsAt = now.plus(1, ChronoUnit.DAYS),
       endsAt = now.plus(14, ChronoUnit.DAYS)
     ))
 
+    val (i2aLat, i2aLon) = loc(0.172, 0.196)
+    val info2a = infoRepo.create(InfoCreateData(
+      title = "Plauener Spitzenfest",
+      description = "Traditionelles Stadtfest auf dem Altmarkt mit Live-Musik und Handwerksmarkt.",
+      category = InfoCategory.EVENT,
+      officeId = office2Id,
+      address = AddressDto(street = "Altmarkt", houseNumber = "1", zipCode = "08523", city = "Plauen", longitude = i2aLon, latitude = i2aLat),
+      startsAt = now.plus(20, ChronoUnit.DAYS),
+      endsAt = now.plus(22, ChronoUnit.DAYS)
+    ))
+
+    val (i2bLat, i2bLon) = loc(0.168, 0.192)
+    val info2b = infoRepo.create(InfoCreateData(
+      title = "Wartung Stadtbad",
+      description = "Das Stadtbad bleibt wegen jährlicher Revisionsarbeiten geschlossen.",
+      category = InfoCategory.MAINTENANCE,
+      officeId = office2Id,
+      address = AddressDto(street = "Hofer Str.", houseNumber = "2", zipCode = "08527", city = "Plauen", longitude = i2bLon, latitude = i2bLat),
+      startsAt = now.plus(3, ChronoUnit.DAYS),
+      endsAt = now.plus(10, ChronoUnit.DAYS)
+    ))
+
     // Statusverläufe
-    statusService.addInfoStatus(info1a.id, InfoStatus.SCHEDULED, "Termin steht", adminId)
-    statusService.addInfoStatus(info1b.id, InfoStatus.ACTIVE, "Arbeiten begonnen", officer1Id)
-    statusService.addInfoStatus(info2a.id, InfoStatus.SCHEDULED, "Vorbereitung läuft", officer2Id)
-    statusService.addInfoStatus(info2b.id, InfoStatus.SCHEDULED, "Planung gestartet", officer2Id)
+    statusService.addInfoStatus(info1a.id, InfoStatus.SCHEDULED, "Vorverkauf gestartet", officer1Id)
+    statusService.addInfoStatus(info1b.id, InfoStatus.ACTIVE, "Baustelle eingerichtet", officer1Id)
+    statusService.addInfoStatus(info2a.id, InfoStatus.SCHEDULED, "Programm finalisiert", officer2Id)
+    statusService.addInfoStatus(info2b.id, InfoStatus.SCHEDULED, "Termin bestätigt", officer2Id)
 
     try {
       seedMedia(
@@ -227,58 +227,64 @@ object DatabaseSeeder {
     // --- 6) Tickets (je Citizen ein privates) + 1 öffentliches + Vote ---
     val ticketRepo = DefaultTicketRepository
 
-    val (t1Lat, t1Lon) = loc(-0.002, -0.001)
-    val pub1 = ticketRepo.create(TicketCreateData(
-      title = "Defektes Klettergerüst (Nah)",
-      description = "Spielplatz um die Ecke (~200m)",
+    val (t1PubLat, t1PubLon) = loc(0.002, 0.002)
+    val ticketCit1Pub = ticketRepo.create(TicketCreateData(
+      title = "Max: Parkbank defekt (Hof)",
+      description = "Am Saale-Radweg ist eine Bank zusammengebrochen. Öffentlich sichtbar.",
       category = TicketCategory.INFRASTRUCTURE,
       officeId = office1Id,
       creatorUserId = citizen1Id,
-      address = AddressDto(street = "Spielplatzweg", longitude = t1Lon, latitude = t1Lat),
+      address = AddressDto(street = "Saale-Radweg", houseNumber = "", zipCode = "95028", city = "Hof", longitude = t1PubLon, latitude = t1PubLat),
       visibility = TicketVisibility.PUBLIC
     ))
 
-    val (t2Lat, t2Lon) = loc(-0.25, 0.04)
-    val priv1 = ticketRepo.create(TicketCreateData(
-      title = "Laterne Bayreuth (Mittel)",
-      description = "Mein privates Ticket (~35km)",
-      category = TicketCategory.INFRASTRUCTURE,
-      officeId = office1Id,
+    val (t1PrivLat, t1PrivLon) = loc(0.175, 0.198)
+    val ticketCit1Priv = ticketRepo.create(TicketCreateData(
+      title = "Max: Müllmeldung (Plauen)",
+      description = "Privates Ticket über wilde Müllkippe am Stadtrand. Sollte nur für Max und Office 2 sichtbar sein.",
+      category = TicketCategory.CLEANING,
+      officeId = office2Id,
       creatorUserId = citizen1Id,
-      address = AddressDto(street = "Wagner-Str", longitude = t2Lon, latitude = t2Lat),
+      address = AddressDto(street = "Haselbrunner Str.", houseNumber = "100", zipCode = "08525", city = "Plauen", longitude = t1PrivLon, latitude = t1PrivLat),
       visibility = TicketVisibility.PRIVATE
     ))
 
-    val (t3Lat, t3Lon) = loc(0.30, 0.01)
-    val pub2 = ticketRepo.create(TicketCreateData(
-      title = "Müll Isartor (Mittel)",
-      description = "Weit entferntes Ticket (>200km)",
-      category = TicketCategory.CLEANING,
+    val (t2PrivLat, t2PrivLon) = loc(-0.010, -0.010)
+    val ticketCit2Priv = ticketRepo.create(TicketCreateData(
+      title = "Erika: Lärmbelästigung (Hof)",
+      description = "Beschwerde über nächtlichen Lärm. Privat an Office 1.",
+      category = TicketCategory.OTHER,
+      officeId = office1Id,
+      creatorUserId = citizen2Id,
+      address = AddressDto(street = "Wunsiedler Str.", houseNumber = "50", zipCode = "95032", city = "Hof", longitude = t2PrivLon, latitude = t2PrivLat),
+      visibility = TicketVisibility.PRIVATE
+    ))
+
+    val (t2PubLat, t2PubLon) = loc(0.165, 0.190)
+    val ticketCit2Pub = ticketRepo.create(TicketCreateData(
+      title = "Erika: Schlagloch (Plauen)",
+      description = "Großes Schlagloch in der Fahrbahnmitte. Öffentlich.",
+      category = TicketCategory.INFRASTRUCTURE,
       officeId = office2Id,
       creatorUserId = citizen2Id,
-      address = AddressDto(street = "Isartor", longitude = t3Lon, latitude = t3Lat),
+      address = AddressDto(street = "Oelsnitzer Str.", houseNumber = "20", zipCode = "08527", city = "Plauen", longitude = t2PubLon, latitude = t2PubLat),
       visibility = TicketVisibility.PUBLIC
     ))
 
 
     // Ticket-Status
-    statusService.addTicketStatus(priv1.id, TicketStatus.OPEN, "Erfasst", citizen1Id)
-    statusService.addTicketStatus(pub2.id, TicketStatus.OPEN, "Erfasst", citizen2Id)
-    statusService.addTicketStatus(pub1.id, TicketStatus.OPEN, "Erfasst", citizen1Id)
-    statusService.addTicketStatus(pub1.id, TicketStatus.IN_PROGRESS, "Begutachtung läuft", officer1Id)
+    statusService.addTicketStatus(ticketCit1Pub.id, TicketStatus.OPEN, "Eingegangen", citizen1Id)
+    statusService.addTicketStatus(ticketCit1Priv.id, TicketStatus.OPEN, "Eingegangen", citizen1Id)
+    statusService.addTicketStatus(ticketCit2Priv.id, TicketStatus.OPEN, "Eingegangen", citizen2Id)
+    statusService.addTicketStatus(ticketCit2Pub.id, TicketStatus.OPEN, "Eingegangen", citizen2Id)
+    statusService.addTicketStatus(ticketCit2Pub.id, TicketStatus.IN_PROGRESS, "Bauhof informiert", officer2Id)
 
     // Vote
-    ticketRepo.addVote(pub1.id, citizen2Id)
+    ticketRepo.addVote(ticketCit1Pub.id, citizen2Id)
 
     try {
-      seedMedia(
-        targetType = MediaTargetType.TICKET,
-        targetId = pub1.id,
-        files = listOf(
-          MediaSeed(sourceFilename = "istockphoto-playground-1.jpg", isCover = true, mimeType = "image/jpeg"),
-          MediaSeed(sourceFilename = "istockphoto-playground-2.jpg", isCover = false, mimeType = "image/jpeg")
-        )
-      )
+      seedMedia(MediaTargetType.TICKET, ticketCit1Pub.id, listOf(MediaSeed("istockphoto-playground-1.jpg", true, "image/jpeg")))
+      seedMedia(MediaTargetType.TICKET, ticketCit2Priv.id, listOf(MediaSeed("istockphoto-playground-2.jpg", true, "image/jpeg")))
     } catch (e: Throwable) {
       println("DevSeeder: could not seed demo media for pub1: ${e.message}")
     }
