@@ -41,19 +41,23 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun AppointmentDetailScreenRoot(
   viewModel: AppointmentDetailViewModel = koinViewModel(),
+  onNavigateToOffice: (Int) -> Unit,
   onNavigateBack: () -> Unit
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
 
-  LaunchedEffect(state.isCancelled) {
-    if (state.isCancelled) onNavigateBack()
+  LaunchedEffect(state.isCancelSuccess) {
+    if (state.isCancelSuccess) {
+      onNavigateBack()
+    }
   }
 
   AppointmentDetailScreen(
     state = state,
     onAction = { action ->
       when(action) {
-        AppointmentDetailAction.OnNavigateBack -> onNavigateBack()
+        is AppointmentDetailAction.OnOfficeClick -> onNavigateToOffice(action.officeId)
+        is AppointmentDetailAction.OnNavigateBack -> onNavigateBack()
         else -> viewModel.onAction(action)
       }
     }
@@ -79,7 +83,7 @@ private fun AppointmentDetailScreen(
     isLoading = state.isLoading,
     dataAvailable = state.appointment != null,
     actions = {
-      if (!state.isCancelled && !state.isLoading) {
+      if (!state.isCancelling && !state.isLoading) {
         IconButton(onClick = { onAction(AppointmentDetailAction.OnCancelClick) }) {
           Icon(
             imageVector = FeatherIcons.Trash2,
@@ -105,7 +109,10 @@ private fun AppointmentDetailScreen(
 
       // Office
       if (office != null) {
-        AppointmentOfficeCard(office)
+        AppointmentOfficeCard(
+          office = office,
+          onClick = { onAction(AppointmentDetailAction.OnOfficeClick(office.id)) }
+        )
         CommunityAddressCard(address = office.address)
       }
 

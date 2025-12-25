@@ -292,6 +292,9 @@ fun App() {
 
                   composable<Route.AppointmentDetail> {
                     AppointmentDetailScreenRoot(
+                      onNavigateToOffice = { officeId ->
+                        navController.navigate(Route.OfficeDetail(officeId))
+                      },
                       onNavigateBack = { navController.popBackStack() }
                     )
                   }

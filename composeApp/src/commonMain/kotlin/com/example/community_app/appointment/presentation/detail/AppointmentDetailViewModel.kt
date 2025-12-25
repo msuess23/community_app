@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class AppointmentDetailViewModel(
@@ -35,6 +36,7 @@ class AppointmentDetailViewModel(
   private val appointmentId = savedStateHandle.toRoute<Route.AppointmentDetail>().id
 
   private val _isCancelling = MutableStateFlow(false)
+  private val _isCancelSuccess = MutableStateFlow(false)
   private val _showCancelDialog = MutableStateFlow(false)
   private val _actionError = MutableStateFlow<UiText?>(null)
 
@@ -44,29 +46,40 @@ class AppointmentDetailViewModel(
   private val appointmentFlow = getAppointmentDetails(appointmentId)
   private val notesFlow = getAppointmentNotes(appointmentId)
 
-  private data class UiState(
+  private data class CancelUiState(
     val isCancelling: Boolean,
+    val isCancelSuccess: Boolean,
     val showCancelDialog: Boolean,
-    val actionError: UiText?,
+    val error: UiText?
+  )
+
+  private val cancelStateFlow = combine(
+    _isCancelling,
+    _isCancelSuccess,
+    _showCancelDialog,
+    _actionError
+  ) { cancelling, success, dialog, error ->
+    CancelUiState(cancelling, success, dialog, error)
+  }
+
+  private data class NoteUiState(
     val isNoteDialogVisible: Boolean,
     val editingNote: AppointmentNote?
   )
 
-  private val uiControlFlow = combine(
-    _isCancelling,
-    _showCancelDialog,
-    _actionError,
+  private val noteStateFlow = combine(
     _isNoteDialogVisible,
     _editingNote
-  ) { isCancelling, showCancelDialog, actionError, isNoteDialogVisible, editingNote ->
-    UiState(isCancelling, showCancelDialog, actionError, isNoteDialogVisible, editingNote)
+  ) { isNoteDialogVisible, editingNote ->
+    NoteUiState(isNoteDialogVisible, editingNote)
   }
 
   val state = combine(
     appointmentFlow,
     notesFlow,
-    uiControlFlow
-  ) { result, notes, uiState ->
+    cancelStateFlow,
+    noteStateFlow
+  ) { result, notes, cancelState, noteState ->
 
     val details = (result as? Result.Success)?.data
     val loadingError = (result as? Result.Error)?.error?.toUiText()
@@ -76,12 +89,12 @@ class AppointmentDetailViewModel(
       appointment = details?.appointment,
       office = details?.office,
       notes = notes,
-      isNoteDialogVisible = uiState.isNoteDialogVisible,
-      editingNote = uiState.editingNote,
-      isCancelling = uiState.isCancelling,
-      isCancelled = result is Result.Error && details == null && !uiState.isCancelling,
-      showCancelDialog = uiState.showCancelDialog,
-      errorMessage = uiState.actionError ?: loadingError
+      isNoteDialogVisible = noteState.isNoteDialogVisible,
+      editingNote = noteState.editingNote,
+      isCancelling = cancelState.isCancelling,
+      isCancelSuccess = cancelState.isCancelSuccess,
+      showCancelDialog = cancelState.showCancelDialog,
+      errorMessage = cancelState.error ?: loadingError
     )
   }.stateIn(
     viewModelScope,
@@ -153,6 +166,9 @@ class AppointmentDetailViewModel(
 
       if (result is Result.Error) {
         _actionError.value = result.error.toUiText()
+        _isCancelling.value = false
+      } else {
+        _isCancelSuccess.value = true
         _isCancelling.value = false
       }
     }

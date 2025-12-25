@@ -15,7 +15,7 @@ data class AppointmentDetailState(
   val editingNote: AppointmentNote? = null,
 
   val isCancelling: Boolean = false,
-  val isCancelled: Boolean = false,
+  val isCancelSuccess: Boolean = false,
   val showCancelDialog: Boolean = false,
 
   val errorMessage: UiText? = null

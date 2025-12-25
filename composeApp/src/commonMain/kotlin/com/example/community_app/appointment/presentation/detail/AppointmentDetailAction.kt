@@ -13,4 +13,6 @@ sealed interface AppointmentDetailAction {
   data class OnDeleteNoteClick(val noteId: Int) : AppointmentDetailAction
   data object OnCloseNoteDialog : AppointmentDetailAction
   data class OnSubmitNote(val text: String) : AppointmentDetailAction
+
+  data class OnOfficeClick(val officeId: Int) : AppointmentDetailAction
 }
