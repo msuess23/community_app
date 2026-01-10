@@ -29,8 +29,8 @@
     <string name="loading">Laden</string>
 
     <!-- Info -->
-    <string name="info_singular">Information</string>
-    <string name="info_plural">Informationen</string>
+    <string name="info_singular">Mitteilung</string>
+    <string name="info_plural">Mitteilungen</string>
 
     <!-- Ticket -->
     <string name="ticket_singular">Anliegen</string>
@@ -137,15 +137,15 @@
     <string name="label_status">Status</string>
     <string name="label_status_history">Status-Verlauf</string>
     <!-- Info Status (Enum) -->
-    <string name="status_scheduled">Geplant</string>
-    <string name="status_active">In Arbeit</string>
-    <string name="status_done">Abgeschlossen</string>
-    <string name="status_cancelled">Abgesagt</string>
+    <string name="status_scheduled">geplant</string>
+    <string name="status_active">in Arbeit</string>
+    <string name="status_done">abgeschlossen</string>
+    <string name="status_cancelled">abgesagt</string>
     <!-- Ticket Status (Enum) -->
-    <string name="status_open">Offen</string>
-    <string name="status_in_progress">Wird bearbeitet</string>
-    <string name="status_resolved">Gelöst</string>
-    <string name="status_rejected">Abgelehnt</string>
+    <string name="status_open">offen</string>
+    <string name="status_in_progress">wird bearbeitet</string>
+    <string name="status_resolved">gelöst</string>
+    <string name="status_rejected">abgelehnt</string>
 
     <!-- Settings -->
     <string name="settings_label">Einstellungen</string>
